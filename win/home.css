@@ -1,0 +1,328 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #66ccff;
+    overflow: hidden;
+  }
+
+#body{
+    display: inline-flex;
+    width: 1200px;
+    height: 750px;
+}
+
+/*菜单及其子项样式*/
+#menu{
+    background-color: #09288d;
+    width: 5%;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 1% 0.5% 1% 0.5%;
+}
+
+.menuChoice{
+    background-color: #2979c9;
+    width: 80%;
+    height: 6.4%;
+    margin: 7% 0 7% 0;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+}
+
+.menuChoice:hover{
+    background-color: #2468ac;
+    width: 80%;
+    height: 6.4%;
+    margin: 7% 0 7% 0;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+
+    color: #ffffff;
+}
+
+.menuChoiceActive{
+    background-color: #184470;
+    width: 80%;
+    height: 6.4%;
+    margin: 7% 0 7% 0;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+
+    color: #ffffff;
+}
+
+.menuChoice:active{
+    background-color: #184470;
+    width: 80%;
+    height: 6.4%;
+    margin: 7% 0 7% 0;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+
+    color: #ffffff;
+}
+
+.menuChoiceIconField{
+    width: 75%;
+    height: 75%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.menuChoiceIcon{
+    width: 80%;
+}
+
+#taskChoiceIcon{
+    width: 70%;
+}
+
+.menuChoiceLabel{
+    width: 100%;
+    height: 40%;
+    font-size: 80%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes rotateHalfRound {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(180deg);
+    }
+  }
+#dataChoiceIcon:hover{
+    animation: rotateHalfRound 0.3s linear 1;
+}
+
+@keyframes rotateQuarterRound {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(90deg);
+    }
+}
+#hashChoiceIcon{
+    width: 90%;
+}
+#hashChoiceIcon:hover{
+    animation: rotateQuarterRound 0.15s linear 1;
+}
+
+/*放缩*/
+@keyframes scaleLock{
+    from {
+        width: 52.5%;
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.25);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+#encryptChoiceIcon:hover{
+    animation: scaleLock 1.5s linear 1;
+}
+#encryptChoiceIcon{
+    width: 70%;
+}
+
+#decryptChoiceIcon:hover{
+    animation: scaleLock 1.5s linear 1;
+}
+
+
+#main{
+    background-color: #66ccff;
+    width: 90%;
+    padding: 1%;
+    overflow: auto;
+}
+
+.normalOption{
+    font-size: 100%;
+}
+
+#hash{
+    width: 100%;
+    height: 100%;
+    display: inline-flex;
+    flex-direction: column;
+}
+
+.tagTitle{
+    font-size: 150%;
+    width: 100%;
+}
+
+.tagTitle1{
+    font-size: 125%;
+    font-style: bold;
+    width: 100%;
+}
+
+#hashInputTextField{
+    width: 100%;
+}
+
+.textArea{
+    width: 99%;
+}
+
+#hashMethodChoice{
+    font-size: 100%;
+    width: 20%;
+}
+
+.runningButton{
+    font-size: 100%;
+    background-color: #39C5BB;
+    display: inline-block;
+    text-align: center;
+    width: 20%;
+    margin: 1% 0 1% 0;
+    padding: 1% 0 1% 0;
+    border: 2px solid #237c76;
+    border-radius: 20px;
+}
+
+.runningButton:hover{
+    font-size: 100%;
+    background-color: #31a79f;
+    display: inline-block;
+    text-align: center;
+    width: 20%;
+    margin: 1% 0 1% 0;
+    padding: 1% 0 1% 0;
+    border: 2px solid #237c76;
+    border-radius: 20px;
+}
+
+.runningButton:active{
+    font-size: 100%;
+    background-color: #227570;
+    display: inline-block;
+    text-align: center;
+    width: 20%;
+    margin: 1% 0 1% 0;
+    padding: 1% 0 1% 0;
+    border: 2px solid #237c76;
+    border-radius: 20px;
+}
+
+.cryptionMethod{
+    display: inline-flex;
+    background-color: #cbc1d9;
+    flex-direction: column;
+    width: 100%;
+}
+
+.cryptionChoice{
+    display: inline-flex;
+    flex-direction: row;
+}
+
+.cryptionMethodChoice{
+    margin-right: 10px;
+}
+
+.cryptionSizeUnit{
+    margin-right: 10px;
+}
+
+.cryptionInputBlockSize{
+    user-select: none
+}
+
+.cryptionInputKeySize{
+    user-select: none;
+}
+
+.spendTimeField{
+    width: 100%;
+    background-color: #FFB6C1;
+}
+
+#decryptWithConfigField{
+    background-color: #cbc1d9;
+    width: 100%;
+}
+
+#taskArea{
+    height: 100%;
+}
+
+#taskListArea{
+    margin:auto;
+    width: 90%;
+    height: 90%;
+    background-color: #c3e6f8;
+    display: inline-flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.singleTaskField{
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    width: 90%;
+    background-color: #001070;
+    padding: 0 20px 0 20px;
+    border-radius: 20px;
+    display: inline-flex;
+    flex-direction: column;
+}
+
+.singeTaskDetailField{
+    display: inline-flex;
+}
+
+.singleTaskText{
+    color: #ffffff;
+    font-size: 15px;
+    overflow: auto;
+}
+
+.singleTaskIcon{
+    width: 75px;
+}
+
+.singleTaskProgress{
+    width: 100%;
+}
+
+#iconField{
+    display: inline-flex;
+    width: 100%;
+}
+
+.singleIcon{
+    margin: 10px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+}

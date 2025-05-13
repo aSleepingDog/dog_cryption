@@ -431,8 +431,8 @@ namespace DogCryption
 		DogData::Data AESMiddleEncryptionMethod(DogData::Data datablock, int flag, int mode);
         DogData::Data AESMiddleDecryptionMethod(DogData::Data datablock, int flag, int mode);
 
-		void AESEncodingMachine(DogData::Data& plain, byte block_size, const DogData::Data& key, byte key_size);
-		void AESDecodingMachine(DogData::Data& cipher, byte block_size, const DogData::Data& key, byte key_size);
+		void AESEncodingMachineSelf(DogData::Data& plain, byte block_size, const DogData::Data& key, byte key_size);
+		void AESDecodingMachineSelf(DogData::Data& cipher, byte block_size, const DogData::Data& key, byte key_size);
 	}
 
 	namespace SM4
@@ -477,9 +477,9 @@ namespace DogCryption
 
 		DogData::Data SM4_extend_key(DogData::Data key, Ullong mode = 16);
 
-		void SM4EncodingMachine(DogData::Data& plain, byte block_size, const DogData::Data& key, byte key_size);
+		void SM4EncodingMachineSelf(DogData::Data& plain, byte block_size, const DogData::Data& key, byte key_size);
 		
-		void SM4DecodingMachine(DogData::Data& crypt, byte block_size, const DogData::Data& key, byte key_size);
+		void SM4DecodingMachineSelf(DogData::Data& crypt, byte block_size, const DogData::Data& key, byte key_size);
 		
 
 	}
@@ -493,5 +493,10 @@ namespace DogCryption
 		const Ullong camelia128_KEY_SIZE = 16;
 		const Ullong camelia192_KEY_SIZE = 24;
 		const Ullong camelia256_KEY_SIZE = 32;
+
+		DogData::Data camelia_extend_key(DogData::Data key, Ullong mode = 16);
+
+		void cameliaEncodingMachineSelf(DogData::Data& plain, byte block_size, const DogData::Data& key, byte key_size);
+		void cameliaDecodingMachineSelf(DogData::Data& crypt, byte block_size, const DogData::Data& key, byte key_size);
 	}
 }

@@ -82,7 +82,14 @@ namespace DogData
 		//void erase(const Ullong i);
 		void erase(const std::vector<byte>::iterator pos);
 
+		/*
+		* 清除所有数据,不保留位置
+		* 等效于vector.clear()
+		*/
 		void clear_leave_pos();
+		/*
+		* 将所有位置重置为0
+		*/
 		void clear_set_zero();
 
 		void push_back(byte b);
@@ -93,8 +100,23 @@ namespace DogData
 		void swap(Data& d);
 		void swap(Data d);
 
-		friend DogData::Data operator<<(Data& d,Ullong shift);
-		friend DogData::Data operator>>(Data& d, Ullong shift);
+		DogData::Data bit_left_move_norise(Ullong shift);
+		void bit_left_move_norise_self(Ullong shift);
+
+		DogData::Data bit_left_move_rise(Ullong shift);
+		void bit_left_move_rise_self(Ullong shift);
+
+		DogData::Data bit_right_move_norise(Ullong shift);
+		void bit_right_move_norise_self(Ullong shift);
+
+		DogData::Data bit_right_move_rise(Ullong shift);
+		void bit_right_move_rise_self(Ullong shift);
+
+
+		DogData::Data operator~();
+		friend DogData::Data operator&(const Data d1, const Data d2);
+		friend DogData::Data operator|(const Data d1, const Data d2);
+		friend DogData::Data operator^(const Data d1, const Data d2);
 
 		//friend bool operator==(const Data& d1, const Data& d2);
 		//friend bool operator==(const Data d1, const Data& d2);

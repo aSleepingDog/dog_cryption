@@ -427,8 +427,8 @@ DogCryption::cryptor::cryptor(
 		}
 		this->key_size = key_size;
 
-		this->block_encryption = AESEncodingMachine;
-		this->block_decryption = AESDecodingMachine;
+		this->block_encryption = AESEncodingMachineSelf;
+		this->block_decryption = AESDecodingMachineSelf;
 	}
 	else if (cryption_algorithm == DogCryption::SM4::SM4)
 	{
@@ -441,8 +441,8 @@ DogCryption::cryptor::cryptor(
 		}
 		this->key_size = key_size;
 
-		this->block_encryption = SM4EncodingMachine;
-		this->block_decryption = SM4DecodingMachine;
+		this->block_encryption = SM4EncodingMachineSelf;
+		this->block_decryption = SM4DecodingMachineSelf;
 	}
 	else
 	{
@@ -2969,7 +2969,7 @@ DogData::Data DogCryption::AES::AESMiddleDecryptionMethod(DogData::Data databloc
 
 	return res;
 }
-void DogCryption::AES::AESEncodingMachine(DogData::Data& plain, byte block_size, const DogData::Data& key, byte key_size)
+void DogCryption::AES::AESEncodingMachineSelf(DogData::Data& plain, byte block_size, const DogData::Data& key, byte key_size)
 {
 	DogData::Data tempKey = key.sub_by_pos(0, 16);
 	plain = DogCryption::utils::squareXOR(plain, tempKey, 16);
@@ -2980,7 +2980,7 @@ void DogCryption::AES::AESEncodingMachine(DogData::Data& plain, byte block_size,
 		plain = DogCryption::utils::squareXOR(plain, tempKey, 16);
 	}
 }
-void DogCryption::AES::AESDecodingMachine(DogData::Data& cipher, byte block_size, const DogData::Data& key, byte key_size)
+void DogCryption::AES::AESDecodingMachineSelf(DogData::Data& cipher, byte block_size, const DogData::Data& key, byte key_size)
 {
 	DogData::Data tempKey = key.sub_by_pos((key_size * 4) + 96, (key_size * 4) + 112);
 	cipher = DogCryption::utils::squareXOR(cipher, tempKey, 16);
@@ -3040,7 +3040,7 @@ DogData::Data DogCryption::SM4::SM4_extend_key(DogData::Data key, Ullong mode)
 	}
 	return res;
 }
-void DogCryption::SM4::SM4EncodingMachine(DogData::Data& plain, byte block_size, const DogData::Data& key, byte key_size)
+void DogCryption::SM4::SM4EncodingMachineSelf(DogData::Data& plain, byte block_size, const DogData::Data& key, byte key_size)
 {
 	Uint temp[4] = { 0,0,0,0 };
 	for (int i = 0; i < 16; i += 4)
@@ -3072,7 +3072,7 @@ void DogCryption::SM4::SM4EncodingMachine(DogData::Data& plain, byte block_size,
 		}
 	}
 }
-void DogCryption::SM4::SM4DecodingMachine(DogData::Data& crypt, byte block_size, const DogData::Data& key, byte key_size)
+void DogCryption::SM4::SM4DecodingMachineSelf(DogData::Data& crypt, byte block_size, const DogData::Data& key, byte key_size)
 {
 	Uint temp[4] = { 0,0,0,0 };
 	for (int i = 0; i < 16; i += 4)
@@ -3102,4 +3102,9 @@ void DogCryption::SM4::SM4DecodingMachine(DogData::Data& crypt, byte block_size,
 			crypt[i * 4 + j] = (byte)(temp[3 - i] >> (24 - j * 8) & 0xff);
 		}
 	}
+}
+
+DogData::Data DogCryption::camelia::camelia_extend_key(DogData::Data key, Ullong mode)
+{
+	return DogData::Data();
 }

@@ -370,6 +370,228 @@ void DogData::Data::swap(Data d)
     this->inside_data.swap(d.inside_data);
 }
 
+DogData::Data DogData::Data::bit_left_move_norise(Ullong shift)
+{
+    DogData::Data res; res.reserve(this->size());
+    DogData::Data mid;
+    Ullong byte_shift = shift / 8;
+    Ullong bit_shift = shift % 8;
+    byte last = 0;
+    if (byte_shift > this->size())
+    {
+        for (Ullong i = 0; i < this->size(); i++)
+        {
+            res.push_back(0x00);
+        }
+        return res;
+    }
+    else if (byte_shift != 0)
+    {
+        mid = this->sub_by_len(byte_shift, this->size() - byte_shift);
+        for (Ullong i = 0; i < byte_shift; i++)
+        {
+            mid.push_back(0x00);
+        }
+    }
+    else
+    {
+        mid = *this;
+    }
+    for (auto rit = mid.crbegin(); rit != mid.crend(); rit++)
+    {
+        res.insert(res.begin(), *rit << bit_shift | last);
+        last = *rit >> (8 - bit_shift);
+    }
+    return res;
+}
+void DogData::Data::bit_left_move_norise_self(Ullong shift)
+{
+    DogData::Data mid;
+    Ullong byte_shift = shift / 8;
+    Ullong bit_shift = shift % 8;
+    byte last = 0;
+    if (byte_shift > this->size())
+    {
+        this->clear_set_zero();
+    }
+    else if (byte_shift != 0)
+    {
+        mid = this->sub_by_len(byte_shift, this->size() - byte_shift);
+        for (Ullong i = 0; i < byte_shift; i++)
+        {
+            mid.push_back(0x00);
+        }
+    }
+    else
+    {
+        mid = *this;
+    }
+    this->clear_leave_pos();
+    for (auto rit = mid.crbegin(); rit != mid.crend(); rit++)
+    {
+        this->insert(this->begin(), *rit << bit_shift | last);
+        last = *rit >> (8 - bit_shift);
+    }
+}
+
+DogData::Data DogData::Data::bit_left_move_rise(Ullong shift)
+{
+    DogData::Data res; res.reserve(this->size());
+    Ullong byte_shift = shift / 8;
+    Ullong bit_shift = shift % 8;
+    byte last = 0;
+    for (auto rit = this->crbegin(); rit != this->crend(); rit++)
+    {
+        res.insert(res.begin(), *rit << bit_shift | last);
+        last = *rit >> (8 - bit_shift);
+    }
+    if (last != 0x00)
+    {
+        res.insert(res.begin(), last);
+    }
+    for (Ullong i = 0; i < byte_shift; i++)
+    {
+        res.push_back(0x00);
+    }
+    return res;
+}
+void DogData::Data::bit_left_move_rise_self(Ullong shift)
+{
+    Ullong byte_shift = shift / 8;
+    Ullong bit_shift = shift % 8;
+    byte last = 0;
+    for (auto rit = this->rbegin(); rit != this->rend(); rit++)
+    {
+        byte tmp = (*rit << bit_shift | last);
+        last = *rit >> (8 - bit_shift);
+        *rit = tmp;
+    }
+    if (last != 0x00)
+    {
+        this->insert(this->begin(), last);
+    }
+    for (Ullong i = 0; i < byte_shift; i++)
+    {
+        this->push_back(0x00);
+    }
+}
+
+DogData::Data DogData::Data::bit_right_move_norise(Ullong shift)
+{
+    DogData::Data res; res.reserve(this->size());
+    DogData::Data mid;
+    Ullong byte_shift = shift / 8;
+    Ullong bit_shift = shift % 8;
+    byte last = 0;
+    if (byte_shift > this->size())
+    {
+        for (Ullong i = 0; i < this->size(); i++)
+        {
+            res.push_back(0x00);
+        }
+        return res;
+    }
+    else if (byte_shift != 0)
+    {
+        mid = this->sub_by_len(0, this->size() - byte_shift);
+        for (Ullong i = 0; i < byte_shift; i++)
+        {
+            mid.insert(mid.begin(), 0x00);
+        }
+    }
+    else
+    {
+        mid = *this;
+    }
+    for (auto it = mid.cbegin(); it != mid.cend(); it++)
+    {
+        res.push_back(*it >> bit_shift | last);
+        last = *it << (8 - bit_shift);
+    }
+    return res;
+}
+void DogData::Data::bit_right_move_norise_self(Ullong shift)
+{
+    DogData::Data mid;
+    Ullong byte_shift = shift / 8;
+    Ullong bit_shift = shift % 8;
+    byte last = 0;
+    if (byte_shift > this->size())
+    {
+        this->clear_set_zero();
+    }
+    else if (byte_shift != 0)
+    {
+        mid = this->sub_by_len(0, this->size() - byte_shift);
+        for (Ullong i = 0; i < byte_shift; i++)
+        {
+            mid.insert(mid.begin(), 0x00);
+        }
+    }
+    else
+    {
+        mid = *this;
+    }
+    this->clear_leave_pos();
+    for (auto it = mid.cbegin(); it != mid.cend(); it++)
+    {
+        this->push_back(*it >> bit_shift | last);
+        last = *it << (8 - bit_shift);
+    }
+}
+
+DogData::Data DogData::Data::bit_right_move_rise(Ullong shift)
+{
+    DogData::Data res; res.reserve(this->size());
+    Ullong byte_shift = shift / 8;
+    Ullong bit_shift = shift % 8;
+    byte last = 0;
+    for (auto rit = this->cbegin(); rit != this->cend(); rit++)
+    {
+        res.push_back(*rit >> bit_shift | last);
+        last = *rit << (8 - bit_shift);
+    }
+    if (last != 0x00)
+    {
+        res.push_back(last);
+    }
+    for (Ullong i = 0; i < byte_shift; i++)
+    {
+        res.insert(res.begin(), 0x00);
+    }
+    return res;
+}
+void DogData::Data::bit_right_move_rise_self(Ullong shift)
+{
+    Ullong byte_shift = shift / 8;
+    Ullong bit_shift = shift % 8;
+    byte last = 0;
+    for (auto rit = this->begin(); rit != this->end(); rit++)
+    {
+        byte tmp = (*rit >> bit_shift | last);
+        last = *rit << (8 - bit_shift);
+        *rit = tmp;
+    }
+    if (last != 0x00)
+    {
+        this->push_back(last);
+    }
+    for (Ullong i = 0; i < byte_shift; i++)
+    {
+        this->insert(this->begin(), 0x00);
+    }
+}
+
+DogData::Data DogData::Data::operator~()
+{
+    DogData::Data res;
+    for (auto it = this->cbegin(); it != this->cend(); it++)
+    {
+        res.push_back(~(*it));
+    }
+    return res;
+}
+
 bool DogData::Data::is_equal(const Data& d2) const
 {
     return *this == d2;
@@ -458,25 +680,44 @@ bool DogData::operator==(const Data& d1, const Data d2)
     }
 }
 */
-DogData::Data DogData::operator<<(Data& d, Ullong shift)
+DogData::Data DogData::operator&(const Data d1, const Data d2)
 {
-    DogData::Data res;res.reserve(d.size());
-    byte last = 0;
-    for (auto rit = d.crbegin(); rit != d.crend(); rit++)
+    if (d1.size() != d2.size())
     {
-        res.insert(res.begin(), *rit << shift | last);
-        last = *rit >> (8 - shift);
+        throw dog_exception("the size must be equal when AND", __FILE__, __FUNCTION__, __LINE__);
+    }
+    DogData::Data res; res.reserve(d1.size());
+    for (Ullong i = 0; i < d1.size(); i++)
+    {
+        res.push_back(d1[i] & d2[i]);
     }
     return res;
+
 }
-DogData::Data DogData::operator>>(Data& d, Ullong shift)
+DogData::Data DogData::operator|(const Data d1, const Data d2)
 {
-    DogData::Data res; res.reserve(d.size());
-    byte last = 0;
-    for (auto it = d.cbegin(); it != d.cend(); it++)
+    if (d1.size() != d2.size())
     {
-        res.push_back(*it >> shift | last);
-        last = *it << (8 - shift);
+        throw dog_exception("the size must be equal when OR", __FILE__, __FUNCTION__, __LINE__);
+    }
+    DogData::Data res; res.reserve(d1.size());
+    for (Ullong i = 0; i < d1.size(); i++)
+    {
+        res.push_back(d1[i] | d2[i]);
+    }
+    return res;
+
+}
+DogData::Data DogData::operator^(const Data d1, const Data d2)
+{
+    if (d1.size() != d2.size())
+    {
+        throw dog_exception("the size must be equal when OR", __FILE__, __FUNCTION__, __LINE__);
+    }
+    DogData::Data res; res.reserve(d1.size());
+    for (Ullong i = 0; i < d1.size(); i++)
+    {
+        res.push_back(d1[i] ^ d2[i]);
     }
     return res;
 }

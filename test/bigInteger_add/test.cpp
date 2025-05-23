@@ -9,7 +9,7 @@
 int main()
 {
 	using namespace std;
-	using namespace DogNumber;
+	using namespace dog_number;
 
 	ifstream fa("inputA.txt", ios::in);
 	ifstream fb("inputB.txt", ios::in);

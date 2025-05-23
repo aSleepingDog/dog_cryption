@@ -10,7 +10,7 @@ void hashWorker(std::string file_path, std::string hash_type)
 
 	std::ofstream result(hash_type + ".txt", std::ios::binary);
 
-	DogHash::hash_crypher hash_crypher(hash_type);
+	dog_hash::hash_crypher hash_crypher(hash_type);
 
 	for (auto& file : files)
 	{
@@ -23,7 +23,7 @@ void hashWorker(std::string file_path, std::string hash_type)
 			break;
 		}
 		auto start = std::chrono::high_resolution_clock::now();
-		DogData::Data resData = DogHash::hash_crypher::streamHash(hash_crypher, plain0);
+		dog_data::Data resData = dog_hash::hash_crypher::streamHash(hash_crypher, plain0);
 		auto end = std::chrono::high_resolution_clock::now();
 		duration = end - start;
 		hash_crypher.init();

@@ -71,7 +71,7 @@ public slots:
 					QString qResult;
 					switch (task["outputCode"].toInt())
 					{
-					case DogData::Data::HEX:
+					case dog_data::Data::HEX:
 					{
 						bool isUpper = task["isUpper"].toBool();
 						stdResult = info.result.getHexString(isUpper);
@@ -79,7 +79,7 @@ public slots:
 						taskInfo["result"] = qResult;
 						break;
 					}
-					case DogData::Data::BASE64:
+					case dog_data::Data::BASE64:
 					{
 						QChar qchar1 = task["outputChar1"].toString()[0];
 						QChar qchar2 = task["outputChar2"].toString()[0];
@@ -170,7 +170,7 @@ public slots:
 			int outputTypeCode = args["outputTypeCode"].toInt();
 			QString qvalue = args["value"].toString();
 			QChar qchar1, qchar2, qchar3;
-			if (inputTypeCode == DogData::Data::BASE64)
+			if (inputTypeCode == dog_data::Data::BASE64)
 			{
 				qchar1 = args["inputChar1"].toString()[0];
 				qchar2 = args["inputChar2"].toString()[0];
@@ -179,22 +179,22 @@ public slots:
 				qvalue.replace(qchar2, "/");
 				qvalue.replace(qchar3, "=");
 			}
-			else if (inputTypeCode != DogData::Data::HEX && inputTypeCode != DogData::Data::UTF8)
+			else if (inputTypeCode != dog_data::Data::HEX && inputTypeCode != dog_data::Data::UTF8)
 			{
 				//throw std::runtime_error("inputTypeCode error\n输入类型错误");
 				throw std::runtime_error("输入类型错误");
 			}
 			std::string value = qvalue.toStdString();
-			DogData::Data data(value, inputTypeCode);
+			dog_data::Data data(value, inputTypeCode);
 			std::string result;
 			switch (outputTypeCode)
 			{
-			case DogData::Data::UTF8:
+			case dog_data::Data::UTF8:
 			{
 				result = data.getUTF8String();
 				break;
 			}
-			case DogData::Data::BASE64:
+			case dog_data::Data::BASE64:
 			{
 				qchar1 = args["outputChar1"].toString()[0];
 				qchar2 = args["outputChar2"].toString()[0];
@@ -205,7 +205,7 @@ public slots:
 				result = data.getBase64String(char1, char2, char3);
 				break;
 			}
-			case DogData::Data::HEX:
+			case dog_data::Data::HEX:
 			{
 				bool isUpper = args["isUpper"].toBool();
 				result = data.getHexString(isUpper);
@@ -252,10 +252,10 @@ public slots:
 			if (inputTypeCode != 3)
 			{
 				work::timer taskTimer;
-				DogData::Data inputData;
+				dog_data::Data inputData;
 				QString qvalue = args["value"].toString();
 				QChar qchar1, qchar2, qchar3;
-				if (inputTypeCode == DogData::Data::BASE64)
+				if (inputTypeCode == dog_data::Data::BASE64)
 				{
 					qchar1 = args["inputChar1"].toString()[0];
 					qchar2 = args["inputChar2"].toString()[0];
@@ -264,30 +264,30 @@ public slots:
 					qvalue.replace(qchar2, "/");
 					qvalue.replace(qchar3, "=");
 				}
-				else if (inputTypeCode != DogData::Data::HEX && inputTypeCode != DogData::Data::UTF8)
+				else if (inputTypeCode != dog_data::Data::HEX && inputTypeCode != dog_data::Data::UTF8)
 				{
 					//throw std::runtime_error("inputTypeCode error\n输入类型错误");
 					throw std::runtime_error("输入类型错误");
 				}
 				std::string value = qvalue.toStdString();
-				inputData = DogData::Data(value, inputTypeCode);
+				inputData = dog_data::Data(value, inputTypeCode);
 				QString qhashType = str2;
 				std::string hashType = qhashType.toStdString();
-				DogHash::hash_crypher hashCrypher(hashType);
+				dog_hash::hash_crypher hashCrypher(hashType);
 				taskTimer.start();
-				DogData::Data resultData = hashCrypher.getDataHash(inputData);
+				dog_data::Data resultData = hashCrypher.getDataHash(inputData);
 				taskTimer.end();
 				std::string result;
 				int outputTypeCode = args["outputTypeCode"].toInt();
 				
 				switch (outputTypeCode)
 				{
-				case DogData::Data::UTF8:
+				case dog_data::Data::UTF8:
 				{
 					result = resultData.getUTF8String();
 					break;
 				}
-				case DogData::Data::BASE64:
+				case dog_data::Data::BASE64:
 				{
 					qchar1 = args["outputChar1"].toString()[0];
 					qchar2 = args["outputChar2"].toString()[0];
@@ -298,7 +298,7 @@ public slots:
 					result = resultData.getBase64String(char1, char2, char3);
 					break;
 				}
-				case DogData::Data::HEX:
+				case dog_data::Data::HEX:
 				{
 					bool isUpper = args["isUpper"].toBool();
 					result = resultData.getHexString(isUpper);
@@ -334,7 +334,7 @@ public slots:
 				QString output = "";
 				switch (args["outputTypeCode"].toInt())
 				{
-				case DogData::Data::BASE64:
+				case dog_data::Data::BASE64:
 				{
 					QChar qchar1 = args["outputChar1"].toString()[0];
 					QChar qchar2 = args["outputChar2"].toString()[0];
@@ -345,7 +345,7 @@ public slots:
 					output = QString("base64(%1%2%3)").arg(qchar1).arg(qchar2).arg(qchar3);
 					break;
 				}
-				case DogData::Data::HEX:
+				case dog_data::Data::HEX:
 				{
 					if (args["isUpper"].toBool())
 					{
@@ -399,10 +399,10 @@ public slots:
 			if (plainInputTypeCode != 3)
 			{
 				work::timer taskTimer;
-				DogData::Data plainData;
+				dog_data::Data plainData;
 				QString qplainValue = jplainConfig["value"].toString();
 				QChar qchar1, qchar2, qchar3;
-				if (plainInputTypeCode == DogData::Data::BASE64)
+				if (plainInputTypeCode == dog_data::Data::BASE64)
 				{
 					qchar1 = jplainConfig["inputChar1"].toString()[0];
 					qchar2 = jplainConfig["inputChar2"].toString()[0];
@@ -411,13 +411,13 @@ public slots:
 					qplainValue.replace(qchar2, "/");
 					qplainValue.replace(qchar3, "=");
 				}
-				else if (plainInputTypeCode != DogData::Data::HEX && plainInputTypeCode != DogData::Data::UTF8)
+				else if (plainInputTypeCode != dog_data::Data::HEX && plainInputTypeCode != dog_data::Data::UTF8)
 				{
 					//throw std::runtime_error("plain inputTypeCode error\n明文输入类型错误");
 					throw std::runtime_error("明文输入类型错误");
 				}
 				std::string plainValue = qplainValue.toStdString();
-				plainData = DogData::Data(plainValue, plainInputTypeCode);
+				plainData = dog_data::Data(plainValue, plainInputTypeCode);
 
 				QString qalgorithm = jcryptionConfig["algorithm"].toString();
 				std::string algorithm = qalgorithm.toStdString();
@@ -428,16 +428,16 @@ public slots:
                 QString qpadding = jcryptionConfig["padding"].toString();
 				std::string padding = qpadding.toStdString();
 				bool isPadding = jcryptionConfig["isPadding"].toBool();
-				DogCryption::cryption_config cryptConfig(
+				dog_cryption::CryptionConfig cryptConfig(
 					algorithm, blockSize, keySize, 
 					padding,
 					mode,true,isPadding,false
 				);
-				DogCryption::cryptor cryptor(cryptConfig);
+				dog_cryption::Cryptor cryptor(cryptConfig);
 
 				int keyInputTypeCode = jkeyConfig["inputTypeCode"].toInt();
 				QString qkeyValue = jkeyConfig["value"].toString();
-				if (keyInputTypeCode == DogData::Data::BASE64)
+				if (keyInputTypeCode == dog_data::Data::BASE64)
 				{
 					qchar1 = jkeyConfig["inputChar1"].toString()[0];
 					qchar2 = jkeyConfig["inputChar2"].toString()[0];
@@ -446,31 +446,31 @@ public slots:
 					qkeyValue.replace(qchar2, "/");
 					qkeyValue.replace(qchar3, "=");
 				}
-				else if (keyInputTypeCode != DogData::Data::HEX && keyInputTypeCode != DogData::Data::UTF8)
+				else if (keyInputTypeCode != dog_data::Data::HEX && keyInputTypeCode != dog_data::Data::UTF8)
 				{
 					//throw std::runtime_error("key inputTypeCode error\n密钥输入类型错误");
 					throw std::runtime_error("密钥输入类型错误");
 				}
 				std::string keyValue = qkeyValue.toStdString();
-                DogData::Data keyData(keyValue, keyInputTypeCode);
+                dog_data::Data keyData(keyValue, keyInputTypeCode);
 				cryptor.set_key(keyData);
 
 				taskTimer.start();
                 auto cryptDataPair = cryptor.encrypt(plainData);
 				taskTimer.end();
-				DogData::Data cryptData = cryptDataPair.first + cryptDataPair.second;
+				dog_data::Data cryptData = cryptDataPair.first + cryptDataPair.second;
 
 
 				int outputTypeCode = jplainConfig["outputTypeCode"].toInt();
 				std::string result;
 				switch (outputTypeCode)
 				{
-				case DogData::Data::UTF8:
+				case dog_data::Data::UTF8:
 				{
 					result = cryptData.getUTF8String();
 					break;
 				}
-				case DogData::Data::BASE64:
+				case dog_data::Data::BASE64:
 				{
 					qchar1 = jplainConfig["outputChar1"].toString()[0];
 					qchar2 = jplainConfig["outputChar2"].toString()[0];
@@ -481,7 +481,7 @@ public slots:
 					result = cryptData.getBase64String(char1, char2, char3);
 					break;
 				}
-				case DogData::Data::HEX:
+				case dog_data::Data::HEX:
 				{
 					bool isUpper = jplainConfig["isUpper"].toBool();
 					result = cryptData.getHexString(isUpper);
@@ -516,7 +516,7 @@ public slots:
 				QString qpadding = jcryptionConfig["padding"].toString();
 				std::string padding = qpadding.toStdString();
 				bool isPadding = jcryptionConfig["isPadding"].toBool();
-				DogCryption::cryption_config cryptConfig(
+				dog_cryption::CryptionConfig cryptConfig(
 					algorithm, blockSize, keySize,
 					padding,
 					mode, true, isPadding, false
@@ -524,7 +524,7 @@ public slots:
 
 				int keyInputTypeCode = jkeyConfig["inputTypeCode"].toInt();
 				QString qkeyValue = jkeyConfig["value"].toString();
-				if (keyInputTypeCode == DogData::Data::BASE64)
+				if (keyInputTypeCode == dog_data::Data::BASE64)
 				{
 					QString qchar1 = jkeyConfig["inputChar1"].toString()[0];
 					QString qchar2 = jkeyConfig["inputChar2"].toString()[0];
@@ -533,13 +533,13 @@ public slots:
 					qkeyValue.replace(qchar2, "/");
 					qkeyValue.replace(qchar3, "=");
 				}
-				else if (keyInputTypeCode != DogData::Data::HEX && keyInputTypeCode != DogData::Data::UTF8)
+				else if (keyInputTypeCode != dog_data::Data::HEX && keyInputTypeCode != dog_data::Data::UTF8)
 				{
 					//throw std::runtime_error("key inputTypeCode error\n密钥输入类型错误");
 					throw std::runtime_error("密钥输入类型错误");
 				}
 				std::string keyValue = qkeyValue.toStdString();
-				DogData::Data keyData(keyValue, keyInputTypeCode);
+				dog_data::Data keyData(keyValue, keyInputTypeCode);
 
 				bool withConfig = jcryptionConfig["withConfig"].toBool();
 
@@ -590,10 +590,10 @@ public slots:
 			if (plainInputTypeCode != 3)
 			{
 				work::timer taskTimer;
-				DogData::Data cryptData;
+				dog_data::Data cryptData;
 				QString qcryptValue = jcryptConfig["value"].toString();
 				QChar qchar1, qchar2, qchar3;
-				if (plainInputTypeCode == DogData::Data::BASE64)
+				if (plainInputTypeCode == dog_data::Data::BASE64)
 				{
 					qchar1 = jcryptConfig["inputChar1"].toString()[0];
 					qchar2 = jcryptConfig["inputChar2"].toString()[0];
@@ -602,13 +602,13 @@ public slots:
 					qcryptValue.replace(qchar2, "/");
 					qcryptValue.replace(qchar3, "=");
 				}
-				else if (plainInputTypeCode != DogData::Data::HEX && plainInputTypeCode != DogData::Data::UTF8)
+				else if (plainInputTypeCode != dog_data::Data::HEX && plainInputTypeCode != dog_data::Data::UTF8)
 				{
 					//throw std::runtime_error("plain inputTypeCode error\n明文输入类型错误");
 					throw std::runtime_error("明文输入类型错误");
 				}
 				std::string plainValue = qcryptValue.toStdString();
-				cryptData = DogData::Data(plainValue, plainInputTypeCode);
+				cryptData = dog_data::Data(plainValue, plainInputTypeCode);
 
 				QString qalgorithm = jcryptionConfig["algorithm"].toString();
 				std::string algorithm = qalgorithm.toStdString();
@@ -619,16 +619,16 @@ public slots:
 				QString qpadding = jcryptionConfig["padding"].toString();
 				std::string padding = qpadding.toStdString();
 				bool isPadding = jcryptionConfig["isPadding"].toBool();
-				DogCryption::cryption_config cryptConfig(
+				dog_cryption::CryptionConfig cryptConfig(
 					algorithm, blockSize, keySize,
 					padding,
 					mode, true, isPadding, false
 				);
-				DogCryption::cryptor cryptor(cryptConfig);
+				dog_cryption::Cryptor cryptor(cryptConfig);
 
 				int keyInputTypeCode = jkeyConfig["inputTypeCode"].toInt();
 				QString qkeyValue = jkeyConfig["value"].toString();
-				if (keyInputTypeCode == DogData::Data::BASE64)
+				if (keyInputTypeCode == dog_data::Data::BASE64)
 				{
 					qchar1 = jkeyConfig["inputChar1"].toString()[0];
 					qchar2 = jkeyConfig["inputChar2"].toString()[0];
@@ -637,19 +637,19 @@ public slots:
 					qkeyValue.replace(qchar2, "/");
 					qkeyValue.replace(qchar3, "=");
 				}
-				else if (keyInputTypeCode != DogData::Data::HEX && keyInputTypeCode != DogData::Data::UTF8)
+				else if (keyInputTypeCode != dog_data::Data::HEX && keyInputTypeCode != dog_data::Data::UTF8)
 				{
 					//throw std::runtime_error("key inputTypeCode error\n密钥输入类型错误");
 					throw std::runtime_error("密钥输入类型错误");
 				}
 				std::string keyValue = qkeyValue.toStdString();
-				DogData::Data keyData(keyValue, keyInputTypeCode);
+				dog_data::Data keyData(keyValue, keyInputTypeCode);
 				cryptor.set_key(keyData);
 
-				DogData::Data cryptiv = cryptData.sub_by_len(0, cryptConfig.block_size);
-				DogData::Data cryptmid = cryptData.sub_by_pos(cryptConfig.block_size, cryptData.size());
+				dog_data::Data cryptiv = cryptData.sub_by_len(0, cryptConfig.block_size);
+				dog_data::Data cryptmid = cryptData.sub_by_pos(cryptConfig.block_size, cryptData.size());
 				taskTimer.start();
-				DogData::Data plainData = cryptor.decrypt(cryptiv, cryptmid);
+				dog_data::Data plainData = cryptor.decrypt(cryptiv, cryptmid);
 				taskTimer.end();
 
 
@@ -657,12 +657,12 @@ public slots:
 				std::string result;
 				switch (outputTypeCode)
 				{
-				case DogData::Data::UTF8:
+				case dog_data::Data::UTF8:
 				{
 					result = plainData.getUTF8String();
 					break;
 				}
-				case DogData::Data::BASE64:
+				case dog_data::Data::BASE64:
 				{
 					qchar1 = jcryptConfig["outputChar1"].toString()[0];
 					qchar2 = jcryptConfig["outputChar2"].toString()[0];
@@ -673,7 +673,7 @@ public slots:
 					result = plainData.getBase64String(char1, char2, char3);
 					break;
 				}
-				case DogData::Data::HEX:
+				case dog_data::Data::HEX:
 				{
 					bool isUpper = jcryptConfig["isUpper"].toBool();
 					result = plainData.getHexString(isUpper);
@@ -708,7 +708,7 @@ public slots:
 				QString qpadding = jcryptionConfig["padding"].toString();
 				std::string padding = qpadding.toStdString();
 				bool isPadding = jcryptionConfig["isPadding"].toBool();
-				DogCryption::cryption_config cryptConfig(
+				dog_cryption::CryptionConfig cryptConfig(
 					algorithm, blockSize, keySize,
 					padding,
 					mode, true, isPadding, false
@@ -716,7 +716,7 @@ public slots:
 
 				int keyInputTypeCode = jkeyConfig["inputTypeCode"].toInt();
 				QString qkeyValue = jkeyConfig["value"].toString();
-				if (keyInputTypeCode == DogData::Data::BASE64)
+				if (keyInputTypeCode == dog_data::Data::BASE64)
 				{
 					QString qchar1 = jkeyConfig["inputChar1"].toString()[0];
 					QString qchar2 = jkeyConfig["inputChar2"].toString()[0];
@@ -725,13 +725,13 @@ public slots:
 					qkeyValue.replace(qchar2, "/");
 					qkeyValue.replace(qchar3, "=");
 				}
-				else if (keyInputTypeCode != DogData::Data::HEX && keyInputTypeCode != DogData::Data::UTF8)
+				else if (keyInputTypeCode != dog_data::Data::HEX && keyInputTypeCode != dog_data::Data::UTF8)
 				{
 					//throw std::runtime_error("key inputTypeCode error\n密钥输入类型错误");
 					throw std::runtime_error("密钥输入类型错误");
 				}
 				std::string keyValue = qkeyValue.toStdString();
-				DogData::Data keyData(keyValue, keyInputTypeCode);
+				dog_data::Data keyData(keyValue, keyInputTypeCode);
 
 				bool withConfig = jcryptionConfig["withConfig"].toBool();
 

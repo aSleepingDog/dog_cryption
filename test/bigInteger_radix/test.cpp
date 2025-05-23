@@ -11,7 +11,7 @@ int main()
 {
 	
 	using namespace std;
-	using namespace DogNumber;
+	using namespace dog_number;
 
 	auto start = std::chrono::high_resolution_clock::now();
 	auto end = std::chrono::high_resolution_clock::now();

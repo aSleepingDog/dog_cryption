@@ -15,12 +15,12 @@ class test_thread : public std::jthread
 private:
 	std::unique_ptr<std::ifstream> inputA, inputB;
 	std::unique_ptr<std::ofstream> output;
-	std::function<DogNumber::BigInteger(DogNumber::BigInteger, DogNumber::BigInteger)> multiply;
+	std::function<dog_number::BigInteger(dog_number::BigInteger, dog_number::BigInteger)> multiply;
 	std::string name;
 	double total_time = 0;
 public:
 	test_thread(
-		std::function<DogNumber::BigInteger(DogNumber::BigInteger, DogNumber::BigInteger)> multiply,
+		std::function<dog_number::BigInteger(dog_number::BigInteger, dog_number::BigInteger)> multiply,
 		const char* inputA, const char* inputB,
 		const char* output,
 		const char* name
@@ -43,10 +43,10 @@ public:
 
 		while (getline(*inputA, a) && getline(*inputB, b))
 		{
-			DogNumber::BigInteger A(a, 10), B(b, 10);
+			dog_number::BigInteger A(a, 10), B(b, 10);
 
 			start = std::chrono::high_resolution_clock::now();
-			DogNumber::BigInteger C = multiply(A, B);
+			dog_number::BigInteger C = multiply(A, B);
 			end = std::chrono::high_resolution_clock::now();
 			duration = end - start;
 			this->total_time += duration.count();
@@ -70,7 +70,7 @@ public:
 int main()
 {
 	using namespace std;
-	using namespace DogNumber;
+	using namespace dog_number;
 
 	ifstream fa("inputA.txt", ios::in);
 	ifstream fb("inputB.txt", ios::in);

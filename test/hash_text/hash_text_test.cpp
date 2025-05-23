@@ -12,7 +12,7 @@ void hash_worker(const std::string& plain_path, const std::string res_path, cons
 	}
 	std::ofstream res(res_path);
 
-	DogHash::hash_crypher h(algorithm);
+	dog_hash::hash_crypher h(algorithm);
 	std::string line;
 
 	uint64_t size = 0;
@@ -27,10 +27,10 @@ void hash_worker(const std::string& plain_path, const std::string res_path, cons
 		{
 			line.pop_back();
 		}
-		DogData::Data plainData = line;
+		dog_data::Data plainData = line;
 
 		start = std::chrono::steady_clock::now();
-		DogData::Data resData = h.getDataHash(plainData);
+		dog_data::Data resData = h.getDataHash(plainData);
 		end = std::chrono::steady_clock::now();
 		duration = end - start;
 		res << std::format("{}|{:.12f}s", resData.getHexString(true), duration.count()) << std::endl;

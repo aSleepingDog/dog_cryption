@@ -2,27 +2,23 @@
 #include <iostream>
 #include <vector>
 
-class dog_exception : public std::exception
+class DogException : public std::exception
 {
 private:
 	std::string msg;
 public:
-	dog_exception(const char* msg, const char* file, const char* function, uint64_t line);
-	~dog_exception() = default;
+	DogException(const char* msg, const char* file, const char* function, uint64_t line);
+	~DogException() = default;
 	virtual const char* what() const throw();
 };
 
-namespace DogData
+namespace dog_data
 {
-	typedef uint64_t Ullong;
-	typedef uint32_t Uint;
-	typedef uint16_t Ushort;
-	typedef uint8_t byte;
 
 	class Data
 	{
 	private:
-		std::vector<byte> inside_data;
+		std::vector<uint8_t> inside_data;
 
 	public:
 		const static int UTF8 = 0;
@@ -32,29 +28,29 @@ namespace DogData
 		Data() = default;
 		Data(std::string str, const int type = 2);
 		Data(const char* str, const int type = 2) : Data(std::string(str), type) {};
-		Data(Ullong size);
+		Data(uint64_t size);
 
         Data(const Data& other);
 		void operator=(const Data& other);
 		Data(Data&& other);
 		~Data();
 
-		byte& at(Ullong i);
-		byte at(Ullong i) const;
-		byte& operator[](Ullong i);
-		byte operator[](Ullong i) const;
-		byte& front();
-		byte& back();
-		byte* data();
+		uint8_t& at(uint64_t i);
+		uint8_t at(uint64_t i) const;
+		uint8_t& operator[](uint64_t i);
+		uint8_t operator[](uint64_t i) const;
+		uint8_t& front();
+		uint8_t& back();
+		uint8_t* data();
 
-		std::vector<byte>::iterator begin();
-		std::vector<byte>::iterator end();
-		std::vector<byte>::const_iterator cbegin() const;
-		std::vector<byte>::const_iterator cend() const;
-		std::reverse_iterator<std::vector<byte>::iterator> rbegin();
-		std::reverse_iterator<std::vector<byte>::iterator> rend();
-		std::reverse_iterator<std::vector<byte>::const_iterator> crbegin() const;
-		std::reverse_iterator<std::vector<byte>::const_iterator> crend() const;
+		std::vector<uint8_t>::iterator begin();
+		std::vector<uint8_t>::iterator end();
+		std::vector<uint8_t>::const_iterator cbegin() const;
+		std::vector<uint8_t>::const_iterator cend() const;
+		std::reverse_iterator<std::vector<uint8_t>::iterator> rbegin();
+		std::reverse_iterator<std::vector<uint8_t>::iterator> rend();
+		std::reverse_iterator<std::vector<uint8_t>::const_iterator> crbegin() const;
+		std::reverse_iterator<std::vector<uint8_t>::const_iterator> crend() const;
 
 		std::vector<char> getUTF8Vector();
 		std::vector<char> getBase64Vector();
@@ -68,19 +64,19 @@ namespace DogData
 		std::string getBase64String(char a, char b, char c);
 		std::string getHexString(bool is_upper = true);
 		
-		DogData::Data sub_by_pos(Ullong start, Ullong end) const;
-		DogData::Data sub_by_len(Ullong start, Ullong len) const;
+		dog_data::Data sub_by_pos(uint64_t start, uint64_t end) const;
+		dog_data::Data sub_by_len(uint64_t start, uint64_t len) const;
 
 		bool empty() const;
-		Ullong size() const;
-		Ullong max_size() const;
-		void reserve(Ullong n);
+		uint64_t size() const;
+		uint64_t max_size() const;
+		void reserve(uint64_t n);
 
-		//void insert(const Ullong i, byte b);
-		void insert(const std::vector<byte>::iterator pos, byte b);
+		void insert(const uint64_t i, uint8_t b);
+		void insert(const std::vector<uint8_t>::iterator pos, uint8_t b);
 
-		//void erase(const Ullong i);
-		void erase(const std::vector<byte>::iterator pos);
+		void erase(const uint64_t i);
+		void erase(const std::vector<uint8_t>::iterator pos);
 
 		/*
 		* 清除所有数据,不保留位置
@@ -92,31 +88,35 @@ namespace DogData
 		*/
 		void clear_set_zero();
 
-		void push_back(byte b);
+		void push_back(uint8_t b);
 		void pop_back();
 
+		/* 颠倒顺序 */
 		void reverse();
 
 		void swap(Data& d);
 		void swap(Data d);
 
-		DogData::Data bit_left_move_norise(Ullong shift);
-		void bit_left_move_norise_self(Ullong shift);
+		dog_data::Data bit_left_move_norise(uint64_t shift);
+		void bit_left_move_norise_self(uint64_t shift);
 
-		DogData::Data bit_left_move_rise(Ullong shift);
-		void bit_left_move_rise_self(Ullong shift);
+		dog_data::Data bit_left_move_rise(uint64_t shift);
+		void bit_left_move_rise_self(uint64_t shift);
 
-		DogData::Data bit_right_move_norise(Ullong shift);
-		void bit_right_move_norise_self(Ullong shift);
+		dog_data::Data bit_right_move_norise(uint64_t shift);
+		void bit_right_move_norise_self(uint64_t shift);
 
-		DogData::Data bit_right_move_rise(Ullong shift);
-		void bit_right_move_rise_self(Ullong shift);
+		dog_data::Data bit_right_move_rise(uint64_t shift);
+		void bit_right_move_rise_self(uint64_t shift);
+
+		dog_data::Data bit_circle_left_move(uint64_t shift);
+		dog_data::Data bit_circle_right_move(uint64_t shift);
 
 
-		DogData::Data operator~();
-		friend DogData::Data operator&(const Data d1, const Data d2);
-		friend DogData::Data operator|(const Data d1, const Data d2);
-		friend DogData::Data operator^(const Data d1, const Data d2);
+		dog_data::Data operator~();
+		friend dog_data::Data operator&(const Data d1, const Data d2);
+		friend dog_data::Data operator|(const Data d1, const Data d2);
+		friend dog_data::Data operator^(const Data d1, const Data d2);
 
 		//friend bool operator==(const Data& d1, const Data& d2);
 		//friend bool operator==(const Data d1, const Data& d2);
@@ -139,15 +139,15 @@ namespace DogData
 
 	namespace buffer
 	{
-		Ullong get_buffer_size(Ullong file_size);
+		uint64_t get_buffer_size(uint64_t file_size);
 	}
 
 	namespace print
 	{
-		void block(DogData::Data data, Ullong column = 16);
-		void block(const char* data, Ullong size, Ullong column = 16);
+		void block(dog_data::Data data, uint64_t column = 16);
+		void block(const char* data, uint64_t size, uint64_t column = 16);
 
-		void space(DogData::Data data, Ullong column = 16);
-		void space(const char* data, Ullong size, Ullong column = 16);
+		void space(dog_data::Data data, uint64_t column = 16);
+		void space(const char* data, uint64_t size, uint64_t column = 16);
 	}
 }

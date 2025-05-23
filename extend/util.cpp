@@ -94,7 +94,7 @@ std::string work::task::getType()
     std::lock_guard<std::mutex> lock(mutex);
     return this->type;
 }
-DogData::Data work::task::getResult()
+dog_data::Data work::task::getResult()
 {
     std::lock_guard<std::mutex> lock(mutex);
     return this->result;
@@ -140,46 +140,46 @@ void work::task::setThread(std::thread* thread)
 }
 void work::task::startHash(std::string medhod, std::string path)
 {
-    DogHash::hash_crypher h(medhod);
+    dog_hash::hash_crypher h(medhod);
     std::ifstream input(path, std::ios::binary);
-    DogData::Data result;
-    DogHash::hash_crypher::streamHashp(h, input, &(this->progress), &result);
+    dog_data::Data result;
+    dog_hash::hash_crypher::streamHashp(h, input, &(this->progress), &result);
     this->result = result;
 }
-void work::task::startEncrypt(DogCryption::cryption_config config, DogData::Data key, std::string input_path, std::string output_path)
+void work::task::startEncrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path)
 {
-    DogCryption::cryptor crypter(config);
+    dog_cryption::Cryptor crypter(config);
     std::ifstream input(input_path, std::ios::binary);
     crypter.set_key(key);
     if (!input.is_open()) { throw std::runtime_error("input file not open"); }
     std::ofstream output(output_path, std::ios::binary);
     crypter.encryptp(input, output, &this->progress);
 }
-void work::task::startEncrypt(DogCryption::cryption_config config, DogData::Data key, std::string input_path, bool withConfig, std::string output_path)
+void work::task::startEncrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path)
 {
-    DogCryption::cryptor crypter(config);
+    dog_cryption::Cryptor crypter(config);
     std::ifstream input(input_path, std::ios::binary);
     crypter.set_key(key);
     if (!input.is_open()) { throw std::runtime_error("input file not open"); }
     std::ofstream output(output_path, std::ios::binary);
     crypter.encryptp(input, output, withConfig, &this->progress);
 }
-void work::task::startDecrypt(DogCryption::cryption_config config, DogData::Data key, std::string input_path, std::string output_path)
+void work::task::startDecrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path)
 {
-    DogCryption::cryptor crypter(config);
+    dog_cryption::Cryptor crypter(config);
     std::ifstream input(input_path, std::ios::binary);
     crypter.set_key(key);
     if (!input.is_open()) { throw std::runtime_error("input file not open"); }
     std::ofstream output(output_path, std::ios::binary);
     crypter.decryptp(input, output, &this->progress);
 }
-void work::task::startDecrypt(DogCryption::cryption_config config, DogData::Data key, std::string input_path, bool withConfig, std::string output_path)
+void work::task::startDecrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path)
 {
     std::ifstream input(input_path, std::ios::binary);
     if (!input.is_open()) { throw std::runtime_error("input file not open"); }
-    DogCryption::cryption_config thisConfig = config;
-    if (withConfig) {thisConfig = DogCryption::cryption_config::get_cryption_config(input); }
-    DogCryption::cryptor crypter(thisConfig);
+    dog_cryption::CryptionConfig thisConfig = config;
+    if (withConfig) {thisConfig = dog_cryption::CryptionConfig::get_cryption_config(input); }
+    dog_cryption::Cryptor crypter(thisConfig);
     crypter.set_key(key);
     std::ofstream output(output_path, std::ios::binary);
     crypter.decryptp(input, output, withConfig, &this->progress);
@@ -233,7 +233,7 @@ uint64_t work::taskPool::add_hash_task(std::string method, std::string path)
     this->tasks.emplace_back(std::move(t));
     return id;
 }
-uint64_t work::taskPool::add_encrypt_task(DogCryption::cryption_config config, DogData::Data key, std::string input_path, std::string output_path)
+uint64_t work::taskPool::add_encrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path)
 {
     std::lock_guard<std::mutex> lock(pool_mutex);
     if (this->now_running.load() >= this->max_running.load()) { return UINT64_MAX; }
@@ -264,7 +264,7 @@ uint64_t work::taskPool::add_encrypt_task(DogCryption::cryption_config config, D
     return id;
 
 }
-uint64_t work::taskPool::add_encrypt_task(DogCryption::cryption_config config, DogData::Data key, std::string input_path, bool withConfig, std::string output_path)
+uint64_t work::taskPool::add_encrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path)
 {
     std::lock_guard<std::mutex> lock(pool_mutex);
     if (this->now_running.load() >= this->max_running.load()) { return UINT64_MAX; }
@@ -293,7 +293,7 @@ uint64_t work::taskPool::add_encrypt_task(DogCryption::cryption_config config, D
     this->tasks.emplace_back(t);
     return id;
 }
-uint64_t work::taskPool::add_decrypt_task(DogCryption::cryption_config config, DogData::Data key, std::string input_path, std::string output_path)
+uint64_t work::taskPool::add_decrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path)
 {
     std::lock_guard<std::mutex> lock(pool_mutex);
     if (this->now_running.load() >= this->max_running.load()) { return UINT64_MAX; }
@@ -322,7 +322,7 @@ uint64_t work::taskPool::add_decrypt_task(DogCryption::cryption_config config, D
     this->tasks.emplace_back(t);
     return id;
 }
-uint64_t work::taskPool::add_decrypt_task(DogCryption::cryption_config config, DogData::Data key, std::string input_path, bool withConfig, std::string output_path)
+uint64_t work::taskPool::add_decrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path)
 {
     std::lock_guard<std::mutex> lock(pool_mutex);
     if (this->now_running.load() >= this->max_running.load()) { return UINT64_MAX; }

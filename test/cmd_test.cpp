@@ -1,4 +1,5 @@
 #include "../lib/dog_cryption.h"
+#include "../extend/util.h"
 
 #include <iostream>
 #include <print>
@@ -7,14 +8,22 @@
 
 int main()
 {
+	//dog_cryption::CryptionConfig c("AES", 16, 32, true, "PKCS7", "PCBC", true, 16);
+	//dog_cryption::Cryptor cryptor(c);
+	//dog_data::Data plain = "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
+	//cryptor.set_key(plain);
+	//dog_data::Data crypt = cryptor.encrypt(plain, false, false, plain, false);
+	//dog_data::print::space(crypt);
+	//std::cout << std::endl;
+	//plain = cryptor.decrypt(crypt, false, false, plain, false);
+	//dog_data::print::space(plain);
 
-	uint64_t key_size = 32;
-	dog_data::Data d = "0123456789ABCDEFFEDCBA987654321000112233445566778899AABBCCDDEEFF";
-	dog_data::Data key = dog_cryption::camellia::extend_key(d, key_size);
-	dog_data::Data c = dog_cryption::camellia::encoding(d, 16, key, key_size);
-	dog_data::print::space(c);
-	dog_data::Data p = dog_cryption::camellia::decoding(c, 16, key, key_size);
-	dog_data::print::space(p);
+	//std::cout << typeid(work::hash_running).name() << std::endl;
+	//std::cout << typeid(work::encrypt_running).name() << std::endl;
+	//std::cout << typeid(work::decrypt_running).name() << std::endl;
+	//std::cout << (typeid(work::encrypt_running) == typeid(work::decrypt_running)) << std::endl;
+
 
 	return 0;
 }
+

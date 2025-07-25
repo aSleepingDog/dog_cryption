@@ -1,6 +1,11 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <any>
+#include <map>
+#include <array>
+
+#include "big_number.h"
 
 class DogException : public std::exception
 {
@@ -32,7 +37,7 @@ namespace dog_data
 
         Data(const Data& other);
 		void operator=(const Data& other);
-		Data(Data&& other);
+		Data(Data&& other) noexcept;
 		~Data();
 
 		uint8_t& at(uint64_t i);
@@ -42,6 +47,7 @@ namespace dog_data
 		uint8_t& front();
 		uint8_t& back();
 		uint8_t* data();
+		const uint8_t* data() const;
 
 		std::vector<uint8_t>::iterator begin();
 		std::vector<uint8_t>::iterator end();
@@ -66,6 +72,9 @@ namespace dog_data
 		
 		dog_data::Data sub_by_pos(uint64_t start, uint64_t end) const;
 		dog_data::Data sub_by_len(uint64_t start, uint64_t len) const;
+
+		dog_data::Data sub_by_pos(std::vector<uint8_t>::iterator start, std::vector<uint8_t>::iterator end) const;
+		dog_data::Data sub_by_len(std::vector<uint8_t>::iterator start, uint64_t len) const;
 
 		bool empty() const;
 		uint64_t size() const;
@@ -137,9 +146,63 @@ namespace dog_data
 
 	const Data EMPTY_DATA = "";
 
+	class DataStream
+	{
+	private:
+		dog_data::Data data_;
+		uint64_t pos_ = 0;
+	public:
+		DataStream(dog_data::Data& data);
+		uint8_t* data();
+		uint8_t get();
+		uint8_t peek();
+		void unget();
+		uint64_t tellg() const;
+	};
+
 	namespace buffer
 	{
 		uint64_t get_buffer_size(uint64_t file_size);
+	}
+
+	namespace serialize
+	{
+		/*
+		   null  -> 0000 0000
+		  start  -> 0000 0001
+		   end   -> 0000 0010
+		   bool  -> 0010 (0000/1111=false/true)
+		   int   -> 100 (0/1=+/-) 0001-1000(0-8):length
+		  float  -> 101X (4/8=float/double)
+		  bytes  -> 010X 0000-1000(0-8):length length + int(length) + bytes
+		 string  -> 011X 0000-1000(0-8):length length + int(length) + bytes(utf8)
+		  array  -> 110X 0000-1000(0-8):length length + int(length) + other
+		 object(hash table)  -> 111X 0000-1000(0-8):length length + int(length) + string:other
+		*/
+		dog_data::Data boolean(bool b);
+
+		dog_data::Data integer_num(uint64_t num);
+		dog_data::Data integer_num(int64_t num);
+
+		dog_data::Data float_num(float num);
+		dog_data::Data float_num(double num);
+
+		dog_data::Data bytes(const std::vector<uint8_t>& bytes);
+		dog_data::Data bytes(const uint8_t* bytes, uint64_t size);
+		dog_data::Data bytes(std::istream& stream);
+
+		dog_data::Data string(const char* str);
+		dog_data::Data string(std::string str);
+
+		dog_data::Data array(const std::vector<std::any>& arr);
+
+		dog_data::Data object(const std::unordered_map<std::string, std::any>& obj);
+		dog_data::Data object(const std::map<std::string, std::any>& obj);
+
+		std::any read(std::istream& data);
+		std::any read(dog_data::DataStream& data);
+		std::any read(dog_data::Data data);
+
 	}
 
 	namespace print

@@ -10,6 +10,7 @@
 #include <functional>
 #include <utility>
 #include <array>
+#include <regex>
 
 #include "data_bytes.h"
 
@@ -58,6 +59,29 @@ namespace dog_number
 		uint32_t CLMB(uint32_t n, uint32_t i);
 		uint16_t CLMB(uint16_t n, uint32_t i);
 		uint8_t CLMB(uint8_t n, uint32_t i);
+	}
+
+	namespace region
+	{
+		bool is_effective(std::string region_str);
+		bool is_fall(std::string region_str, uint64_t n);
+
+		namespace array
+		{
+			/* XX,XX,XX|XX*/
+			bool is_effective(std::string region_str);
+			std::vector<uint64_t> get_list(std::string region_str);
+			bool is_fall(std::string region_str, uint64_t n);
+		}
+		namespace gap
+		{
+			/*
+			* [a,b]c -> a    ,a+c  ,a+2c , ...  ,b-2c ,b-1c ,b
+			*/
+			bool is_effective(std::string region_str);
+			std::array<uint64_t, 3> get_list(std::string region_str);
+			bool is_fall(std::string region_str, uint64_t n);
+		}
 	}
 
 	/*
@@ -348,4 +372,9 @@ namespace dog_number
 
 
 	};
+
+	const BigInteger ZERO = "0";
+	const BigInteger BIG_INT32_MAX = "4294967295";
+	const BigInteger BIG_INT64_MAX = "18446744073709551615";
+	const BigInteger BIG_INT128_MAX = "340282366920938463463374607431768211455";
 }

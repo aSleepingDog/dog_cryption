@@ -14,27 +14,36 @@ namespace dog_hash
 		~HashException() = default;
 		virtual const char* what() const throw();
 	};
+
+	class HashConfig
+	{
+	public:
+		std::string name;
+		std::string region;
+		HashConfig(std::string name, std::string region);
+	};
 	
-	class hash_crypher
+	class HashCrypher
 	{
 	private:
-		std::string type;
+		std::string type_;
+		uint64_t effective_;
 
-		dog_number::BigInteger total = 0;
-		dog_number::BigInteger max = 0;
+		dog_number::BigInteger total_ = 0;
+		dog_number::BigInteger max_ = 0;
 
-		bool is_effective = false;
+		bool is_effective_ = false;
 
-		dog_data::Data initial_value;
-		uint64_t effective_size = 0;
+		dog_data::Data initial_value_;
+		uint64_t effective_size_ = 0;
 		
-		uint64_t block_size = 0;
-		uint64_t number_size = 0;
+		uint64_t block_size_ = 0;
+		uint64_t number_size_ = 0;
 
-		std::function<void(dog_data::Data, dog_data::Data&)> hash_function;
+		std::function<void(dog_data::Data, dog_data::Data&)> hash_function_;
 
 	public:
-		hash_crypher(std::string sign);
+		HashCrypher(std::string type, uint64_t effective);
 		void update(dog_data::Data data);
 		void init();
 		void finish();
@@ -42,17 +51,20 @@ namespace dog_hash
 
 		std::string get_type() const;
 
+		std::function<void(dog_data::Data, dog_data::Data&)> get_update() const;
+
 		dog_data::Data getDataHash(dog_data::Data data);
 		dog_data::Data getStringHash(std::string data);
 		
-		static dog_data::Data streamHash(hash_crypher& crypher, std::istream& data);
-		static void streamHashp(hash_crypher& crypher, std::istream& data, std::atomic<double>* progress, dog_data::Data* result);
+		static dog_data::Data streamHash(HashCrypher& crypher, std::istream& data);
+		static void streamHashp(HashCrypher& crypher, std::istream& data, std::atomic<double>* progress, dog_data::Data* result);
 	};
 
 	namespace SHA2
 	{
-		const std::string SHA256 = "SHA2_256";
-		const std::string SHA224 = "SHA2_224";
+		const std::string name = "SHA2";
+		const std::string effective_region = "32,28|64,48";
+		const HashConfig config = HashConfig(name, effective_region);
 
 		const uint32_t k_256[64] = { 
 				0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -70,25 +82,29 @@ namespace dog_hash
 		uint32_t function1_64(uint32_t e, uint32_t f, uint32_t g, uint32_t h, dog_data::Data& block, int size, int n);
 		uint32_t function2_64(uint32_t a, uint32_t b, uint32_t c);
 
-		//                               ________--------________--------________--------________--------
-		const dog_data::Data SHA256_IV = "6A09E667BB67AE853C6EF372A54FF53A510E527F9B05688C1F83D9AB5BE0CD19";
-		const dog_number::BigInteger SHA256_MAX = "18446744073709551616";
-		const uint64_t SHA256_EFFECTIVE_SIZE = 32;
-		const uint64_t SHA256_BLOCK_SIZE = 64;
-        const uint64_t SHA256_NUMBER_SIZE = 8;
-		void SHA256_update(dog_data::Data plain, dog_data::Data& change_value);
+		namespace b256
+		{
+			//                         ________--------________--------________--------________--------
+			const dog_data::Data IV = "6A09E667BB67AE853C6EF372A54FF53A510E527F9B05688C1F83D9AB5BE0CD19";
+			const dog_number::BigInteger MAX = dog_number::BIG_INT64_MAX;
+			const uint64_t EFFECTIVE_SIZE = 32;
+			const uint64_t BLOCK_SIZE = 64;
+			const uint64_t NUMBER_SIZE = 8;
+			void single_update(dog_data::Data plain, dog_data::Data& change_value);
+		}
 
-		//                               ________--------________--------________--------________--------
-		const dog_data::Data SHA224_IV = "C1059ED8367CD5073070DD17F70E5939FFC00B316858151164F98FA7BEFA4FA4";
-        const dog_number::BigInteger SHA224_MAX = "18446744073709551616";
-        const uint64_t SHA224_EFFECTIVE_SIZE = 28;
-        const uint64_t SHA224_BLOCK_SIZE = 64;
-        const uint64_t SHA224_NUMBER_SIZE = 8;
-        void SHA224_update(dog_data::Data plain, dog_data::Data& change_value);
+		namespace b224
+		{
+			//                         ________--------________--------________--------________--------
+			const dog_data::Data IV = "C1059ED8367CD5073070DD17F70E5939FFC00B316858151164F98FA7BEFA4FA4";
+			const dog_number::BigInteger MAX = dog_number::BIG_INT64_MAX;
+			const uint64_t EFFECTIVE_SIZE = 28;
+			const uint64_t BLOCK_SIZE = 64;
+			const uint64_t NUMBER_SIZE = 8;
+			void single_update(dog_data::Data plain, dog_data::Data& change_value);
+		}
 
-		const std::string SHA384 = "SHA2_384";
-		const std::string SHA512 = "SHA2_512";
-
+		
 		const uint64_t k_512[80] = { 
 			0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc,
 			0x3956c25bf348b538, 0x59f111f1b605d019, 0x923f82a4af194f9b, 0xab1c5ed5da6d8118,
@@ -117,24 +133,35 @@ namespace dog_hash
 		uint64_t function1_128(uint64_t e, uint64_t f, uint64_t g, uint64_t h, dog_data::Data& block, int size, int n);
 		uint64_t function2_128(uint64_t a, uint64_t b, uint64_t c);
 
-		//                               ________________----------------________________----------------________________----------------________________----------------
-		const dog_data::Data SHA512_IV = "6A09E667F3BCC908BB67AE8584CAA73B3C6EF372FE94F82BA54FF53A5F1D36F1510E527FADE682D19B05688C2B3E6C1F1F83D9ABFB41BD6B5BE0CD19137E2179";
-		const dog_number::BigInteger SHA512_MAX = "340282366920938463463374607431768211455";
-		const uint64_t SHA512_EFFECTIVE_SIZE = 64;
-		const uint64_t SHA512_BLOCK_SIZE = 128;
-		const uint64_t SHA512_NUMBER_SIZE = 16;
-        void SHA512_update(dog_data::Data plain, dog_data::Data& change_value);
-		//                               ________________----------------________________----------------________________----------------________________----------------
-		const dog_data::Data SHA384_IV = "CBBB9D5DC1059ED8629A292A367CD5079159015A3070DD17152FECD8F70E593967332667FFC00B318EB44A8768581511DB0C2E0D64F98FA747B5481DBEFA4FA4";
-		const dog_number::BigInteger SHA384_MAX = "340282366920938463463374607431768211455";
-        const uint64_t SHA384_EFFECTIVE_SIZE = 48;
-        const uint64_t SHA384_BLOCK_SIZE = 128;
-        const uint64_t SHA384_NUMBER_SIZE = 16;
-        void SHA384_update(dog_data::Data plain, dog_data::Data& change_value);
+		namespace b384
+		{
+			//                         ________________----------------________________----------------________________----------------________________----------------
+			const dog_data::Data IV = "CBBB9D5DC1059ED8629A292A367CD5079159015A3070DD17152FECD8F70E593967332667FFC00B318EB44A8768581511DB0C2E0D64F98FA747B5481DBEFA4FA4";
+			const dog_number::BigInteger MAX = dog_number::BIG_INT128_MAX;;
+			const uint64_t EFFECTIVE_SIZE = 48;
+			const uint64_t BLOCK_SIZE = 128;
+			const uint64_t NUMBER_SIZE = 16;
+			void single_update(dog_data::Data plain, dog_data::Data& change_value);
+		}
+
+		namespace b512
+		{
+			//                         ________________----------------________________----------------________________----------------________________----------------
+			const dog_data::Data IV = "6A09E667F3BCC908BB67AE8584CAA73B3C6EF372FE94F82BA54FF53A5F1D36F1510E527FADE682D19B05688C2B3E6C1F1F83D9ABFB41BD6B5BE0CD19137E2179";
+			const dog_number::BigInteger MAX = dog_number::BIG_INT128_MAX;
+			const uint64_t EFFECTIVE_SIZE = 64;
+			const uint64_t BLOCK_SIZE = 128;
+			const uint64_t NUMBER_SIZE = 16;
+			void single_update(dog_data::Data plain, dog_data::Data& change_value);
+		}
 	};
 
 	namespace SM3
 	{
+		const std::string name = "SM3";
+		const std::string effective_region = "32";
+		const HashConfig config = HashConfig(name, effective_region);
+
 		//circleLeftMoveBit
 		uint32_t CLMB(uint32_t i, uint64_t n);
 		uint32_t SM3tick4B(dog_data::Data& data, uint64_t index);
@@ -142,12 +169,16 @@ namespace dog_hash
 		uint32_t functionFF1_SM3(uint32_t a, uint32_t b, uint32_t c, int i);
 		uint32_t functionGG1_SM3(uint32_t a, uint32_t b, uint32_t c, int i);
 
-		const std::string SM3 = "SM3";
-		const dog_data::Data SM3_IV = "7380166F4914B2B9172442D7DA8A0600A96F30BC163138AAE38DEE4DB0FB0E4E";
-		const dog_number::BigInteger SM3_MAX = "18446744073709551616";
-        const uint64_t SM3_EFFECTIVE_SIZE = 32;
-        const uint64_t SM3_BLOCK_SIZE = 64;
-        const uint64_t SM3_NUMBER_SIZE = 8;
-		void SM3_update(dog_data::Data plain, dog_data::Data& change_value);
+		namespace b256
+		{
+			const dog_data::Data IV = "7380166F4914B2B9172442D7DA8A0600A96F30BC163138AAE38DEE4DB0FB0E4E";
+			const dog_number::BigInteger MAX = dog_number::BIG_INT64_MAX;
+			const uint64_t EFFECTIVE_SIZE = 32;
+			const uint64_t BLOCK_SIZE = 64;
+			const uint64_t NUMBER_SIZE = 8;
+			void single_update(dog_data::Data plain, dog_data::Data& change_value);
+		}
 	}
+
+	const std::vector<HashConfig> list = { SHA2::config, SM3::config };
 }

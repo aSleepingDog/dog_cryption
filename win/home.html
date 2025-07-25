@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-cn">
 <head>
     <meta charset="UTF_8" 
     http-equiv="Content-Security-Policy" 
@@ -11,243 +11,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="home.css" rel="stylesheet">
     <script src="qwebchannel.js"></script>
+    <!-- 003366 336699 66CCFF FFFFFF CCCCCC 39C5BB -->
     <title>数据加密器</title>
 </head>
 <body id="body">
-    <div id="menu">
-        <div class="menuChoiceActive" id="dataChoice" function-choice>
-            <div class="menuChoiceIconField">
-                <img class="menuChoiceIcon" id="dataChoiceIcon" src="resource/switch.png" alt="">
-            </div>
-            <div class="menuChoiceLabel">
-                转换
-            </div>
+    <div id="sidebar" class="sidebar_colunm">
+
+        <!-- <div id="~_choice" class="sidebar_item">
+            <img id="~_icon" class="sidebar_icon" src="resource\~" alt="~">
+            <div class="sidebar_title">~</div>
+        </div> -->
+
+        <div id="exchange_choice" class="sidebar_item_active">
+            <img id="exchange_icon" class="sidebar_icon" src="resource\ArrowsRightLeft.svg" alt="转换">
+            <div class="sidebar_title">转换</div>
         </div>
 
-        <div class="menuChoice" id="hashChoice" function-choice>
-            <div class="menuChoiceIconField">
-                <img class="menuChoiceIcon" id="hashChoiceIcon" src="resource/hash.png" alt="">
-            </div>
-            <div class="menuChoiceLabel">
-                散列
-            </div>
+        <div id="hash_choice" class="sidebar_item">
+            <img id="hash_icon" class="sidebar_icon" src="resource\hashTag0.svg" alt="散列">
+            <div class="sidebar_title">散列</div>
         </div>
 
-        <div class="menuChoice" id="encryptChoice" function-choice>
-            <div class="menuChoiceIconField">
-                <img class="menuChoiceIcon" id="encryptChoiceIcon" src="resource/lock.png" alt="">
-            </div>
-            <div class="menuChoiceLabel">
-                加密
-            </div>
+        <div id="encrypt_choice" class="sidebar_item">
+            <img id="encrypt_icon" class="sidebar_icon" src="resource\LockClosed.svg" alt="加密">
+            <div class="sidebar_title">加密</div>
         </div>
 
-        <div class="menuChoice" id="decryptChoice" function-choice>
-            <div class="menuChoiceIconField">
-                <img class="menuChoiceIcon" id="decryptChoiceIcon" src="resource/unlock.png" alt="">
-            </div>
-            <div class="menuChoiceLabel">
-                解密
-            </div>
+        <div id="decrypt_choice" class="sidebar_item">
+            <img id="decrypt_icon" class="sidebar_icon" src="resource\LockOpen.svg" alt="解密">
+            <div class="sidebar_title">解密</div>
         </div>
 
-        <div class="menuChoice" id="taskChoice" function-choice>
-            <div class="menuChoiceIconField">
-                <img class="menuChoiceIcon" id="taskChoiceIcon" src="resource/list.png" alt="">
-            </div>
-            <div class="menuChoiceLabel">
-                任务
-            </div>
-        </div>
-
-        <div class="menuChoice" id="helpChoice" function-choice>
-            <div class="menuChoiceIconField">
-                <img class="menuChoiceIcon" id="helpChoiceIcon" src="resource/help.png" alt="">
-            </div>
-            <div class="menuChoiceLabel">
-                帮助
-            </div>
-        </div>
-
-        <div class="menuChoice" id="aboutChoice" function-choice>
-            <div class="menuChoiceIconField">
-                <img class="menuChoiceIcon" id="aboutChoiceIcon" src="resource/info.png" alt="">
-            </div>
-            <div class="menuChoiceLabel">
-                关于
-            </div>
+        <div id="task_choice" class="sidebar_item">
+            <img id="task_icon" class="sidebar_icon" src="resource\task.svg" alt="任务">
+            <div class="sidebar_title">任务</div>
         </div>
 
     </div>
-    <div id="main">
-
-        <div id="~Area" hidden="hidden">
-            <div id="~Title" class="tagTitle">
-                请输入标题
+    <div id="main" class="main_colunm">
+        <div class="main_box" id="exchange_area">
+            <div class="single_title">文本数据转换</div>
+            <!-- 标识区 -->
+            <div class="sign_area">
             </div>
-            <div id="~InputField">
-                <div id="~InputChoiceField">
-                    <input type="radio" name="~InputType" value="UTF_8" id="~InputUTF_8" checked="checked">
-                    <label for="~InputUTF_8">UTF_8</label>
-                    <input type="radio" name="~InputType" value="hex" id="~InputHex">
-                    <label for="~InputHex">HEX 16进制</label>
-                    <input type="radio" name="~InputType" value="base64" id="~InputBase64">
-                    <label for="~InputBase64">base64</label>
-                    <input type="radio" name="~InputType" value="file" id="~InputFile">
-                    <label for="~InputFile">导入文件</label>
-                </div>
-                <div id="~InputReplaceCharField" hidden="hidden">
-                    <label for="~InputReplace+">替换字符+</label>
-                    <select id="~InputReplace+">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+" selected="selected">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-
-                    <label for="~InputReplace/">替换字符/</label>
-                    <select id="~InputReplace/">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/" selected="selected">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-
-                    <label for="~InputReplace=">替换字符=</label>
-                    <select id="~InputReplace=">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=" selected="selected">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-                </div>
-                <div id="~InputTextField">
-                    <textarea class="textArea" id="~InputText" placeholder="请输入文本" style="resize: none;" rows="10"></textarea>
-                </div>
-
-                <div id="~InputFileField">
-                    <!--<input type="file" id="~InputFile">-->
-                    <input type="button" id="~InputFile" value="选择文件">
-                    <label for="~InputFile" id="~InputFileBox"></label>
-                </div>
-
-            </div>
-            <div id="~Method">
-                '~Method'
-            </div>
-            <div id="~Button" class="runningButton">
-                running
-            </div>
-            <div id="~OutputField">
-                <div id="~OutputChoiceField">
-                    <input type="radio" name="~OutputType" value="UTF_8" id="~OutputUTF_8" checked="checked">
-                    <label for="~OutputUTF_8">UTF_8</label>
-                    <input type="radio" name="~OutputType" value="hex" id="~OutputHex">
-                    <label for="~OutputHex">HEX 16进制</label>
-                    <input type="radio" name="~OutputType" value="base64" id="~OutputBase64">
-                    <label for="~OutputBase64">base64</label>
-                    <input type="radio" name="~OutputType" value="file" id="~OutputFile">
-                    <label for="~OutputFile">导入文件</label>
-                </div>
-
-                <div id="~OutputTypeChoice">
-                    <div id="~OutputIsUpperField" hidden="hidden">
-                        <input type="radio" name="~OutputUpper" value="true" id="~OutputUpper" checked="checked">
-                        <label for="~OutputUpper">大写</label>
-                        <input type="radio" name="~OutputUpper" value="false" id="~OutputLower">
-                        <label for="~OutputLower">小写</label>
-                    </div>
-
-                    <div id="~OutputReplaceCharField" hidden="hidden">
-                        <label for="~OutputReplace+">替换字符+</label>
-                        <select id="~OutputReplace+">
+            <!-- 输入区 -->
+            <div class="input_area">                
+                <div class="input_type">                    
+                    <input type="radio" class="input_type_utf8" name="exchange_input_type" id="exchange_input_type_utf8" value="0" checked>
+                    <label class="label_space" for="exchange_input_type_utf8">UTF-8</label>
+                    <input type="radio" class="input_type_hex" name="exchange_input_type" id="exchange_input_type_hex" value="2">
+                    <label class="label_space" for="exchange_input_type_hex">HEX(16进制)</label>
+                    <input type="radio" class="input_type_base64" name="exchange_input_type" id="exchange_input_type_base64" value="1">
+                    <label class="label_space" for="exchange_input_type_base64">Base64</label>
+                    <!-- <input type="radio" name="exchange_input_type" id="exchange_input_type_file" value="3">
+                    <label class="label_space" for="exchange_input_type_file">文件</label> -->
+                    <div class="base64_replace_field">
+                        <select name="exchange_input_base64_replace" id="exchange_input_base64_replace+">
                             <option value=" ">空格</option>
                             <option value="!">!</option>
                             <option value='"'>"</option>
@@ -282,9 +101,8 @@
                             <option value="}">}</option>
                             <option value="~">~</option>
                         </select>
-                        
-                        <label for="~OutputReplace/">替换字符/</label>
-                        <select id="~OutputReplace/">
+                        <label for="exchange_input_base64_replace+" class="label_space">替换+</label>
+                        <select name="exchange_input_base64_replace" id="exchange_input_base64_replace/">
                             <option value=" ">空格</option>
                             <option value="!">!</option>
                             <option value='"'>"</option>
@@ -300,7 +118,7 @@
                             <option value=",">,</option>
                             <option value="-">-</option>
                             <option value=".">.</option>
-                            <option value="/">/</option>
+                            <option value="/" selected="selected">/</option>
                             <option value=":">:</option>
                             <option value=";">;</option>
                             <option value="<"><</option>
@@ -309,7 +127,7 @@
                             <option value="?">?</option>
                             <option value="@">@</option>
                             <option value="[">[</option>
-                            <option value="/" selected="selected">/</option>
+                            <option value="\\">\\</option>
                             <option value="]">]</option>
                             <option value="^">^</option>
                             <option value="_">_</option>
@@ -319,9 +137,8 @@
                             <option value="}">}</option>
                             <option value="~">~</option>
                         </select>
-        
-                        <label for="~OutputReplace=">替换字符=</label>
-                        <select id="~OutputReplace=">
+                        <label for="exchange_input_base64_replace/" class="label_space">替换/</label>
+                        <select name="exchange_input_base64_replace" id="exchange_input_base64_replace=">
                             <option value=" ">空格</option>
                             <option value="!">!</option>
                             <option value='"'>"</option>
@@ -356,470 +173,36 @@
                             <option value="}">}</option>
                             <option value="~">~</option>
                         </select>
+                        <label for="exchange_input_base64_replace=" class="label_space">替换=</label>
                     </div>
                 </div>
-
-                <div id="~OutputTextField">
-                    <textarea class="textArea" id="~OutputText" placeholder="输出结果" style="resize: none;" rows="10"></textarea>
-                </div>
-
-                <div id="~SpendTimeField" class="spendTimeField">
-                    耗时
+                <div class="text_input_field">
+                    <textarea class="text_input" id="exchange_text_input" rows="10" ></textarea>
                 </div>
             </div>
-        </div>
-
-        <div id="dataArea" >
-            <div id="dataTitle" class="tagTitle">
-                文本数据转换
+            <!-- 选项区 -->
+            <div class="setting_area">
+                <div class="button" id="exchange_button">转换</div>
             </div>
-            <div id="datdInputField">
-                <div class="dataInputChoiceField">
-                    <input type="radio" name="dataInputType" value="UTF_8" id="dataInputUTF_8" checked="checked">
-                    <label for="dataInputUTF_8">UTF_8</label>
-                    <input type="radio" name="dataInputType" value="hex" id="dataInputHex">
-                    <label for="dataInputHex">HEX 16进制</label>
-                    <input type="radio" name="dataInputType" value="base64" id="dataInputBase64">
-                    <label for="dataInputBase64">base64</label>
-                </div>
-
-                <div id="dataReplaceCharField" hidden="hidden">
-                    <label for="dataInputReplace+">替换字符+</label>
-                    <select id="dataInputReplace+">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+" selected="selected">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-
-                    <label for="dataInputReplace/">替换字符/</label>
-                    <select id="dataInputReplace/">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/" selected="selected">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-
-                    <label for="dataInputReplace=">替换字符=</label>
-                    <select id="dataInputReplace=">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=" selected="selected">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-
-                </div>
-
-                <div id="dataInputTextArea">
-                    <textarea class="textArea" id="dataInputText" placeholder="请输入文本" style="resize: none;" rows="10"></textarea>
-                </div>
-
-            </div>
-            <div id="dataButton" class="runningButton">
-                转换
-            </div>
-            <div id="dataOutputField">
-                <div id="dataOutputChoiceField">
-                    <input type="radio" name="dataOutputType" value="UTF_8" id="dataOutputUTF_8" checked="checked">
-                    <label for="dataOutputUTF_8">UTF_8</label>
-                    <input type="radio" name="dataOutputType" value="hex" id="dataOutputHex">
-                    <label for="dataOutputHex">HEX 16进制</label>
-                    <input type="radio" name="dataOutputType" value="base64" id="dataOutputBase64">
-                    <label for="dataOutputBase64">base64</label>
-                </div>
-
-                <div id="dataOutputTypeChoice">
-                    <div id="dataOutputIsUpperField" hidden="hidden">
-                        <input type="radio" name="dataOutputUpper" value="true" id="dataOutputUpper" checked="checked">
-                        <label for="dataOutputUpper">大写</label>
-                        <input type="radio" name="dataOutputUpper" value="false" id="dataOutputLower">
-                        <label for="dataOutputLower">小写</label>
-                    </div>
-
-                    <div id="dataOutputReplaceCharField" hidden="hidden">
-                        <label for="dataOutputReplace+">替换字符+</label>
-                        <select id="dataOutputReplace+">
-                            <option value=" ">空格</option>
-                            <option value="!">!</option>
-                            <option value='"'>"</option>
-                            <option value="#">#</option>
-                            <option value="$">$</option>
-                            <option value="%">%</option>
-                            <option value="&">&</option>
-                            <option value="'">'</option>
-                            <option value="(">(</option>
-                            <option value=")">)</option>
-                            <option value="*">*</option>
-                            <option value="+" selected="selected">+</option>
-                            <option value=",">,</option>
-                            <option value="-">-</option>
-                            <option value=".">.</option>
-                            <option value="/">/</option>
-                            <option value=":">:</option>
-                            <option value=";">;</option>
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                            <option value="?">?</option>
-                            <option value="@">@</option>
-                            <option value="[">[</option>
-                            <option value="\\">\\</option>
-                            <option value="]">]</option>
-                            <option value="^">^</option>
-                            <option value="_">_</option>
-                            <option value="`">`</option>
-                            <option value="{">{</option>
-                            <option value="|">|</option>
-                            <option value="}">}</option>
-                            <option value="~">~</option>
-                        </select>
-                        
-                        <label for="dataOutputReplace/">替换字符/</label>
-                        <select id="dataOutputReplace/">
-                            <option value=" ">空格</option>
-                            <option value="!">!</option>
-                            <option value='"'>"</option>
-                            <option value="#">#</option>
-                            <option value="$">$</option>
-                            <option value="%">%</option>
-                            <option value="&">&</option>
-                            <option value="'">'</option>
-                            <option value="(">(</option>
-                            <option value=")">)</option>
-                            <option value="*">*</option>
-                            <option value="+">+</option>
-                            <option value=",">,</option>
-                            <option value="-">-</option>
-                            <option value=".">.</option>
-                            <option value="/">/</option>
-                            <option value=":">:</option>
-                            <option value=";">;</option>
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                            <option value="?">?</option>
-                            <option value="@">@</option>
-                            <option value="[">[</option>
-                            <option value="/" selected="selected">/</option>
-                            <option value="]">]</option>
-                            <option value="^">^</option>
-                            <option value="_">_</option>
-                            <option value="`">`</option>
-                            <option value="{">{</option>
-                            <option value="|">|</option>
-                            <option value="}">}</option>
-                            <option value="~">~</option>
-                        </select>
-        
-                        <label for="dataOutputReplace=">替换字符=</label>
-                        <select id="dataOutputReplace=">
-                            <option value=" ">空格</option>
-                            <option value="!">!</option>
-                            <option value='"'>"</option>
-                            <option value="#">#</option>
-                            <option value="$">$</option>
-                            <option value="%">%</option>
-                            <option value="&">&</option>
-                            <option value="'">'</option>
-                            <option value="(">(</option>
-                            <option value=")">)</option>
-                            <option value="*">*</option>
-                            <option value="+">+</option>
-                            <option value=",">,</option>
-                            <option value="-">-</option>
-                            <option value=".">.</option>
-                            <option value="/">/</option>
-                            <option value=":">:</option>
-                            <option value=";">;</option>
-                            <option value="<"><</option>
-                            <option value="=" selected="selected">=</option>
-                            <option value=">">></option>
-                            <option value="?">?</option>
-                            <option value="@">@</option>
-                            <option value="[">[</option>
-                            <option value="\\">\\</option>
-                            <option value="]">]</option>
-                            <option value="^">^</option>
-                            <option value="_">_</option>
-                            <option value="`">`</option>
-                            <option value="{">{</option>
-                            <option value="|">|</option>
-                            <option value="}">}</option>
-                            <option value="~">~</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="dataOutputTextField">
-                    <textarea readonly class="textArea" id="dataOutputText" placeholder="输出结果" style="resize: none;" rows="10"></textarea>
-                </div>
-
-                <div id="dataSpendTimeField" class="spendTimeField">
-                    耗时
-                </div>
-
-            </div>
-        </div>
-
-        <div id="hashArea" hidden="hidden">
-            <div id="hashTitle" class="tagTitle">
-                数据散列计算
-            </div>
-            <div id="hashInputField">
-                <div id="hashInputChoiceField">
-                    <input type="radio" name="hashInputType" value="UTF_8" id="hashInputUTF_8" checked="checked">
-                    <label for="hashInputUTF_8">UTF_8</label>
-                    <input type="radio" name="hashInputType" value="hex" id="hashInputHex">
-                    <label for="hashInputHex">HEX 16进制</label>
-                    <input type="radio" name="hashInputType" value="base64" id="hashInputBase64">
-                    <label for="hashInputBase64">base64</label>
-                    <input type="radio" name="hashInputType" value="file" id="hashInputFile">
-                    <label for="hashInputFile">导入文件</label>
-                </div>
-
-                <div id="hashInputReplaceCharField" hidden="hidden">
-                    <label for="hashInputReplace+">替换字符+</label>
-                    <select id="hashInputReplace+">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+" selected="selected">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
+            <!-- 输出区 -->
+            <div class="output_area">
+                <div class="output_type">
+                    <input type="radio" class="output_type_utf8" name="exchange_output_type" id="exchange_output_type_utf8" value="0" checked>
+                    <label class="label_space" for="exchange_output_type_utf8">UTF-8</label>
+                    <input type="radio" class="output_type_hex" name="exchange_output_type" id="exchange_output_type_hex" value="2">
+                    <label class="label_space" for="exchange_output_type_hex">HEX(16进制)</label>
+                    <input type="radio" class="output_type_base64" name="exchange_output_type" id="exchange_output_type_base64" value="1">
+                    <label class="label_space" for="exchange_output_type_base64">Base64</label>
                     
-                    <label for="hashInputReplace/">替换字符/</label>
-                    <select id="hashInputReplace/">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="/" selected="selected">/</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-    
-                    <label for="hashInputReplace=">替换字符=</label>
-                    <select id="hashInputReplace=">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=" selected="selected">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-                </div>
-
-                <div id="hashInputTextField">
-                    <textarea class="textArea" name="" id="hashInputText" placeholder="请输入内容" style="resize: none;" rows="10"></textarea>
-                </div>
-
-                <div id="hashInputFileField" hidden="hidden">
-                    <!-- <input type="file" id="hashInputFileBox"> -->
-                    <input type="button" id="hashInputFile" value="选择文件">
-                    <label for="hashInputFile" id="hashInputFileBox"></label>
-                </div>
-                
-            </div>
-            <div id="hashMethodField">
-                <label for="hashMethodChoice">哈希/散列算法</label>
-                <select name="hashMethodChoice" id="hashMethodChoice">
-                    <option class="normalOption" value="SHA2_224">SHA2:224</option>
-                    <option class="normalOption" value="SHA2_256" selected="selected">SHA2:256</option>
-                    <option class="normalOption" value="SHA2_384">SHA2:384</option>
-                    <option class="normalOption" value="SHA2_512">SHA2:512</option>
-                    <option class="normalOption" value="SM3">SM3</option>
-                </select>
-            </div>
-            <div id="hashButton" class="runningButton">
-                计算
-            </div>
-            <div id="hashOutputField">
-                <div id="hashOutputChoiceField">
-                    <input type="radio" name="hashOutputType" value="hex" id="hashOutputHex" checked="checked">
-                    <label for="hashOutputHex">HEX 16进制</label>
-                    <input type="radio" name="hashOutputType" value="base64" id="hashOutputBase64">
-                    <label for="hashOutputBase64">base64</label>
-                </div>
-
-                <div id="hashOutputTypeChoice">
-                    <div id="hashOutputIsUpperField">
-                        <input type="radio" name="hashOutputUpper" value="true" id="hashOutputUpper" checked="checked">
-                        <label for="dataOutputUpper">大写</label>
-                        <input type="radio" name="hashOutputUpper" value="false" id="hashOutputLower">
-                        <label for="dataOutputLower">小写</label>
+                    <div class="hex_case_field">
+                        <input type="radio" name="exchange_output_hex_case" id="exchange_output_hex_case_upper" value="0" checked>
+                        <label class="label_space" for="exchange_output_hex_case_upper">大写</label>
+                        <input type="radio" name="exchange_output_hex_case" id="exchange_output_hex_case_lower" value="1">
+                        <label class="label_space" for="exchange_output_hex_case_lower">小写</label>                        
                     </div>
-
-                    <div id="hashOutputReplaceCharField" hidden="hidden">
-                        <label for="hashOutputReplace+">替换字符+</label>
-                        <select id="hashOutputReplace+">
+                    
+                    <div class="base64_replace_field">
+                        <select name="exchange_output_base64_replace" id="exchange_output_base64_replace+">
                             <option value=" ">空格</option>
                             <option value="!">!</option>
                             <option value='"'>"</option>
@@ -854,9 +237,8 @@
                             <option value="}">}</option>
                             <option value="~">~</option>
                         </select>
-                        
-                        <label for="hashOutputReplace/">替换字符/</label>
-                        <select id="hashOutputReplace/">
+                        <label for="exchange_output_base64_replace+" class="label_space">替换+</label>
+                        <select name="exchange_output_base64_replace" id="exchange_output_base64_replace/">
                             <option value=" ">空格</option>
                             <option value="!">!</option>
                             <option value='"'>"</option>
@@ -872,7 +254,7 @@
                             <option value=",">,</option>
                             <option value="-">-</option>
                             <option value=".">.</option>
-                            <option value="/">/</option>
+                            <option value="/" selected="selected">/</option>
                             <option value=":">:</option>
                             <option value=";">;</option>
                             <option value="<"><</option>
@@ -881,7 +263,7 @@
                             <option value="?">?</option>
                             <option value="@">@</option>
                             <option value="[">[</option>
-                            <option value="/" selected="selected">/</option>
+                            <option value="\\">\\</option>
                             <option value="]">]</option>
                             <option value="^">^</option>
                             <option value="_">_</option>
@@ -891,9 +273,8 @@
                             <option value="}">}</option>
                             <option value="~">~</option>
                         </select>
-        
-                        <label for="hashOutputReplace=">替换字符=</label>
-                        <select id="hashOutputReplace=">
+                        <label for="exchange_output_base64_replace/" class="label_space">替换/</label>
+                        <select name="exchange_output_base64_replace" id="exchange_output_base64_replace=">
                             <option value=" ">空格</option>
                             <option value="!">!</option>
                             <option value='"'>"</option>
@@ -928,438 +309,110 @@
                             <option value="}">}</option>
                             <option value="~">~</option>
                         </select>
+                        <label for="exchange_output_base64_replace=" class="label_space">替换=</label>
                     </div>
-                </div>
 
-                <div id="hashOutputTextField">
-                    <textarea readonly class="textArea" id="hashOutputText" placeholder="输出结果" style="resize: none;" rows="10"></textarea>
                 </div>
-
-                <div id="hashSpendTimeField" class="spendTimeField">
-                    耗时
+                <div class="text_output_field">
+                    <textarea class="text_output" id="exchange_text_output" rows="10" ></textarea>
                 </div>
-
+                <div class="output_operation">
+                    <div id="exchange_output_text_copy" class="output_text_copy">复制</div>
+                    <div class="resolve_time" id="exchange_resolve_time"></div>
+                </div>
             </div>
-
         </div>
-
-        <div id="encryptArea" hidden="hidden">
-            <div id="encryptTitle" class="tagTitle">
-                对称分组加密
-            </div>
-            <div id="encryptInputField">
-                <div id="encryptInputChoiceField">
-                    <input type="radio" name="encryptInputType" value="UTF_8" id="encryptInputUTF_8" checked="checked">
-                    <label for="encryptInputUTF_8">UTF_8</label>
-                    <input type="radio" name="encryptInputType" value="hex" id="encryptInputHex">
-                    <label for="encryptInputHex">HEX 16进制</label>
-                    <input type="radio" name="encryptInputType" value="base64" id="encryptInputBase64">
-                    <label for="encryptInputBase64">base64</label>
-                    <input type="radio" name="encryptInputType" value="file" id="encryptInputFile">
-                    <label for="encryptInputFile">导入文件</label>
-                </div>
-                <div id="encryptInputReplaceCharField" hidden="hidden">
-                    <label for="encryptInputReplace+">替换字符+</label>
-                    <select id="encryptInputReplace+">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+" selected="selected">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-
-                    <label for="encryptInputReplace/">替换字符/</label>
-                    <select id="encryptInputReplace/">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/" selected="selected">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-
-                    <label for="encryptInputReplace=">替换字符=</label>
-                    <select id="encryptInputReplace=">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=" selected="selected">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-                </div>
-                <div id="encryptInputTextField">
-                    <textarea class="textArea" id="encryptInputText" placeholder="请输入明文" style="resize: none;" rows="10"></textarea>
-                </div>
-                <div id="encryptInputFileField" hidden="hidden">
-                    <!-- <input type="file" id="encryptInputFileBox"> -->
-                    <input type="button" id="encryptInputFile" value="选择文件">
-                    <label for="encryptInputFile" id="encryptInputFileBox"></label>
-                </div>
-            </div>
-            <div id="encryptMethod" class="cryptionMethod">
-                <div id="encryptAlgorithmChoice" class="cryptionChoice">
-                    <div id="encryptAlgorithm" class="cryptionAlgorithm">
-                        <label for="encryptMethodChoice">加密算法</label>
-                        <select name="encryptMethod" class="cryptionMethodChoice" id="encryptMethodChoice">
-                            <option value="AES">AES</option>
-                            <option value="SM4">SM4</option>
-                        </select>
-                    </div>
-                    <div id="encryptBlockSize" class="cryptionBlockSize">
-                        <label for="encryptBlockSize">分组长度</label>
-                        <input type="number" onkeydown="return false" class="cryptionInputBlockSize" id="encryptInputBlockSize" min="16" max="16" value="16">
-                        <label for="encryptBlockSize" class="cryptionSizeUnit">字节</label>
-                    </div>
-                    <div id="encryptKeySize" class="cryptionKeySize">
-                        <label for="encryptKeySize">密钥长度</label>
-                        <input type="number" onkeydown="return false" class="cryptionInputKeySize" id="encryptInputKeySize" min="16" max="32" value="16" step="8">
-                        <label for="encryptKeySize" class="cryptionSizeUnit">字节</label>
-                    </div>
-                </div>
-                <div id="encryptModeChoiceArea">
-                    <label for="encryptModeChoice">分组模式</label>
-                    <select name="encryptModeChoice" id="encryptModeChoice">
-                        <option value="ECB">ECB</option>
-                        <option value="CBC" selected="selected">CBC</option>
-                        <option value="OFB">OFB</option>
-                        <option value="CTR">CTR</option>
-                        <option value="CFB1">CFB1</option>
-                        <option value="CFB8">CFB8</option>
-                        <option value="CFB128">CFB128</option>
-                    </select>
-                </div>
-                <div id="encryptPaddingChoiceArea" class="cryptionPaddingChoiceArea">
-                    <input type="radio" name="encryptIsPadding" value="true" id="encryptIsPaddingTrue" checked="checked">
-                    <label for="encryptIsPaddingTrue">填充</label>
-                    <input type="radio" name="encryptIsPadding" value="false" id="encryptIsPaddingFalse" disabled>
-                    <label for="encryptIsPaddingFalse">不填充</label>
-
-                    <div id="encryptPaddingChoiceField">
-                        <label for="paddingChoice">填充方式</label>
-                        <select name="paddingChoice" id="encryptPaddingChoice">
-                            <option value="PKCS7">PKCS7</option>
-                            <!-- <option value="ZERO">ZERO</option> -->
-                            <option value="ANSI923">ANSI923</option>
-                            <option value="ISO7816_4">ISO7816_4</option>
-                            <option value="ISO10126">ISO10126</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="encryptKeyInput" class="cryptionKeyInput">
-                    <div id="encryptKeyInputTitle">输入密钥</div>
-                    <div id="encryptKeyInputTypeChoiceField">
-                        <input type="radio" name="encryptKeyInputType" value="UTF_8" id="encryptKeyInputUTF_8" checked="checked">
-                        <label for="encryptKeyInputUTF_8">UTF_8</label>
-                        <input type="radio" name="encryptKeyInputType" value="hex" id="encryptKeyInputHex">
-                        <label for="encryptKeyInputHex">HEX 16进制</label>
-                        <input type="radio" name="encryptKeyInputType" value="base64" id="encryptKeyInputBase64">
-                        <label for="encryptKeyInputBase64">base64</label>
-                    </div>
-                    <div id="encryptKeyInputReplaceCharField" hidden="hidden">
-                        <label for="encryptKeyInputReplace+">替换字符+</label>
-                        <select id="encryptKeyInputReplace+">
-                            <option value=" ">空格</option>
-                            <option value="!">!</option>
-                            <option value='"'>"</option>
-                            <option value="#">#</option>
-                            <option value="$">$</option>
-                            <option value="%">%</option>
-                            <option value="&">&</option>
-                            <option value="'">'</option>
-                            <option value="(">(</option>
-                            <option value=")">)</option>
-                            <option value="*">*</option>
-                            <option value="+" selected="selected">+</option>
-                            <option value=",">,</option>
-                            <option value="-">-</option>
-                            <option value=".">.</option>
-                            <option value="/">/</option>
-                            <option value=":">:</option>
-                            <option value=";">;</option>
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                            <option value="?">?</option>
-                            <option value="@">@</option>
-                            <option value="[">[</option>
-                            <option value="\\">\\</option>
-                            <option value="]">]</option>
-                            <option value="^">^</option>
-                            <option value="_">_</option>
-                            <option value="`">`</option>
-                            <option value="{">{</option>
-                            <option value="|">|</option>
-                            <option value="}">}</option>
-                            <option value="~">~</option>
-                        </select>
-    
-                        <label for="encryptKeyInputReplace/">替换字符/</label>
-                        <select id="encryptKeyInputReplace/">
-                            <option value=" ">空格</option>
-                            <option value="!">!</option>
-                            <option value='"'>"</option>
-                            <option value="#">#</option>
-                            <option value="$">$</option>
-                            <option value="%">%</option>
-                            <option value="&">&</option>
-                            <option value="'">'</option>
-                            <option value="(">(</option>
-                            <option value=")">)</option>
-                            <option value="*">*</option>
-                            <option value="+">+</option>
-                            <option value=",">,</option>
-                            <option value="-">-</option>
-                            <option value=".">.</option>
-                            <option value="/" selected="selected">/</option>
-                            <option value=":">:</option>
-                            <option value=";">;</option>
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                            <option value="?">?</option>
-                            <option value="@">@</option>
-                            <option value="[">[</option>
-                            <option value="\\">\\</option>
-                            <option value="]">]</option>
-                            <option value="^">^</option>
-                            <option value="_">_</option>
-                            <option value="`">`</option>
-                            <option value="{">{</option>
-                            <option value="|">|</option>
-                            <option value="}">}</option>
-                            <option value="~">~</option>
-                        </select>
-    
-                        <label for="encryptKeyInputReplace=">替换字符=</label>
-                        <select id="encryptKeyInputReplace=">
-                            <option value=" ">空格</option>
-                            <option value="!">!</option>
-                            <option value='"'>"</option>
-                            <option value="#">#</option>
-                            <option value="$">$</option>
-                            <option value="%">%</option>
-                            <option value="&">&</option>
-                            <option value="'">'</option>
-                            <option value="(">(</option>
-                            <option value=")">)</option>
-                            <option value="*">*</option>
-                            <option value="+">+</option>
-                            <option value=",">,</option>
-                            <option value="-">-</option>
-                            <option value=".">.</option>
-                            <option value="/" selected="selected">/</option>
-                            <option value=":">:</option>
-                            <option value=";">;</option>
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                            <option value="?">?</option>
-                            <option value="@">@</option>
-                            <option value="[">[</option>
-                            <option value="\\">\\</option>
-                            <option value="]">]</option>
-                            <option value="^">^</option>
-                            <option value="_">_</option>
-                            <option value="`">`</option>
-                            <option value="{">{</option>
-                            <option value="|">|</option>
-                            <option value="}">}</option>
-                            <option value="~">~</option>
-                        </select>
-                    </div>
-                    <div id="encryptKeyInputTextField">
-                        <textarea class="textArea" id="encryptKeyInputText" placeholder="请输入加密密钥" rows="1" style="resize: none;"></textarea>
-                    </div>
-                </div>
-
-                <div id="encryptWithConfigField" hidden="hidden">
-                    <label for="encryptWithConfig" title="解密时自动识别配置">将加密配置信息写入文件头</label>
-                    <input type="checkbox" id="encryptWithConfig">
-                </div>
-            </div>
-            <div id="encryptButton" class="runningButton">
-                加密
-            </div>
-            <div id="encryptOutputField">
-                <div id="encryptOutputChoiceField">
-                    <input type="radio" name="encryptOutputType" value="UTF_8" id="encryptOutputUTF_8" checked="checked">
-                    <label for="encryptOutputUTF_8">UTF_8</label>
-                    <input type="radio" name="encryptOutputType" value="hex" id="encryptOutputHex">
-                    <label for="encryptOutputHex">HEX 16进制</label>
-                    <input type="radio" name="encryptOutputType" value="base64" id="encryptOutputBase64">
-                    <label for="encryptOutputBase64">base64</label>
-                    <input disabled type="radio" name="encryptOutputType" value="file" id="encryptOutputFile">
-                    <label for="encryptOutputFile">导出文件</label>
-                </div>
-
-                <div id="encryptOutputTypeChoice">
-                    <div id="encryptOutputIsUpperField" hidden="hidden">
-                        <input type="radio" name="encryptOutputUpper" value="true" id="encryptOutputUpper" checked="checked">
-                        <label for="encryptOutputUpper">大写</label>
-                        <input type="radio" name="encryptOutputUpper" value="false" id="encryptOutputLower">
-                        <label for="encryptOutputLower">小写</label>
-                    </div>
-
-                    <div id="encryptOutputReplaceCharField" hidden="hidden">
-                        <label for="encryptOutputReplace+">替换字符+</label>
-                        <select id="encryptOutputReplace+">
-                            <option value=" ">空格</option>
-                            <option value="!">!</option>
-                            <option value='"'>"</option>
-                            <option value="#">#</option>
-                            <option value="$">$</option>
-                            <option value="%">%</option>
-                            <option value="&">&</option>
-                            <option value="'">'</option>
-                            <option value="(">(</option>
-                            <option value=")">)</option>
-                            <option value="*">*</option>
-                            <option value="+" selected="selected">+</option>
-                            <option value=",">,</option>
-                            <option value="-">-</option>
-                            <option value=".">.</option>
-                            <option value="/">/</option>
-                            <option value=":">:</option>
-                            <option value=";">;</option>
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                            <option value="?">?</option>
-                            <option value="@">@</option>
-                            <option value="[">[</option>
-                            <option value="\\">\\</option>
-                            <option value="]">]</option>
-                            <option value="^">^</option>
-                            <option value="_">_</option>
-                            <option value="`">`</option>
-                            <option value="{">{</option>
-                            <option value="|">|</option>
-                            <option value="}">}</option>
-                            <option value="~">~</option>
-                        </select>
-                        
-                        <label for="encryptOutputReplace/">替换字符/</label>
-                        <select id="encryptOutputReplace/">
-                            <option value=" ">空格</option>
-                            <option value="!">!</option>
-                            <option value='"'>"</option>
-                            <option value="#">#</option>
-                            <option value="$">$</option>
-                            <option value="%">%</option>
-                            <option value="&">&</option>
-                            <option value="'">'</option>
-                            <option value="(">(</option>
-                            <option value=")">)</option>
-                            <option value="*">*</option>
-                            <option value="+">+</option>
-                            <option value=",">,</option>
-                            <option value="-">-</option>
-                            <option value=".">.</option>
-                            <option value="/">/</option>
-                            <option value=":">:</option>
-                            <option value=";">;</option>
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                            <option value="?">?</option>
-                            <option value="@">@</option>
-                            <option value="[">[</option>
-                            <option value="/" selected="selected">/</option>
-                            <option value="]">]</option>
-                            <option value="^">^</option>
-                            <option value="_">_</option>
-                            <option value="`">`</option>
-                            <option value="{">{</option>
-                            <option value="|">|</option>
-                            <option value="}">}</option>
-                            <option value="~">~</option>
-                        </select>
         
-                        <label for="encryptOutputReplace=">替换字符=</label>
-                        <select id="encryptOutputReplace=">
+        <div class="main_box" id="hash_area" hidden>
+            <div class="single_title">数据散列计算</div>
+            <!-- 标识区 -->
+            <div class="sign_area">
+            </div>
+            <!-- 输入区 -->
+            <div class="input_area">                
+                <div class="input_type">                    
+                    <input type="radio" class="input_type_utf8" name="hash_input_type" id="hash_input_type_utf8" value="0" checked>
+                    <label class="label_space" for="hash_input_type_utf8">UTF-8</label>
+                    <input type="radio" class="input_type_hex" name="hash_input_type" id="hash_input_type_hex" value="2">
+                    <label class="label_space" for="hash_input_type_hex">HEX(16进制)</label>
+                    <input type="radio" class="input_type_base64" name="hash_input_type" id="hash_input_type_base64" value="1">
+                    <label class="label_space" for="hash_input_type_base64">Base64</label>
+                    <input type="radio" class="input_type_file" name="hash_input_type" id="hash_input_type_file" value="3">
+                    <label class="label_space" for="hash_input_type_file">文件</label>
+                    <div class="base64_replace_field">
+                        <select name="hash_input_base64_replace" id="hash_input_base64_replace+">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+" selected="selected">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="hash_input_base64_replace+" class="label_space">替换+</label>
+                        <select name="hash_input_base64_replace" id="hash_input_base64_replace/">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/" selected="selected">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="hash_input_base64_replace/" class="label_space">替换/</label>
+                        <select name="hash_input_base64_replace" id="hash_input_base64_replace=">
                             <option value=" ">空格</option>
                             <option value="!">!</option>
                             <option value='"'>"</option>
@@ -1394,222 +447,55 @@
                             <option value="}">}</option>
                             <option value="~">~</option>
                         </select>
+                        <label for="hash_input_base64_replace=" class="label_space">替换=</label>
                     </div>
                 </div>
-
-                <div id="encryptOutputTextField">
-                    <textarea readonly class="textArea" id="encryptOutputText" placeholder="输出密文" style="resize: none;" rows="10"></textarea>
+                <div class="text_input_field">
+                    <textarea class="text_input" name="" id="hash_text_input" rows="10" ></textarea>
                 </div>
 
-                <div id="encryptSpendTimeField" class="spendTimeField">
-                    耗时
+                <div id="hash_file_input_field" class="file_input_field">
+                    <p>请点击选择文件或将文件拖拽至窗口</p>
+                    <p>当前文件:</p>
                 </div>
 
             </div>
-        </div>
+            <!-- 选项区 -->
+            <div class="setting_area" id="hash_setting_area">
+                <div class="hash_setting_frame" id="hash_setting_frame0">
+                    <label for="hash_type_choice">散列函数</label>
+                    <select id="hash_type_choice" data-hash-type="true"></select>
+                </div>
+                <div class="hash_setting_frame" id="hash_setting_frame1">
+                    <label for="hash_effective_choice">有效选项</label>
+                    <select id="hash_effective_choice" data-hash-effect="true"></select>
+                </div>
+                <div class="hash_setting_frame" id="hash_setting_frame2">
+                    <div class="speed_test_button" id="hash_speed_test">测试</div>
+                    <div id="hash_speed_result">耗时</div>
+                </div>
+                <div class="button" id="hash_button">散列</div>
 
-        <div id="decryptArea" hidden="hidden">
-            <div id="decryptTitle" class="tagTitle">
-                对称分组解密
             </div>
-            <div id="decryptInputField">
-                <div id="decryptInputChoiceField">
-                    <input type="radio" name="decryptInputType" value="UTF_8" id="decryptInputUTF_8" checked="checked">
-                    <label for="decryptInputUTF_8">UTF_8</label>
-                    <input type="radio" name="decryptInputType" value="hex" id="decryptInputHex">
-                    <label for="decryptInputHex">HEX 16进制</label>
-                    <input type="radio" name="decryptInputType" value="base64" id="decryptInputBase64">
-                    <label for="decryptInputBase64">base64</label>
-                    <input type="radio" name="decryptInputType" value="file" id="decryptInputFile">
-                    <label for="decryptInputFile">导入文件</label>
-                </div>
-                <div id="decryptInputReplaceCharField" hidden="hidden">
-                    <label for="decryptInputReplace+">替换字符+</label>
-                    <select id="decryptInputReplace+">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+" selected="selected">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-
-                    <label for="decryptInputReplace/">替换字符/</label>
-                    <select id="decryptInputReplace/">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/" selected="selected">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="=">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-
-                    <label for="decryptInputReplace=">替换字符=</label>
-                    <select id="decryptInputReplace=">
-                        <option value=" ">空格</option>
-                        <option value="!">!</option>
-                        <option value='"'>"</option>
-                        <option value="#">#</option>
-                        <option value="$">$</option>
-                        <option value="%">%</option>
-                        <option value="&">&</option>
-                        <option value="'">'</option>
-                        <option value="(">(</option>
-                        <option value=")">)</option>
-                        <option value="*">*</option>
-                        <option value="+">+</option>
-                        <option value=",">,</option>
-                        <option value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
-                        <option value=":">:</option>
-                        <option value=";">;</option>
-                        <option value="<"><</option>
-                        <option value="="  selected="selected">=</option>
-                        <option value=">">></option>
-                        <option value="?">?</option>
-                        <option value="@">@</option>
-                        <option value="[">[</option>
-                        <option value="\\">\\</option>
-                        <option value="]">]</option>
-                        <option value="^">^</option>
-                        <option value="_">_</option>
-                        <option value="`">`</option>
-                        <option value="{">{</option>
-                        <option value="|">|</option>
-                        <option value="}">}</option>
-                        <option value="~">~</option>
-                    </select>
-                </div>
-                <div id="decryptInputTextField">
-                    <textarea class="textArea" id="decryptInputText" placeholder="请输入密文" style="resize: none;" rows="10"></textarea>
-                </div>
-                <div id="decryptInputFileField" hidden="hidden">
-                    <!-- <input type="file" id="decryptInputFileBox"> -->
-                    <input type="button" id="decryptInputFile" value="选择文件">
-                    <label for="decryptInputFile" id="decryptInputFileBox"></label>
-                </div>
-            </div>
-            <div id="decryptWithConfigField" hidden="hidden">
-                <label for="decryptWithConfig">文件头是否携带配置</label>
-                <input type="checkbox" name="decryptWithConfig" id="decryptWithConfig">
-            </div>
-            <div id="decryptMethod" class="cryptionMethod">
-                <div id="decryptAlgorithmChoice" class="cryptionChoice">
-                    <div id="decryptAlgorithm" class="cryptionAlgorithm">
-                        <label for="decryptMethodChoice">解密算法</label>
-                        <select name="decryptMethod" class="cryptionMethodChoice" id="decryptMethodChoice">
-                            <option value="AES">AES</option>
-                            <option value="SM4">SM4</option>
-                        </select>
+            <!-- 输出区 -->
+            <div class="output_area">
+                <div class="output_type">
+                    <!-- <input type="radio" class="output_type_utf8" name="hash_output_type" id="hash_output_type_utf8" value="0">
+                    <label class="label_space" for="hash_output_type_utf8">UTF-8</label> -->
+                    <input type="radio" class="output_type_hex" name="hash_output_type" id="hash_output_type_hex" value="2"  checked>
+                    <label class="label_space" for="hash_output_type_hex">HEX(16进制)</label>
+                    <input type="radio" class="output_type_base64" name="hash_output_type" id="hash_output_type_base64" value="1">
+                    <label class="label_space" for="hash_output_type_base64">Base64</label>
+                    
+                    <div class="hex_case_field">
+                        <input type="radio" name="hash_output_hex_case" id="hash_output_hex_case_upper" value="0" checked>
+                        <label class="label_space" for="hash_output_hex_case_upper">大写</label>
+                        <input type="radio" name="hash_output_hex_case" id="hash_output_hex_case_lower" value="1">
+                        <label class="label_space" for="hash_output_hex_case_lower">小写</label>                        
                     </div>
-                    <div id="decryptBlockSize" class="cryptionBlockSize">
-                        <label for="decryptBlockSize">分组长度</label>
-                        <input type="number" onkeydown="return false" class="cryptionInputBlockSize" id="decryptInputBlockSize" min="16" max="16" value="16">
-                        <label for="decryptBlockSize" class="cryptionSizeUnit">字节</label>
-                    </div>
-                    <div id="decryptKeySize" class="cryptionKeySize">
-                        <label for="decryptKeySize">密钥长度</label>
-                        <input type="number" onkeydown="return false" class="cryptionInputKeySize" id="decryptInputKeySize" min="16" max="32" value="16" step="8">
-                        <label for="decryptKeySize" class="cryptionSizeUnit">字节</label>
-                    </div>
-                </div>
-                <div id="decryptModeChoiceArea">
-                    <label for="decryptModeChoice">分组模式</label>
-                    <select name="decryptModeChoice" id="decryptModeChoice">
-                        <option value="ECB">ECB</option>
-                        <option value="CBC" selected="selected">CBC</option>
-                        <option value="OFB">OFB</option>
-                        <option value="CTR">CTR</option>
-                        <option value="CFB1">CFB1</option>
-                        <option value="CFB8">CFB8</option>
-                        <option value="CFB128">CFB128</option>
-                    </select>
-                </div>
-                <div id="decryptPaddingChoiceArea" class="cryptionPaddingChoiceArea">
-                    <input type="radio" name="decryptIsPadding" value="true" id="decryptIsPaddingTrue" checked="checked">
-                    <label for="decryptIsPaddingTrue">填充</label>
-                    <input type="radio" name="decryptIsPadding" value="false" id="decryptIsPaddingFalse" disabled>
-                    <label for="decryptIsPaddingFalse">不填充</label>
-
-                    <div id="decryptPaddingChoiceField">
-                        <label for="paddingChoice">填充方式</label>
-                        <select name="paddingChoice" id="decryptPaddingChoice">
-                            <option value="PKCS7">PKCS7</option>
-                            <!-- <option value="ZERO">ZERO</option> -->
-                            <option value="ANSI923">ANSI923</option>
-                            <option value="ISO7816_4">ISO7816_4</option>
-                            <option value="ISO10126">ISO10126</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="decryptKeyInput" class="cryptionKeyInput">
-                    <div id="decryptKeyInputTitle">输入密钥</div>
-                    <div id="decryptKeyInputTypeChoiceField">
-                        <input type="radio" name="decryptKeyInputType" value="UTF_8" id="decryptKeyInputUTF_8" checked="checked">
-                        <label for="decryptKeyInputUTF_8">UTF_8</label>
-                        <input type="radio" name="decryptKeyInputType" value="hex" id="decryptKeyInputHex">
-                        <label for="decryptKeyInputHex">HEX 16进制</label>
-                        <input type="radio" name="decryptKeyInputType" value="base64" id="decryptKeyInputBase64">
-                        <label for="decryptKeyInputBase64">base64</label>
-                    </div>
-                    <div id="decryptKeyInputReplaceCharField" hidden="hidden">
-                        <label for="decryptKeyInputReplace+">替换字符+</label>
-                        <select id="decryptKeyInputReplace+">
+                    
+                    <div class="base64_replace_field">
+                        <select name="hash_output_base64_replace" id="hash_output_base64_replace+">
                             <option value=" ">空格</option>
                             <option value="!">!</option>
                             <option value='"'>"</option>
@@ -1644,9 +530,8 @@
                             <option value="}">}</option>
                             <option value="~">~</option>
                         </select>
-    
-                        <label for="decryptKeyInputReplace/">替换字符/</label>
-                        <select id="decryptKeyInputReplace/">
+                        <label for="hash_output_base64_replace+" class="label_space">替换+</label>
+                        <select name="hash_output_base64_replace" id="hash_output_base64_replace/">
                             <option value=" ">空格</option>
                             <option value="!">!</option>
                             <option value='"'>"</option>
@@ -1681,149 +566,8 @@
                             <option value="}">}</option>
                             <option value="~">~</option>
                         </select>
-    
-                        <label for="decryptKeyInputReplace=">替换字符=</label>
-                        <select id="decryptKeyInputReplace=">
-                            <option value=" ">空格</option>
-                            <option value="!">!</option>
-                            <option value='"'>"</option>
-                            <option value="#">#</option>
-                            <option value="$">$</option>
-                            <option value="%">%</option>
-                            <option value="&">&</option>
-                            <option value="'">'</option>
-                            <option value="(">(</option>
-                            <option value=")">)</option>
-                            <option value="*">*</option>
-                            <option value="+">+</option>
-                            <option value=",">,</option>
-                            <option value="-">-</option>
-                            <option value=".">.</option>
-                            <option value="/" selected="selected">/</option>
-                            <option value=":">:</option>
-                            <option value=";">;</option>
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                            <option value="?">?</option>
-                            <option value="@">@</option>
-                            <option value="[">[</option>
-                            <option value="\\">\\</option>
-                            <option value="]">]</option>
-                            <option value="^">^</option>
-                            <option value="_">_</option>
-                            <option value="`">`</option>
-                            <option value="{">{</option>
-                            <option value="|">|</option>
-                            <option value="}">}</option>
-                            <option value="~">~</option>
-                        </select>
-                    </div>
-                    <div id="decryptKeyInputTextField">
-                        <textarea class="textArea" id="decryptKeyInputText" placeholder="请输入加密密钥" rows="1" style="resize: none;"></textarea>
-                    </div>
-                </div>
-            </div>
-            <div id="decryptButton" class="runningButton">
-                解密
-            </div>
-            <div id="decryptOutputField">
-                <div id="decryptOutputChoiceField">
-                    <input type="radio" name="decryptOutputType" value="UTF_8" id="decryptOutputUTF_8" checked="checked">
-                    <label for="decryptOutputUTF_8">UTF_8</label>
-                    <input type="radio" name="decryptOutputType" value="hex" id="decryptOutputHex">
-                    <label for="decryptOutputHex">HEX 16进制</label>
-                    <input type="radio" name="decryptOutputType" value="base64" id="decryptOutputBase64">
-                    <label for="decryptOutputBase64">base64</label>
-                    <input disabled type="radio" name="decryptOutputType" value="file" id="decryptOutputFile">
-                    <label for="decryptOutputFile">导出文件</label>
-                </div>
-
-                <div id="decryptOutputTypeChoice">
-                    <div id="decryptOutputIsUpperField" hidden="hidden">
-                        <input type="radio" name="decryptOutputUpper" value="true" id="decryptOutputUpper" checked="checked">
-                        <label for="decryptOutputUpper">大写</label>
-                        <input type="radio" name="decryptOutputUpper" value="false" id="decryptOutputLower">
-                        <label for="decryptOutputLower">小写</label>
-                    </div>
-
-                    <div id="decryptOutputReplaceCharField" hidden="hidden">
-                        <label for="decryptOutputReplace+">替换字符+</label>
-                        <select id="decryptOutputReplace+">
-                            <option value=" ">空格</option>
-                            <option value="!">!</option>
-                            <option value='"'>"</option>
-                            <option value="#">#</option>
-                            <option value="$">$</option>
-                            <option value="%">%</option>
-                            <option value="&">&</option>
-                            <option value="'">'</option>
-                            <option value="(">(</option>
-                            <option value=")">)</option>
-                            <option value="*">*</option>
-                            <option value="+" selected="selected">+</option>
-                            <option value=",">,</option>
-                            <option value="-">-</option>
-                            <option value=".">.</option>
-                            <option value="/">/</option>
-                            <option value=":">:</option>
-                            <option value=";">;</option>
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                            <option value="?">?</option>
-                            <option value="@">@</option>
-                            <option value="[">[</option>
-                            <option value="\\">\\</option>
-                            <option value="]">]</option>
-                            <option value="^">^</option>
-                            <option value="_">_</option>
-                            <option value="`">`</option>
-                            <option value="{">{</option>
-                            <option value="|">|</option>
-                            <option value="}">}</option>
-                            <option value="~">~</option>
-                        </select>
-                        
-                        <label for="decryptOutputReplace/">替换字符/</label>
-                        <select id="decryptOutputReplace/">
-                            <option value=" ">空格</option>
-                            <option value="!">!</option>
-                            <option value='"'>"</option>
-                            <option value="#">#</option>
-                            <option value="$">$</option>
-                            <option value="%">%</option>
-                            <option value="&">&</option>
-                            <option value="'">'</option>
-                            <option value="(">(</option>
-                            <option value=")">)</option>
-                            <option value="*">*</option>
-                            <option value="+">+</option>
-                            <option value=",">,</option>
-                            <option value="-">-</option>
-                            <option value=".">.</option>
-                            <option value="/">/</option>
-                            <option value=":">:</option>
-                            <option value=";">;</option>
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                            <option value="?">?</option>
-                            <option value="@">@</option>
-                            <option value="[">[</option>
-                            <option value="/" selected="selected">/</option>
-                            <option value="]">]</option>
-                            <option value="^">^</option>
-                            <option value="_">_</option>
-                            <option value="`">`</option>
-                            <option value="{">{</option>
-                            <option value="|">|</option>
-                            <option value="}">}</option>
-                            <option value="~">~</option>
-                        </select>
-        
-                        <label for="decryptOutputReplace=">替换字符=</label>
-                        <select id="decryptOutputReplace=">
+                        <label for="hash_output_base64_replace/" class="label_space">替换/</label>
+                        <select name="hash_output_base64_replace" id="hash_output_base64_replace=">
                             <option value=" ">空格</option>
                             <option value="!">!</option>
                             <option value='"'>"</option>
@@ -1858,160 +602,1193 @@
                             <option value="}">}</option>
                             <option value="~">~</option>
                         </select>
+                        <label for="hash_output_base64_replace=" class="label_space">替换=</label>
                     </div>
-                </div>
 
-                <div id="decryptOutputTextField">
-                    <textarea readonly class="textArea" id="decryptOutputText" placeholder="输出明文" style="resize: none;" rows="10"></textarea>
                 </div>
-
-                <div id="decryptSpendTimeField" class="spendTimeField">
-                    耗时
+                <div class="text_output_field">
+                    <textarea class="text_output" name="" id="hash_text_output" rows="10"></textarea>
                 </div>
-                
+                <div class="output_operation">
+                    <div id="hash_output_text_copy" class="output_text_copy">复制</div>
+                    <div class="resolve_time" id="hash_resolve_time">耗时:</div>
+                </div>
             </div>
         </div>
 
-        <div id="taskArea" hidden="hidden">
-            <div id="taskTitle" class="tagTitle">
-                工作结果列表
+        <div class="main_box" id="encrypt_area" hidden>
+            <div class="single_title">数据对称加密</div>
+            <!-- 标识区 -->
+            <div class="sign_area">
             </div>
-            <div id="taskListArea">
-            <!--
-                <div class="singleTaskField">
-                    <div class="singeTaskDetailField">
-                        <div class="singleTaskIconField">
-                            <img class="singleTaskIcon" src="resource/fileHash.png" alt="taskIcon">
-                        </div>
-                        <div class="singleTaskText">
-                            <div id="TaskTextInput:~" class="singleTaskTextInput">任务输入</div>
-                            <div id="TaskTextConfig:~" class="singleTaskTextConfig">任务配置</div>
-                            <div id="TextOutput:~" class="singleTaskTextOutput">任务输出</div>
-                            <div id="TextSpendTime:~" class="singleTextSpendTime">耗时</div>
-                        </div>
-                    </div>
-                    <div class="singleTaskProgressField">
-                        <progress class="singleTaskProgress" value="70" max="100"></progress>
+            <!-- 输入区 -->
+            <div class="input_area">
+                <div class="input_type">                    
+                    <input type="radio" class="input_type_utf8" name="encrypt_input_type" id="encrypt_input_type_utf8" value="0" checked>
+                    <label class="label_space" for="encrypt_input_type_utf8">UTF-8</label>
+                    <input type="radio" class="input_type_hex" name="encrypt_input_type" id="encrypt_input_type_hex" value="2">
+                    <label class="label_space" for="encrypt_input_type_hex">HEX(16进制)</label>
+                    <input type="radio" class="input_type_base64" name="encrypt_input_type" id="encrypt_input_type_base64" value="1">
+                    <label class="label_space" for="encrypt_input_type_base64">Base64</label>
+                    <input type="radio" class="input_type_file" name="encrypt_input_type" id="encrypt_input_type_file" value="3">
+                    <label class="label_space" for="encrypt_input_type_file">文件</label>
+                    <div class="base64_replace_field">
+                        <select name="encrypt_input_base64_replace" id="encrypt_input_base64_replace+">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+" selected="selected">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="encrypt_input_base64_replace+" class="label_space">替换+</label>
+                        <select name="encrypt_input_base64_replace" id="encrypt_input_base64_replace/">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/" selected="selected">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="encrypt_input_base64_replace/" class="label_space">替换/</label>
+                        <select name="encrypt_input_base64_replace" id="encrypt_input_base64_replace=">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=" selected="selected">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="encrypt_input_base64_replace=" class="label_space">替换=</label>
                     </div>
                 </div>
-                
-                <div class="singleTaskField">
-                    <div class="singeTaskDetailField">
-                        <div class="singleTaskIconField">
-                            <img class="singleTaskIcon" src="resource/fileHash.png" alt="taskIcon">
+                <div class="text_input_field">
+                    <textarea class="text_input" name="" id="encrypt_text_input" rows="10" ></textarea>
+                </div>
+                <div id="encrypt_file_input_field" class="file_input_field" data-path="">
+                    <!--
+                    <label class="file_input_label" for="hash_file_input">请点击选择文件或将文件拖拽至此处</label>
+                    <input id="hash_file_input" class="file_input" type="file">
+                    -->
+                    <p>请点击选择文件或将文件拖拽至窗口</p>
+                    <p>当前文件:</p>
+                </div>
+            </div>
+            <!-- 选项区 -->
+            <div class="setting_area" id="encrypt_setting_area">
+                <div id="encrypt_setting_frist_field">
+                    <div id="encrypt_method_field">
+                        <label for="encrypt_method">加密算法</label>
+                        <select name="" id="encrypt_method" data-algorithm="true"></select>
+                        <label for="encrypt_block_size">分组大小</label>
+                        <input type="number" id="encrypt_block_size">
+                        <label for="encrypt_key_size">密钥长度</label>
+                        <input type="number" id="encrypt_key_size">
+                        <div class="speed_test_button" id="encrypt_speed_test">测试</div>
+                        <div id="encrypt_speed_result">耗时</div>
+                    </div>
+                    <div id="encrypt_setting_field">
+                        <label for="encrypt_mode">加密模式</label>
+                        <select name="" id="encrypt_mode" data-mode="true"></select>
+                        <div id="encrypt_setting_shift_frame" class="crypt_setting_shift_frame">
+                            <label for="encrypt_shift">模式偏移</label>
+                            <input type="number" id="encrypt_shift" value="1" min="0">
                         </div>
-                        <div class="singleTaskText">
-                            任务标题
+                        <label for="encrypt_is_padding">是否填充</label>
+                        <input type="checkbox" id="encrypt_is_padding">
+                        <div id="encrypt_padding_field">
+                            <label for="encrypt_padding">填充方式</label>
+                            <select name="" id="encrypt_padding" data-padding="true"></select>
                         </div>
                     </div>
-                    <div class="singleTaskProgressField">
-                        <progress class="singleTaskProgress" value="70" max="100"></progress>
+                    <div id="encrypt_data_field">
+                        <div id="encrypt_key_field">
+                            <label for="encrypt_key">加密密钥</label>
+                            <div class="input_type">                    
+                                <input type="radio" class="input_type_utf8" name="encrypt_key_input_type" id="encrypt_key_input_type_utf8" value="0" checked>
+                                <label class="label_space" for="encrypt_key_input_type_utf8">UTF-8</label>
+                                <input type="radio" class="input_type_hex" name="encrypt_key_input_type" id="encrypt_key_input_type_hex" value="2">
+                                <label class="label_space" for="encrypt_key_input_type_hex">HEX(16进制)</label>
+                                <input type="radio" class="input_type_base64" name="encrypt_key_input_type" id="encrypt_key_input_type_base64" value="1">
+                                <label class="label_space" for="encrypt_key_input_type_base64">Base64</label>
+                                <div class="base64_replace_field">
+                                    <select name="encrypt_key_input_base64_replace" id="encrypt_key_input_base64_replace+">
+                                        <option value=" ">空格</option>
+                                        <option value="!">!</option>
+                                        <option value='"'>"</option>
+                                        <option value="#">#</option>
+                                        <option value="$">$</option>
+                                        <option value="%">%</option>
+                                        <option value="&">&</option>
+                                        <option value="'">'</option>
+                                        <option value="(">(</option>
+                                        <option value=")">)</option>
+                                        <option value="*">*</option>
+                                        <option value="+" selected="selected">+</option>
+                                        <option value=",">,</option>
+                                        <option value="-">-</option>
+                                        <option value=".">.</option>
+                                        <option value="/">/</option>
+                                        <option value=":">:</option>
+                                        <option value=";">;</option>
+                                        <option value="<"><</option>
+                                        <option value="=">=</option>
+                                        <option value=">">></option>
+                                        <option value="?">?</option>
+                                        <option value="@">@</option>
+                                        <option value="[">[</option>
+                                        <option value="\\">\\</option>
+                                        <option value="]">]</option>
+                                        <option value="^">^</option>
+                                        <option value="_">_</option>
+                                        <option value="`">`</option>
+                                        <option value="{">{</option>
+                                        <option value="|">|</option>
+                                        <option value="}">}</option>
+                                        <option value="~">~</option>
+                                    </select>
+                                    <label for="encrypt_key_input_base64_replace+" class="label_space">替换+</label>
+                                    <select name="encrypt_key_input_base64_replace" id="encrypt_key_input_base64_replace/">
+                                        <option value=" ">空格</option>
+                                        <option value="!">!</option>
+                                        <option value='"'>"</option>
+                                        <option value="#">#</option>
+                                        <option value="$">$</option>
+                                        <option value="%">%</option>
+                                        <option value="&">&</option>
+                                        <option value="'">'</option>
+                                        <option value="(">(</option>
+                                        <option value=")">)</option>
+                                        <option value="*">*</option>
+                                        <option value="+">+</option>
+                                        <option value=",">,</option>
+                                        <option value="-">-</option>
+                                        <option value=".">.</option>
+                                        <option value="/" selected="selected">/</option>
+                                        <option value=":">:</option>
+                                        <option value=";">;</option>
+                                        <option value="<"><</option>
+                                        <option value="=">=</option>
+                                        <option value=">">></option>
+                                        <option value="?">?</option>
+                                        <option value="@">@</option>
+                                        <option value="[">[</option>
+                                        <option value="\\">\\</option>
+                                        <option value="]">]</option>
+                                        <option value="^">^</option>
+                                        <option value="_">_</option>
+                                        <option value="`">`</option>
+                                        <option value="{">{</option>
+                                        <option value="|">|</option>
+                                        <option value="}">}</option>
+                                        <option value="~">~</option>
+                                    </select>
+                                    <label for="encrypt_key_input_base64_replace/" class="label_space">替换/</label>
+                                    <select name="encrypt_key_input_base64_replace" id="encrypt_key_input_base64_replace=">
+                                        <option value=" ">空格</option>
+                                        <option value="!">!</option>
+                                        <option value='"'>"</option>
+                                        <option value="#">#</option>
+                                        <option value="$">$</option>
+                                        <option value="%">%</option>
+                                        <option value="&">&</option>
+                                        <option value="'">'</option>
+                                        <option value="(">(</option>
+                                        <option value=")">)</option>
+                                        <option value="*">*</option>
+                                        <option value="+">+</option>
+                                        <option value=",">,</option>
+                                        <option value="-">-</option>
+                                        <option value=".">.</option>
+                                        <option value="/">/</option>
+                                        <option value=":">:</option>
+                                        <option value=";">;</option>
+                                        <option value="<"><</option>
+                                        <option value="=" selected="selected">=</option>
+                                        <option value=">">></option>
+                                        <option value="?">?</option>
+                                        <option value="@">@</option>
+                                        <option value="[">[</option>
+                                        <option value="\\">\\</option>
+                                        <option value="]">]</option>
+                                        <option value="^">^</option>
+                                        <option value="_">_</option>
+                                        <option value="`">`</option>
+                                        <option value="{">{</option>
+                                        <option value="|">|</option>
+                                        <option value="}">}</option>
+                                        <option value="~">~</option>
+                                    </select>
+                                    <label for="encrypt_key_input_base64_replace=" class="label_space">替换=</label>
+                                </div>
+                            </div>
+                            <input type="text" name="" id="encrypt_key_text_input">
+                            <label id="encrypt_key_text_input_size" for="encrypt_key" data-size="0">当前:0字节(B)</label>
+                        </div>
+                        <div id="encrypt_is_iv_field">
+                            <label for="encrypt_is_iv">使用iv</label>
+                            <input type="checkbox" id="encrypt_is_iv" checked>
+                        </div>
+                        <div id="encrypt_iv_field">
+                            <div>
+                                <label for="encrypt_auto_iv">自动iv</label>
+                                <input type="checkbox" id="encrypt_auto_iv">
+                            </div>
+                            <label for="encrypt_iv">加密iv</label>
+                            <div class="input_type">                    
+                                <input type="radio" class="input_type_utf8" name="encrypt_iv_input_type" id="encrypt_iv_input_type_utf8" value="0" checked>
+                                <label class="label_space" for="encrypt_iv_input_type_utf8">UTF-8</label>
+                                <input type="radio" class="input_type_hex" name="encrypt_iv_input_type" id="encrypt_iv_input_type_hex" value="2">
+                                <label class="label_space" for="encrypt_iv_input_type_hex">HEX(16进制)</label>
+                                <input type="radio" class="input_type_base64" name="encrypt_iv_input_type" id="encrypt_iv_input_type_base64" value="1">
+                                <label class="label_space" for="encrypt_iv_input_type_base64">Base64</label>
+                                <div class="base64_replace_field">
+                                    <select name="encrypt_iv_input_base64_replace" id="encrypt_iv_input_base64_replace+">
+                                        <option value=" ">空格</option>
+                                        <option value="!">!</option>
+                                        <option value='"'>"</option>
+                                        <option value="#">#</option>
+                                        <option value="$">$</option>
+                                        <option value="%">%</option>
+                                        <option value="&">&</option>
+                                        <option value="'">'</option>
+                                        <option value="(">(</option>
+                                        <option value=")">)</option>
+                                        <option value="*">*</option>
+                                        <option value="+" selected="selected">+</option>
+                                        <option value=",">,</option>
+                                        <option value="-">-</option>
+                                        <option value=".">.</option>
+                                        <option value="/">/</option>
+                                        <option value=":">:</option>
+                                        <option value=";">;</option>
+                                        <option value="<"><</option>
+                                        <option value="=">=</option>
+                                        <option value=">">></option>
+                                        <option value="?">?</option>
+                                        <option value="@">@</option>
+                                        <option value="[">[</option>
+                                        <option value="\\">\\</option>
+                                        <option value="]">]</option>
+                                        <option value="^">^</option>
+                                        <option value="_">_</option>
+                                        <option value="`">`</option>
+                                        <option value="{">{</option>
+                                        <option value="|">|</option>
+                                        <option value="}">}</option>
+                                        <option value="~">~</option>
+                                    </select>
+                                    <label for="encrypt_iv_input_base64_replace+" class="label_space">替换+</label>
+                                    <select name="encrypt_iv_input_base64_replace" id="encrypt_iv_input_base64_replace/">
+                                        <option value=" ">空格</option>
+                                        <option value="!">!</option>
+                                        <option value='"'>"</option>
+                                        <option value="#">#</option>
+                                        <option value="$">$</option>
+                                        <option value="%">%</option>
+                                        <option value="&">&</option>
+                                        <option value="'">'</option>
+                                        <option value="(">(</option>
+                                        <option value=")">)</option>
+                                        <option value="*">*</option>
+                                        <option value="+">+</option>
+                                        <option value=",">,</option>
+                                        <option value="-">-</option>
+                                        <option value=".">.</option>
+                                        <option value="/" selected="selected">/</option>
+                                        <option value=":">:</option>
+                                        <option value=";">;</option>
+                                        <option value="<"><</option>
+                                        <option value="=">=</option>
+                                        <option value=">">></option>
+                                        <option value="?">?</option>
+                                        <option value="@">@</option>
+                                        <option value="[">[</option>
+                                        <option value="\\">\\</option>
+                                        <option value="]">]</option>
+                                        <option value="^">^</option>
+                                        <option value="_">_</option>
+                                        <option value="`">`</option>
+                                        <option value="{">{</option>
+                                        <option value="|">|</option>
+                                        <option value="}">}</option>
+                                        <option value="~">~</option>
+                                    </select>
+                                    <label for="encrypt_iv_input_base64_replace/" class="label_space">替换/</label>
+                                    <select name="encrypt_iv_input_base64_replace" id="encrypt_iv_input_base64_replace=">
+                                        <option value=" ">空格</option>
+                                        <option value="!">!</option>
+                                        <option value='"'>"</option>
+                                        <option value="#">#</option>
+                                        <option value="$">$</option>
+                                        <option value="%">%</option>
+                                        <option value="&">&</option>
+                                        <option value="'">'</option>
+                                        <option value="(">(</option>
+                                        <option value=")">)</option>
+                                        <option value="*">*</option>
+                                        <option value="+">+</option>
+                                        <option value=",">,</option>
+                                        <option value="-">-</option>
+                                        <option value=".">.</option>
+                                        <option value="/">/</option>
+                                        <option value=":">:</option>
+                                        <option value=";">;</option>
+                                        <option value="<"><</option>
+                                        <option value="=" selected="selected">=</option>
+                                        <option value=">">></option>
+                                        <option value="?">?</option>
+                                        <option value="@">@</option>
+                                        <option value="[">[</option>
+                                        <option value="\\">\\</option>
+                                        <option value="]">]</option>
+                                        <option value="^">^</option>
+                                        <option value="_">_</option>
+                                        <option value="`">`</option>
+                                        <option value="{">{</option>
+                                        <option value="|">|</option>
+                                        <option value="}">}</option>
+                                        <option value="~">~</option>
+                                    </select>
+                                    <label for="encrypt_iv_input_base64_replace=" class="label_space">替换=</label>
+                                </div>
+                            </div>
+                            <input type="text" name="" id="encrypt_iv_text_input">
+                            <label id="encrypt_iv_text_input_size" for="encrypt_iv" data-size="0">当前:0字节(B)</label>
+                        </div>
+                    </div>
+                    <div id="encrypt_head_field">
+                        <label for="encrypt_is_config">是否写入加密配置</label>
+                        <input type="checkbox" id="encrypt_is_config" checked>
+                        <label for="encrypt_is_iv">是否写入加密iv</label>
+                        <input type="checkbox" id="encrypt_is_iv" checked>
+                        <label for="encrypt_is_check">是否写入密钥校验</label>
+                        <input type="checkbox" id="encrypt_is_check" checked>
                     </div>
                 </div>
-            -->
+                <div class="button" id="encrypt_button">加密</div>
+            </div>
+            <!-- 输出区 -->
+            <div class="output_area">
+                <div class="output_type">
+                    <input type="radio" class="output_type_utf8" name="encrypt_output_type" id="encrypt_output_type_utf8" value="0">
+                    <label class="label_space" for="encrypt_output_type_utf8">UTF-8</label>
+                    <input type="radio" class="output_type_hex" name="encrypt_output_type" id="encrypt_output_type_hex" value="2" checked>
+                    <label class="label_space" for="encrypt_output_type_hex">HEX(16进制)</label>
+                    <input type="radio" class="output_type_base64" name="encrypt_output_type" id="encrypt_output_type_base64" value="1">
+                    <label class="label_space" for="encrypt_output_type_base64">Base64</label>
+                    <input type="radio" class="output_type_file" name="encrypt_output_type" id="encrypt_output_type_file" value="3" disabled>
+                    <label class="label_space" for="encrypt_output_type_file">文件</label>
+
+                    <div class="hex_case_field">
+                        <input type="radio" name="encrypt_output_hex_case" id="encrypt_output_hex_case_upper" value="0" checked>
+                        <label class="label_space" for="encrypt_output_hex_case_upper">大写</label>
+                        <input type="radio" name="encrypt_output_hex_case" id="encrypt_output_hex_case_lower" value="1">
+                        <label class="label_space" for="encrypt_output_hex_case_lower">小写</label>                        
+                    </div>
+                    
+                    <div class="base64_replace_field">
+                        <select name="encrypt_output_base64_replace" id="encrypt_output_base64_replace+">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+" selected="selected">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="encrypt_output_base64_replace+" class="label_space">替换+</label>
+                        <select name="encrypt_output_base64_replace" id="encrypt_output_base64_replace/">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/" selected="selected">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="encrypt_output_base64_replace/" class="label_space">替换/</label>
+                        <select name="encrypt_output_base64_replace" id="encrypt_output_base64_replace=">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=" selected="selected">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="encrypt_output_base64_replace=" class="label_space">替换=</label>
+                    </div>
+
+                </div>
+                <div id="encrypt_text_output_field" class="text_output_field">
+                    <textarea class="text_output" id="encrypt_text_output" rows="10" ></textarea>
+                </div>
+                <div id="encrypt_file_output_field" class="file_output_field">
+                    <label for="encrypt_file_output">输出路径:</label>
+                    <input type="text" class="file_output_input" id="encrypt_file_output_input" width="50">
+                    <div id="encrypt_file_output_save_btn" class="file_output_save_btn">选择输出</div>
+                </div>
+                <div class="output_operation">
+                    <div id="encrypt_output_text_copy" class="output_text_copy">复制</div>
+                    <div class="resolve_time" id="encrypt_resolve_time">耗时:</div>
+                </div>
             </div>
         </div>
 
-        <div id="helpArea" hidden="hidden">
-            <div class="tagTitle">程序帮助文档</div>
-            <div>
-                <h2>核心功能</h2>
-                <h3>数据转换功能</h3>
-                <ul>
-                    <li>支持三种编码格式: UTF-8 / HEX / Base64相互转换</li>
-                </ul>
-                <h3>加密/解密功能</h3>
-                <ul>
-                    <li>支持算法:AES/SM4</li>
-                    <li>块大小设置 AES/SM4仅支持支持16字节</li>
-                    <li>密钥长度设置 AES支持16字节,24字节,32字节</li>
-                    <li>分组加密模式支持ECB/CBC/CFB部分/OFB/CTR/五种</li>
-                    <li>支持根据分组加密模式设置填充方式</li>
-                    <li>填充方式支持 PKCS7/ANSI923/ISO7816_4/ISO10126 四种填充方式</li>
-                </ul>
-                <h3>散列计算</h3>
-                <ul>
-                    <li>支持算法:SHA2全系/SM3</li>
-                </ul>
+        <div class="main_box" id="decrypt_area" hidden>
+            <div class="single_title">数据对称解密</div>
+            <!-- 标识区 -->
+            <div class="sign_area" id="decrypt_sign_area">
+                <div>
+                    <label for="decrypt_config">是否携带配置</label>
+                    <input type="checkbox" name="" id="decrypt_config" checked>
+                </div>
+                <div>
+                    <label for="decrypt_iv">是否携带iv</label>
+                    <input type="checkbox" name="" id="decrypt_iv" checked>
+                </div>
+                <div>
+                    <label for="decrypt_check">是否携带密钥校验</label>
+                    <input type="checkbox" name="" id="decrypt_check" checked>
+                </div>
             </div>
-            <div>
-                <h2>输入输出配置</h2>
-                <h3>编码格式</h3>
-                <ul>
-                    <li>支持 UTF-8 / HEX / Base64 三种输入格式</li>
-                    <li>Base64 支持+/=三个字符的替换</li>
-                </ul>
-    
-                <h3>文件操作</h3>
-                <ul>
-                    <li>传入文件数据进行处理</li>
-                    <li>加密/解密输出路径:原文件路径.CRYPT/.PLAIN</li>
-                    <li>散列计算将根据输出的配置显示在任务列表的结果中</li>
-                    <li>当加密文件时选择添加配置的,只要在加密时保证密钥相同即可解密</li>
-                </ul>
+            <!-- 输入区 -->
+            <div class="input_area">                
+                <div class="input_type">                    
+                    <input type="radio" class="input_type_utf8" name="decrypt_input_type" id="decrypt_input_type_utf8" value="0">
+                    <label class="label_space" for="decrypt_input_type_utf8">UTF-8</label>
+                    <input type="radio" class="input_type_hex" name="decrypt_input_type" id="decrypt_input_type_hex" value="2" checked>
+                    <label class="label_space" for="decrypt_input_type_hex">HEX(16进制)</label>
+                    <input type="radio" class="input_type_base64" name="decrypt_input_type" id="decrypt_input_type_base64" value="1">
+                    <label class="label_space" for="decrypt_input_type_base64">Base64</label>
+                    <input type="radio" class="input_type_file" name="decrypt_input_type" id="decrypt_input_type_file" value="3">
+                    <label class="label_space" for="decrypt_input_type_file">文件</label>
+                    <div class="base64_replace_field">
+                        <select name="decrypt_input_base64_replace" id="decrypt_input_base64_replace+">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+" selected="selected">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="decrypt_input_base64_replace+" class="label_space">替换+</label>
+                        <select name="decrypt_input_base64_replace" id="decrypt_input_base64_replace/">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/" selected="selected">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="decrypt_input_base64_replace/" class="label_space">替换/</label>
+                        <select name="decrypt_input_base64_replace" id="decrypt_input_base64_replace=">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=" selected="selected">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="decrypt_input_base64_replace=" class="label_space">替换=</label>
+                    </div>
+                </div>
+                <div class="text_input_field">
+                    <textarea class="text_input" name="" id="" rows="10" ></textarea>
+                </div>
+                <div id="decrypt_file_input_field" class="file_input_field">
+                    <!--
+                    <label class="file_input_label" for="hash_file_input">请点击选择文件或将文件拖拽至此处</label>
+                    <input id="hash_file_input" class="file_input" type="file">
+                    -->
+                    <p>请点击选择文件或将文件拖拽至窗口</p>
+                    <p>当前文件:</p>
+                </div>
             </div>
-            <div>
-                <h2>任务显示</h2>
-                <ul>
-                    <li>将所有文件处理均移至后台处理</li>
-                    <li>后台处理最多任务数:8个</li>
-                    <li>散列计算后将结果显示在标签上</li>
-                    <li>全程显示进度和预计时间</li>
-                </ul>
+            <!-- 选项区 -->
+            <div class="setting_area" id="decrypt_setting_area">
+                <div id="decrypt_setting_frist_field">
+                    <div id="decrypt_method_field">
+                        <label for="decrypt_method">解密算法</label>
+                        <select name="" id="decrypt_method" data-algorithm="true"></select>
+                        <label for="decrypt_block_size">分组大小</label>
+                        <input type="number" id="decrypt_block_size">
+                        <label for="decrypt_key_size">密钥长度</label>
+                        <input type="number" id="decrypt_key_size">
+                        <div class="speed_test_button" id="decrypt_speed_test">测试</div>
+                        <div id="decrypt_speed_result">耗时</div>
+                    </div>
+                    <div id="decrypt_setting_field">
+                        <label for="decrypt_mode">解密模式</label>
+                        <select name="" id="decrypt_mode" data-mode="true"></select>
+                        <div id="decrypt_setting_shift_frame" class="crypt_setting_shift_frame">
+                            <label for="decrypt_shift">模式偏移</label>
+                            <input type="number" id="decrypt_shift">
+                        </div>
+                        <label for="decrypt_is_padding">是否填充</label>
+                        <input type="checkbox" id="decrypt_is_padding">
+                        <div id="decrypt_padding_field">
+                            <label for="decrypt_padding">填充方式</label>
+                            <select name="" id="decrypt_padding" data-padding="true"></select>
+                        </div>
+                    </div>
+                    <div id="decrypt_data_field">
+                        <div id="decrypt_key_field">
+                            <label for="decrypt_key">解密密钥</label>
+                            <div class="input_type">                    
+                                <input type="radio" class="input_type_utf8" name="decrypt_key_input_type" id="decrypt_key_input_type_utf8" value="0" checked>
+                                <label class="label_space" for="decrypt_key_input_type_utf8">UTF-8</label>
+                                <input type="radio" class="input_type_hex" name="decrypt_key_input_type" id="decrypt_key_input_type_hex" value="2">
+                                <label class="label_space" for="decrypt_key_input_type_hex">HEX(16进制)</label>
+                                <input type="radio" class="input_type_base64" name="decrypt_key_input_type" id="decrypt_key_input_type_base64" value="1">
+                                <label class="label_space" for="decrypt_key_input_type_base64">Base64</label>
+                                <div class="base64_replace_field">
+                                    <select name="decrypt_key_input_base64_replace" id="decrypt_key_input_base64_replace+">
+                                        <option value=" ">空格</option>
+                                        <option value="!">!</option>
+                                        <option value='"'>"</option>
+                                        <option value="#">#</option>
+                                        <option value="$">$</option>
+                                        <option value="%">%</option>
+                                        <option value="&">&</option>
+                                        <option value="'">'</option>
+                                        <option value="(">(</option>
+                                        <option value=")">)</option>
+                                        <option value="*">*</option>
+                                        <option value="+" selected="selected">+</option>
+                                        <option value=",">,</option>
+                                        <option value="-">-</option>
+                                        <option value=".">.</option>
+                                        <option value="/">/</option>
+                                        <option value=":">:</option>
+                                        <option value=";">;</option>
+                                        <option value="<"><</option>
+                                        <option value="=">=</option>
+                                        <option value=">">></option>
+                                        <option value="?">?</option>
+                                        <option value="@">@</option>
+                                        <option value="[">[</option>
+                                        <option value="\\">\\</option>
+                                        <option value="]">]</option>
+                                        <option value="^">^</option>
+                                        <option value="_">_</option>
+                                        <option value="`">`</option>
+                                        <option value="{">{</option>
+                                        <option value="|">|</option>
+                                        <option value="}">}</option>
+                                        <option value="~">~</option>
+                                    </select>
+                                    <label for="decrypt_key_input_base64_replace+" class="label_space">替换+</label>
+                                    <select name="decrypt_key_input_base64_replace" id="decrypt_key_input_base64_replace/">
+                                        <option value=" ">空格</option>
+                                        <option value="!">!</option>
+                                        <option value='"'>"</option>
+                                        <option value="#">#</option>
+                                        <option value="$">$</option>
+                                        <option value="%">%</option>
+                                        <option value="&">&</option>
+                                        <option value="'">'</option>
+                                        <option value="(">(</option>
+                                        <option value=")">)</option>
+                                        <option value="*">*</option>
+                                        <option value="+">+</option>
+                                        <option value=",">,</option>
+                                        <option value="-">-</option>
+                                        <option value=".">.</option>
+                                        <option value="/" selected="selected">/</option>
+                                        <option value=":">:</option>
+                                        <option value=";">;</option>
+                                        <option value="<"><</option>
+                                        <option value="=">=</option>
+                                        <option value=">">></option>
+                                        <option value="?">?</option>
+                                        <option value="@">@</option>
+                                        <option value="[">[</option>
+                                        <option value="\\">\\</option>
+                                        <option value="]">]</option>
+                                        <option value="^">^</option>
+                                        <option value="_">_</option>
+                                        <option value="`">`</option>
+                                        <option value="{">{</option>
+                                        <option value="|">|</option>
+                                        <option value="}">}</option>
+                                        <option value="~">~</option>
+                                    </select>
+                                    <label for="decrypt_key_input_base64_replace/" class="label_space">替换/</label>
+                                    <select name="decrypt_key_input_base64_replace" id="decrypt_key_input_base64_replace=">
+                                        <option value=" ">空格</option>
+                                        <option value="!">!</option>
+                                        <option value='"'>"</option>
+                                        <option value="#">#</option>
+                                        <option value="$">$</option>
+                                        <option value="%">%</option>
+                                        <option value="&">&</option>
+                                        <option value="'">'</option>
+                                        <option value="(">(</option>
+                                        <option value=")">)</option>
+                                        <option value="*">*</option>
+                                        <option value="+">+</option>
+                                        <option value=",">,</option>
+                                        <option value="-">-</option>
+                                        <option value=".">.</option>
+                                        <option value="/">/</option>
+                                        <option value=":">:</option>
+                                        <option value=";">;</option>
+                                        <option value="<"><</option>
+                                        <option value="=" selected="selected">=</option>
+                                        <option value=">">></option>
+                                        <option value="?">?</option>
+                                        <option value="@">@</option>
+                                        <option value="[">[</option>
+                                        <option value="\\">\\</option>
+                                        <option value="]">]</option>
+                                        <option value="^">^</option>
+                                        <option value="_">_</option>
+                                        <option value="`">`</option>
+                                        <option value="{">{</option>
+                                        <option value="|">|</option>
+                                        <option value="}">}</option>
+                                        <option value="~">~</option>
+                                    </select>
+                                    <label for="decrypt_key_input_base64_replace=" class="label_space">替换=</label>
+                                </div>
+                            </div>
+                            <input type="text" name="" id="decrypt_key_text_input">
+                            <label for="decrypt_key_text_input_size">当前:0字节(B)</label>
+                        </div>
+                        <div id="decrypt_iv_field">
+                            <label for="decrypt_iv">解密iv</label>
+                                <div class="input_type">                    
+                                    <input type="radio" class="input_type_utf8" name="decrypt_iv_input_type" id="decrypt_iv_input_type_utf8" value="0" checked>
+                                    <label class="label_space" for="decrypt_iv_input_type_utf8">UTF-8</label>
+                                    <input type="radio" class="input_type_hex" name="decrypt_iv_input_type" id="decrypt_iv_input_type_hex" value="2">
+                                    <label class="label_space" for="decrypt_iv_input_type_hex">HEX(16进制)</label>
+                                    <input type="radio" class="input_type_base64" name="decrypt_iv_input_type" id="decrypt_iv_input_type_base64" value="1">
+                                    <label class="label_space" for="decrypt_iv_input_type_base64">Base64</label>
+                                    <div class="base64_replace_field">
+                                        <select name="decrypt_iv_input_base64_replace" id="decrypt_iv_input_base64_replace+">
+                                            <option value=" ">空格</option>
+                                            <option value="!">!</option>
+                                            <option value='"'>"</option>
+                                            <option value="#">#</option>
+                                            <option value="$">$</option>
+                                            <option value="%">%</option>
+                                            <option value="&">&</option>
+                                            <option value="'">'</option>
+                                            <option value="(">(</option>
+                                            <option value=")">)</option>
+                                            <option value="*">*</option>
+                                            <option value="+" selected="selected">+</option>
+                                            <option value=",">,</option>
+                                            <option value="-">-</option>
+                                            <option value=".">.</option>
+                                            <option value="/">/</option>
+                                            <option value=":">:</option>
+                                            <option value=";">;</option>
+                                            <option value="<"><</option>
+                                            <option value="=">=</option>
+                                            <option value=">">></option>
+                                            <option value="?">?</option>
+                                            <option value="@">@</option>
+                                            <option value="[">[</option>
+                                            <option value="\\">\\</option>
+                                            <option value="]">]</option>
+                                            <option value="^">^</option>
+                                            <option value="_">_</option>
+                                            <option value="`">`</option>
+                                            <option value="{">{</option>
+                                            <option value="|">|</option>
+                                            <option value="}">}</option>
+                                            <option value="~">~</option>
+                                        </select>
+                                        <label for="decrypt_iv_input_base64_replace+" class="label_space">替换+</label>
+                                        <select name="decrypt_iv_input_base64_replace" id="decrypt_iv_input_base64_replace/">
+                                            <option value=" ">空格</option>
+                                            <option value="!">!</option>
+                                            <option value='"'>"</option>
+                                            <option value="#">#</option>
+                                            <option value="$">$</option>
+                                            <option value="%">%</option>
+                                            <option value="&">&</option>
+                                            <option value="'">'</option>
+                                            <option value="(">(</option>
+                                            <option value=")">)</option>
+                                            <option value="*">*</option>
+                                            <option value="+">+</option>
+                                            <option value=",">,</option>
+                                            <option value="-">-</option>
+                                            <option value=".">.</option>
+                                            <option value="/" selected="selected">/</option>
+                                            <option value=":">:</option>
+                                            <option value=";">;</option>
+                                            <option value="<"><</option>
+                                            <option value="=">=</option>
+                                            <option value=">">></option>
+                                            <option value="?">?</option>
+                                            <option value="@">@</option>
+                                            <option value="[">[</option>
+                                            <option value="\\">\\</option>
+                                            <option value="]">]</option>
+                                            <option value="^">^</option>
+                                            <option value="_">_</option>
+                                            <option value="`">`</option>
+                                            <option value="{">{</option>
+                                            <option value="|">|</option>
+                                            <option value="}">}</option>
+                                            <option value="~">~</option>
+                                        </select>
+                                        <label for="decrypt_iv_input_base64_replace/" class="label_space">替换/</label>
+                                        <select name="decrypt_iv_input_base64_replace" id="decrypt_iv_input_base64_replace=">
+                                            <option value=" ">空格</option>
+                                            <option value="!">!</option>
+                                            <option value='"'>"</option>
+                                            <option value="#">#</option>
+                                            <option value="$">$</option>
+                                            <option value="%">%</option>
+                                            <option value="&">&</option>
+                                            <option value="'">'</option>
+                                            <option value="(">(</option>
+                                            <option value=")">)</option>
+                                            <option value="*">*</option>
+                                            <option value="+">+</option>
+                                            <option value=",">,</option>
+                                            <option value="-">-</option>
+                                            <option value=".">.</option>
+                                            <option value="/">/</option>
+                                            <option value=":">:</option>
+                                            <option value=";">;</option>
+                                            <option value="<"><</option>
+                                            <option value="=" selected="selected">=</option>
+                                            <option value=">">></option>
+                                            <option value="?">?</option>
+                                            <option value="@">@</option>
+                                            <option value="[">[</option>
+                                            <option value="\\">\\</option>
+                                            <option value="]">]</option>
+                                            <option value="^">^</option>
+                                            <option value="_">_</option>
+                                            <option value="`">`</option>
+                                            <option value="{">{</option>
+                                            <option value="|">|</option>
+                                            <option value="}">}</option>
+                                            <option value="~">~</option>
+                                        </select>
+                                        <label for="decrypt_iv_input_base64_replace=" class="label_space">替换=</label>
+                                    </div>
+                                </div>
+                            <input type="text" name="" id="decrypt_iv_text_input">
+                            <label for="decrypt_iv_text_input_size">当前:0字节(B)</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="button" id="decrypt_button">解密</div>
             </div>
-            <div>
-                <h2>注意事项</h2>
-                <ul>
-                    <li>HEX和base64可以实现无损互转,但是转UTF-8时可能会产生乱码</li>
-                    <li>HEX只能输入0123456789abcdefABCDEF</li>
-                    <li>Base64只能输入0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz和设定的字符</li>
-                    <li>Base64用于替换+/=的字符两两不可相同</li>
-                    <li>在解密和散列时不推荐选择输出为UTF-8,大多数数据无法通过UTF-8编码,强行编码将产生乱码</li>
-                    <li>当使用文本加密和无添加配置的文件加密时,请保证解密配置和解密配置相同,密钥相同,否则无法解密或者产生错误</li>
-                    <li>请勿在无配置头的文件解密时选择自动识别加密配置</li>
-                    <li>本程序退出时所有未完成的任务均会强制退出,未完成的加密/解密后的文件留下的文件不会删除</li>
-                    <li>任务信息不会缓存</li>
-                </ul>
+            <!-- 输出区 -->
+            <div class="output_area">
+                <div class="output_type">
+                    <input type="radio" class="output_type_utf8" name="decrypt_output_type" id="decrypt_output_type_utf8" value="0" checked>
+                    <label class="label_space" for="decrypt_output_type_utf8">UTF-8</label>
+                    <input type="radio" class="output_type_hex" name="decrypt_output_type" id="decrypt_output_type_hex" value="2">
+                    <label class="label_space" for="decrypt_output_type_hex">HEX(16进制)</label>
+                    <input type="radio" class="output_type_base64" name="decrypt_output_type" id="decrypt_output_type_base64" value="1">
+                    <label class="label_space" for="decrypt_output_type_base64">Base64</label>
+                    <input type="radio" class="output_type_file" name="decrypt_output_type" id="decrypt_output_type_file" value="3">
+                    <label class="label_space" for="decrypt_output_type_file">文件</label>
+
+                    <div class="hex_case_field">
+                        <input type="radio" name="decrypt_output_hex_case" id="decrypt_output_hex_case_upper" value="0" checked>
+                        <label class="label_space" for="decrypt_output_hex_case_upper">大写</label>
+                        <input type="radio" name="decrypt_output_hex_case" id="decrypt_output_hex_case_lower" value="1">
+                        <label class="label_space" for="decrypt_output_hex_case_lower">小写</label>                        
+                    </div>
+                    
+                    <div class="base64_replace_field">
+                        <select name="decrypt_output_base64_replace" id="decrypt_output_base64_replace+">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+" selected="selected">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="decrypt_output_base64_replace+" class="label_space">替换+</label>
+                        <select name="decrypt_output_base64_replace" id="decrypt_output_base64_replace/">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/" selected="selected">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="decrypt_output_base64_replace/" class="label_space">替换/</label>
+                        <select name="decrypt_output_base64_replace" id="decrypt_output_base64_replace=">
+                            <option value=" ">空格</option>
+                            <option value="!">!</option>
+                            <option value='"'>"</option>
+                            <option value="#">#</option>
+                            <option value="$">$</option>
+                            <option value="%">%</option>
+                            <option value="&">&</option>
+                            <option value="'">'</option>
+                            <option value="(">(</option>
+                            <option value=")">)</option>
+                            <option value="*">*</option>
+                            <option value="+">+</option>
+                            <option value=",">,</option>
+                            <option value="-">-</option>
+                            <option value=".">.</option>
+                            <option value="/">/</option>
+                            <option value=":">:</option>
+                            <option value=";">;</option>
+                            <option value="<"><</option>
+                            <option value="=" selected="selected">=</option>
+                            <option value=">">></option>
+                            <option value="?">?</option>
+                            <option value="@">@</option>
+                            <option value="[">[</option>
+                            <option value="\\">\\</option>
+                            <option value="]">]</option>
+                            <option value="^">^</option>
+                            <option value="_">_</option>
+                            <option value="`">`</option>
+                            <option value="{">{</option>
+                            <option value="|">|</option>
+                            <option value="}">}</option>
+                            <option value="~">~</option>
+                        </select>
+                        <label for="decrypt_output_base64_replace=" class="label_space">替换=</label>
+                    </div>
+
+                </div>
+                <div id="decrypt_text_output_field" class="text_output_field">
+                    <textarea class="text_output" name="" id="" rows="10" ></textarea>
+                </div>
+                 <div id="decrypt_file_output_field" class="file_output_field">
+                    <label for="decrypt_file_output">输出路径:</label>
+                    <input type="text" class="file_output_input" id="decrypt_file_output_input" width="50">
+                    <div id="decrypt_file_output_save_btn" class="file_output_save_btn">选择输出</div>
+                </div>
             </div>
         </div>
 
-        <div id="aboutArea" hidden="hidden">
-            <div class="selection">
-                <h2>小组信息</h2>
-                <div>组员:陈秉毅</div>
-            </div>
-            <div class="selection">
-                <h2>程序信息</h2>
-                <div>程序名称:数据散列加密解密工具</div>
-                <div>版本号:1.0.0</div>
-                <div>联系方式:2443409776@qq.com</div>
-            </div>
-            <h2>依赖技术</h2>
-            <div class="selection" id="iconField">
-                <div class="singleIcon">
-                    <img src="./resource/cplusplus.svg" alt="" width="75px">
-                    <div>C++</div>
+        <div class="main_box" id="task_area" hidden>
+            <div class="single_title">当前任务管理</div>
+            <div id="task_frame" class="simple_frame">
+                <div class="task_simple_frame">
+                    <div>等待队列</div>
+                    <div class="task_list"></div>
                 </div>
-                <div class="singleIcon">
-                    <img src="./resource/qt.svg" alt="" width="75px">
-                    <div>Qt</div>
+                <div class="task_simple_frame">
+                    <div>任务进度</div>
+                    <div class="task_list"></div>
                 </div>
-                <div class="singleIcon">
-                    <img src="./resource/html5.svg" alt="" width="75px">
-                    <div>HTML5</div>
-                </div>
-                <div class="singleIcon">
-                    <img src="./resource/css3.svg" alt="" width="75px">
-                    <div>CSS3</div>
-                </div>
-                <div class="singleIcon">
-                    <img src="./resource/javascript.svg" alt="" width="75px">
-                    <div>JavaScript</div>
+                <div class="task_simple_frame">
+                    <div>任务信息</div>
+                    <div class="task_list"></div>
                 </div>
             </div>
         </div>
+
 
     </div>
-</body>
+
+    <dialog id="msg_dialog"></dialog>
+
     <script src="home.js"></script>
+</body>
 </html>

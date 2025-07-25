@@ -5,6 +5,9 @@
 #include <sstream>
 #include <ostream>
 #include <fstream>
+#include <thread>
+#include <iostream>
+#include <filesystem>
 #include "../lib/dog_cryption.h"
 
 namespace work
@@ -12,12 +15,12 @@ namespace work
     class timer
     {
     private:
-        std::chrono::steady_clock::time_point startPoint = std::chrono::steady_clock::now();
-        std::chrono::steady_clock::time_point endPoint = std::chrono::steady_clock::now();;
+        std::chrono::steady_clock::time_point start_point_ = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point end_point_ = std::chrono::steady_clock::now();;
     public:
         void start();
         void end();
-        double getTime();
+        double get_time();
 
     };
 
@@ -43,31 +46,30 @@ namespace work
 
         ~task();
 
-        uint64_t getId() const;
-        double getProgress();
-        double getMicroSecond();
-        int getStatus();
-        std::string getMsg();
-        std::string getType();
-        dog_data::Data getResult();
-        std::thread* getThread();
+        uint64_t get_id() const;
+        double get_progress();
+        double get_micro_second();
+        int get_status();
+        std::string get_msg();
+        std::string get_type();
+        dog_data::Data get_result();
+        std::thread * get_thread();
         
 
         friend bool operator==(const task& t1, const task& t2);
         
-        void start();
+        void start_timer();
         void fail();
         void success();
 
         void stop();
-        void setMsg(std::string msg);
-        void setThread(std::thread* thread);
+        void set_msg(std::string msg);
+        void set_thread(std::thread* thread);
 
-        void startHash(std::string medhod,std::string path);
-        void startEncrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path);
-        void startEncrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path);
-        void startDecrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path);
-        void startDecrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path);
+        void start_hash_task(std::string hash, uint64_t effect, std::string input);
+        void start_encrypt_task(bool with_config, bool with_check, bool with_iv, dog_data::Data iv, dog_cryption::CryptionConfig config, std::string input, std::string output);
+        void start_decrypt_task(bool with_config, bool with_check, bool with_iv, dog_data::Data iv, dog_cryption::CryptionConfig config, std::string input, std::string output);
+
     };
 
     class taskInfo
@@ -88,7 +90,9 @@ namespace work
     class taskPool
     {
     private:
+        bool running = true;
         std::list<task*> tasks;
+        std::deque<std::map<std::string,std::any>*> waiting;
         std::atomic<uint64_t> id;
         std::atomic<uint64_t> now_running;
         std::atomic<uint64_t> max_running;
@@ -96,12 +100,18 @@ namespace work
     public:
         taskPool(uint64_t max_running);
         ~taskPool();
-        uint64_t add_hash_task(std::string method, std::string path);
-        uint64_t add_encrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path);
-        uint64_t add_encrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path);
-        uint64_t add_decrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path);
-        uint64_t add_decrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path);
         
         work::taskInfo get_task_info(uint64_t id);
+
+        void add();
+        void sub();
+
+        void add_hash(std::string hash, uint64_t effect, std::string input);
+        void add_encrypt(bool with_config, bool with_check, bool with_iv, dog_cryption::CryptionConfig config, std::string iv, int32_t type, std::string input, std::string output);
+        void add_decrypt(bool with_config, bool with_check, bool with_iv, dog_cryption::CryptionConfig config, std::string iv, int32_t type, std::string input, std::string output);
     };
+
+    void hash_running(task* t, std::string hash, uint64_t effect, std::string input, taskPool* pool);
+    void encrypt_running(task* t, bool with_config, bool with_check, bool with_iv, dog_data::Data iv_data, dog_cryption::CryptionConfig config, std::string input, std::string output, taskPool* pool);
+    void decrypt_running(task* t, bool with_config, bool with_check, bool with_iv, dog_data::Data iv_data, dog_cryption::CryptionConfig config, std::string input, std::string output, taskPool* pool);
 }

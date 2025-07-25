@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_CXX_STANDARD 23)
 
-#set(Qt6_DIR "E:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6")
+set(Qt6_DIR "E:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6")
 
 set(CMAKE_PREFIX_PATH ${Qt6_DIR})
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -21,6 +21,13 @@ REQUIRED)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}../../../bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}../../../lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}../../../lib)
+
+add_library(dog_thread)
+target_sources(dog_thread
+    PRIVATE
+        threadPool/thread_pool.h
+        threadPool/thread_pool.cpp
+)
 
 add_library(dog_cryption)
 target_sources(dog_cryption
@@ -50,7 +57,7 @@ target_sources(cmd_test
     PRIVATE
         test/cmd_test.cpp
 )
-target_link_libraries(cmd_test PRIVATE dog_cryption)
+target_link_libraries(cmd_test PRIVATE dog_cryption dog_thread)
 
 add_executable(bigInteger_radix_test)
 set_target_properties(bigInteger_radix_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bigInteger_radix_test")

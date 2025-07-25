@@ -1,328 +1,765 @@
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #66ccff;
-    overflow: hidden;
-  }
+@font-face{
+    font-family: "lenovo";
+    src:URL("resource/联想小新黑体_常规.ttf");
+}
+@font-face {
+    font-family: "msyh";
+    src: url("resource/msyhl.ttc");
+}
+@font-face {
+    font-family: "single";
+    src: url("resource/NotoSansSC-VF.ttf");
+}
+@font-face{
+    font-family: "emoji";
+    src: url("resource/NotoColorEmoji.ttf");
+}
 
 #body{
-    display: inline-flex;
-    width: 1200px;
-    height: 750px;
+    /* border: 1px solid black; */
+    background-color: #66ccff;
+    /* width: 960px;
+    height: 600px; */
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    padding: 0;
+    margin: 0;
+    border: 0;
 }
 
-/*菜单及其子项样式*/
-#menu{
-    background-color: #09288d;
-    width: 5%;
-    display: inline-flex;
+.sidebar_colunm{
+    /* border-right: 1px solid black; */
+    display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    background-color: #66CCFF;
+    width: 5%;
+    height: 100%;
+}
+
+.main_colunm{
+    background:#FFFFFF;
+    width: 95%;
+    height: 100%;
+    overflow: auto;
+}
+
+/* 
+.sidebar_row{
+    border-bottom: 1px solid black;
+    width: 100%;
+    height: 5%;
+}
+
+.main_row{
+    width: 100%;
+    height: 95%;
+} 
+*/
+
+.sidebar_item{
+    border-radius: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 20%;
+    width: 210%;
+    height: 5.6%;
+    overflow: visible;
+}
+
+.sidebar_item_active{
+    border-radius: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 20%;
+    width: 210%;
+    height: 5.6%;
+    overflow: visible;
+}
+
+.sidebar_icon{
+    transition:background-color 0.75s;
+    height: 70%;
+    padding: 4%;
+    border-radius: 10px;
+    margin: 0 8.15% 0 8.15%;
+}
+
+.sidebar_item_active .sidebar_icon{
+    transition:background-color 0.75s;
+    height: 70%;
+    padding: 4%;
+    background-color: #39C5BB80;
+    border: #003366 1px solid;
+    border-radius: 10px;
+    margin: 0 8.15% 0 8.15%;
+}
+
+.sidebar_item .sidebar_icon:hover{
+    background-color: #66DDFF;
+}
+
+.sidebar_item_active .sidebar_icon:hover + .sidebar_title{
+    animation: title_showing 0.75s;
+    visibility: visible;
+    opacity: 1;
+}
+
+.sidebar_item .sidebar_icon:hover + .sidebar_title{
+    animation: title_showing 0.75s;
+    visibility: visible;
+    opacity: 1;
+}
+
+.sidebar_title{
+    opacity: 0;
+    visibility: hidden;
+    position: relative;
+    font-size: 125%;
+    color: #FFFFFF;
+    text-align: center;
+    background-color: #000000;
+    border-radius: 5px;
+    width: 50%;
+}
+
+@keyframes title_showing{
+    0%{
+        opacity: 0;
+        visibility: visible;
+    }
+    100%{
+        opacity: 1;
+    }
+}
+
+#exchange_icon:hover{
+    animation: exchange 0.75s;
+}
+
+@keyframes exchange{
+    0%  {
+        rotate: 0deg;
+    }
+    100% {
+        rotate: 180deg;
+    }
+
+}
+
+#hash_icon:hover{
+    animation: hash 0.75s;
+}
+
+@keyframes hash{
+    0%  {
+        rotate: 0deg;
+    }
+    100% {
+        rotate: 90deg;
+    }
+}
+
+#encrypt_icon:hover{
+    animation: lock 0.75s;
+}
+
+@keyframes lock{
+    0%   {
+        Content: url("resource/LockOpen.svg");
+    }
+    70%  {
+        transform: translate3d(0px,+1px,0px);
+    }
+    80%  {
+        Content: url("resource/LockClosed.svg");
+    }
+    90%  {
+        transform: translate3d(0px,-1px,0px);
+    }
+    100% {
+        transform: translate3d(0px,0px,0px);
+    }
+}
+
+#decrypt_icon:hover{
+    animation: unlock 0.75s;
+}
+
+@keyframes unlock{
+    0%   {
+        Content: url("resource/LockClosed.svg");
+    }
+    70%  {
+       transform: translate3d(-1px,0px,0px);
+    }
+    80%  {
+        Content: url("resource/LockOpen.svg");
+    }
+    90%  {
+        transform: translate3d(+1px,0px,0px);
+    }
+    100% {
+        transform: translate3d(0px,0px,0px);
+    }
+}
+
+.simple_frame{
+    background-color: #39C5BB80;
+    font-size: 0.9em;
+    font-family: "single";
+    width: 95%;
+    margin: 0 auto 1% auto;
+    transition:background-color 0.5s;
+    border-radius: 5px 5px 5px 5px;
+}
+
+.simple_frame:hover{
+    background-color: #39C5BBC0;
+}
+
+.main_box{
+    font-family: "single";
+    width: 100%;
+    height: 100%;
+    transition:background-color 0.5s;
+    border-radius: 5px 5px 5px 5px;
+    
+}
+
+.single_title{
+    font-size: 1.5em;
+    color: #000000;
+    text-align: center;
+    width: 95%;
+    margin: 0 auto 1% auto;
+    border-bottom: #00000080 1px solid;
+    transition:background-color 0.5s;
+}
+
+/* .single_title:hover{
+    background-color: #39C5BB80;
+} */
+
+.input_area{
+    background-color: #39C5BB80;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 0.9em;
+    font-family: "single";
+    width: 95%;
+    margin: 0 auto 1% auto;
+    transition:background-color 0.5s;
+    border-radius: 5px 5px 5px 5px;
+}
+
+.input_area:hover{
+    background-color: #39C5BBC0;
+}
+
+.input_area:focus{
+    background-color: #39C5BB80;
+}
+
+.input_type{
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.base64_replace_field{
+    display: none;
+    flex-direction: row;
+    width: 98%;
+    margin: 0 auto 0 auto;
+    align-items: center;
+}
+
+.input_type_base64:checked ~ .base64_replace_field{
+    display: flex;
+}
+
+.label_space{
+    margin-right: 1.25%;
+}
+
+.text_input_field{
+    width: 98%;
+    margin: 0 auto 0 auto;
+}
+
+.text_input{
+    resize: none;
+    width: 99.5%;
+}
+
+.setting_area{
+    display: flex;
+    width: 95%;
+    margin: 0 auto 1% auto;
+}
+
+.button{
+    transition:background-color 0.5s;
+    padding: 5px 10px 5px 10px;
+    border-radius: 10px;
+    background-color: #66CCFF;
+    text-align: center;
+    width: 4%;
+    height: 35%;
+}
+
+.button:hover{
+    background-color: #39C5BB;
+}
+
+#exchange_button{
+    transition:background-color 0.5s;
+    padding: 5px 10px 5px 10px;
+    border-radius: 10px;
+    background-color: #66CCFF;
+    margin: 1% 0 1% 2.5%;
+}
+
+#exchange_button:hover{
+    background-color: #39C5BB;
+}
+
+.output_area{
+    background-color: #39C5BB80;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 0.9em;
+    font-family: "single";
+    width: 95%;
+    margin: 0 auto 1% auto;
+    transition:background-color 0.5s;
+    border-radius: 5px 5px 5px 5px;
+}
+
+.output_area:hover{
+    background-color: #39C5BBC0;
+}
+
+.output_type{
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.hex_case_field{
+    display: none;
+    width: 100%;
+}
+
+.text_output_field{
+    width: 98%;
+    margin: 0 auto 0 auto;
+}
+
+.text_output{
+    resize: none;
+    width: 99.5%;
+}
+
+.output_type_hex:checked ~ .hex_case_field{
+    display: flex;
+}
+
+.output_type_base64:checked ~ .base64_replace_field{
+    display: flex;
+}
+
+.file_input_field{
+    display: none;
+    margin: 0 auto 1% auto;
+    flex-direction: column;
+    align-items: center;
+    width: 98%;
+    height: 100%;
+    border-radius: 5px;
+    border: 1px solid;
+    background-color: #cae6f5;
+}
+
+.file_input_label{
+    text-align: center;
+}
+
+.file_output_field{
+    display: none;
+}
+
+.file_output_field_active{
+    display: flex;
+    margin: 0 auto 1% auto;
+    width: 98%;
+}
+
+.file_output_input{
+    width: 80%;
+}
+
+.file_output_save_btn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 1% 0 1%;
+    background-color: #FFFFFF;
+}
+
+.file_output_save_btn:hover{
+    background-color: #C0C0C0;
+}
+
+.file_input{
+    opacity: 0;
+    height: 100%;
+}
+
+.input_area:has(.input_type .input_type_file:checked) .file_input_field{
+    display: flex;
+}
+
+.input_area:has(.input_type .input_type_file:checked) .text_input_field{
+    display: none;
+}
+
+.setting_area{
+    background-color: #39C5BB80;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    font-size: 0.9em;
+    font-family: "single";
+    width: 95%;
+    margin: 0 auto 1% auto;
+    transition:background-color 0.5s;
+    border-radius: 5px 5px 5px 5px;
+}
+
+.setting_area:hover{
+    background-color: #39C5BBC0;
+}
+
+#encrypt_method_field{
+    width: 10%;
+    display: flex;
+    margin: 1%;
+    flex-direction: column;
+    border: #003366 1px solid;
+    padding: 1%;
+}
+
+#encrypt_setting_field{
+    display: flex;
+    width: 10%;
+    margin: 1%;
+    flex-direction: column;
+    border: #003366 1px solid;
+    padding: 1%;
+}
+
+#encrypt_padding_field{
+    display: none;
+    flex-direction: column;
+}
+
+#encrypt_is_padding:checked ~ #encrypt_padding_field{
+    display: flex;
+}
+
+#encrypt_data_field{
+    border: #003366 1px solid;
+    padding: 1%;
+    width: 49%;
+    display: flex;
+    margin: 1%;
+    flex-direction: column;
+}
+
+#encrypt_key_field{
+    display: flex;
+    flex-direction: column;
+}
+
+#encrypt_iv_field{
+    display: flex;
+    flex-direction: column;
+}
+
+#encrypt_head_field{
+    border: #003366 1px solid;
+    padding: 1%;
+    margin: 1%;
+    display: flex;
+    flex-direction: column;
+}
+
+.sign_area{
+    background-color: #39C5BB80;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    font-size: 0.9em;
+    font-family: "single";
+    width: 95%;
+    margin: 0 auto 1% auto;
+    transition:background-color 0.5s;
+    border-radius: 5px 5px 5px 5px;
+}
+
+.sign_area:hover{
+    background-color: #39C5BBC0;
+}
+
+#encrypt_setting_frist_field{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    font-size: 0.9em;
+    font-family: "single";
+    width: 95%;
+}
+
+#encrypt_setting_area{
+    flex-direction: column;
+    align-items: center;
+}
+
+#hash_setting_area{
+    display: flex;
+    flex-direction: column;
+}
+
+.hash_setting_frame{
+    display: flex;
+    flex-direction: row;
+    margin: 1% 0 0 2.5%;
+}
+
+#hash_setting_frame2{
+    align-items: center;
+}
+
+#hash_button{
+    transition:background-color 0.5s;
+    padding: 5px 10px 5px 10px;
+    border-radius: 10px;
+    background-color: #66CCFF;
+    margin: 0 0 1% 2.5%;
+    text-align: center;
+}
+
+#hash_button:hover{
+    background-color: #39C5BB;
+}
+
+#encrypt_button{
+    margin: 0 0 1% 2.5%;
+}
+
+#decrypt_method_field{
+    width: 10%;
+    display: flex;
+    margin: 1%;
+    flex-direction: column;
+    border: #003366 1px solid;
+    padding: 1%;
+}
+
+#decrypt_setting_field{
+    display: flex;
+    width: 10%;
+    margin: 1%;
+    flex-direction: column;
+    border: #003366 1px solid;
+    padding: 1%;
+}
+
+#decrypt_padding_field{
+    display: none;
+    flex-direction: column;
+}
+
+#decrypt_is_padding:checked ~ #decrypt_padding_field{
+    display: flex;
+}
+
+#decrypt_data_field{
+    border: #003366 1px solid;
+    padding: 1%;
+    width: 49%;
+    display: flex;
+    margin: 1%;
+    flex-direction: column;
+}
+
+#decrypt_key_field{
+    display: flex;
+    flex-direction: column;
+}
+
+#decrypt_iv_field{
+    display: flex;
+    flex-direction: column;
+}
+
+#decrypt_head_field{
+    border: #003366 1px solid;
+    padding: 1%;
+    margin: 1%;
+    display: flex;
+    flex-direction: column;
+}
+
+#decrypt_setting_area{
+    flex-direction: column;
+    align-items: center;
+}
+
+#decrypt_setting_frist_field{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    font-size: 0.9em;
+    font-family: "single";
+    width: 95%;
+    justify-content: center;
+}
+
+#decrypt_button{
+    margin: 0 0 1% 2.5%;
+}
+
+#decrypt_sign_area{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.crypt_setting_shift_frame{
+    display: none;
+    flex-direction: column;
+}
+
+.crypt_setting_shift_frame_active{
+    display: flex;
+    flex-direction: column;
+}
+
+#task_frame{
+    display: flex;
+    flex-direction: row;
+    height: 80%;
+}
+
+.task_simple_frame{
+    width: 30%;
+    margin: 1.5%;
+}
+
+.task_list{
+    display: flex;
+    flex-direction: column;
+}
+
+#msg_dialog{
+    width: 33%;
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 0px;
+    background-color: #FFFFFF00;
+    overflow: auto;
+    pointer-events: none;
+}
+
+.msg_title_field{
+    display: flex;
+    margin: 0 0 0 2.5%;
+    align-items: center;   
+}
+
+.msg_title_emoji{
+    font-family : "emoji";
+}
+
+.msg_area{
+    width: 95%;
+    background-color: #FFFFFF;
+    font-family: "single";
+    margin: 1%;
+    border: 2px solid #000000;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.msg_title{
+    width: 90%;
+}
+
+.msg_content{
+    margin: 0 5% 0 5%;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.output_operation{
+    display: flex;
+    flex-direction: row;
     justify-content: flex-start;
     align-items: center;
-    padding: 1% 0.5% 1% 0.5%;
+    width: 95%;
+    margin: 1% 1% 1% 2.5%;
 }
 
-.menuChoice{
-    background-color: #2979c9;
-    width: 80%;
-    height: 6.4%;
-    margin: 7% 0 7% 0;
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+.output_text_copy{
+    transition:background-color 0.5s;
+    padding: 5px 10px 5px 10px;
     border-radius: 10px;
+    background-color: #66CCFF;
+    text-align: center;
+    width: 4%;
+    height: 35%;   
 }
 
-.menuChoice:hover{
-    background-color: #2468ac;
-    width: 80%;
-    height: 6.4%;
-    margin: 7% 0 7% 0;
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
-
-    color: #ffffff;
-}
-
-.menuChoiceActive{
-    background-color: #184470;
-    width: 80%;
-    height: 6.4%;
-    margin: 7% 0 7% 0;
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
-
-    color: #ffffff;
-}
-
-.menuChoice:active{
-    background-color: #184470;
-    width: 80%;
-    height: 6.4%;
-    margin: 7% 0 7% 0;
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
-
-    color: #ffffff;
-}
-
-.menuChoiceIconField{
-    width: 75%;
-    height: 75%;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.menuChoiceIcon{
-    width: 80%;
-}
-
-#taskChoiceIcon{
-    width: 70%;
-}
-
-.menuChoiceLabel{
-    width: 100%;
-    height: 40%;
-    font-size: 80%;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-}
-
-@keyframes rotateHalfRound {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(180deg);
-    }
-  }
-#dataChoiceIcon:hover{
-    animation: rotateHalfRound 0.3s linear 1;
-}
-
-@keyframes rotateQuarterRound {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(90deg);
-    }
-}
-#hashChoiceIcon{
-    width: 90%;
-}
-#hashChoiceIcon:hover{
-    animation: rotateQuarterRound 0.15s linear 1;
-}
-
-/*放缩*/
-@keyframes scaleLock{
-    from {
-        width: 52.5%;
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.25);
-    }
-    to {
-        transform: scale(1);
-    }
-}
-#encryptChoiceIcon:hover{
-    animation: scaleLock 1.5s linear 1;
-}
-#encryptChoiceIcon{
-    width: 70%;
-}
-
-#decryptChoiceIcon:hover{
-    animation: scaleLock 1.5s linear 1;
-}
-
-
-#main{
-    background-color: #66ccff;
-    width: 90%;
-    padding: 1%;
-    overflow: auto;
-}
-
-.normalOption{
-    font-size: 100%;
-}
-
-#hash{
-    width: 100%;
-    height: 100%;
-    display: inline-flex;
-    flex-direction: column;
-}
-
-.tagTitle{
-    font-size: 150%;
-    width: 100%;
-}
-
-.tagTitle1{
-    font-size: 125%;
-    font-style: bold;
-    width: 100%;
-}
-
-#hashInputTextField{
-    width: 100%;
-}
-
-.textArea{
-    width: 99%;
-}
-
-#hashMethodChoice{
-    font-size: 100%;
-    width: 20%;
-}
-
-.runningButton{
-    font-size: 100%;
+.output_text_copy:hover{
     background-color: #39C5BB;
-    display: inline-block;
+}
+
+dialog:focus {
+    outline: none;
+}
+
+.speed_test_button{
+    transition:background-color 0.5s;
+    padding: 5px 10px 5px 10px;
+    border-radius: 10px;
+    background-color: #66CCFF;
+    margin: 0 0 1% 2.5%;
     text-align: center;
-    width: 20%;
-    margin: 1% 0 1% 0;
-    padding: 1% 0 1% 0;
-    border: 2px solid #237c76;
-    border-radius: 20px;
 }
 
-.runningButton:hover{
-    font-size: 100%;
-    background-color: #31a79f;
-    display: inline-block;
-    text-align: center;
-    width: 20%;
-    margin: 1% 0 1% 0;
-    padding: 1% 0 1% 0;
-    border: 2px solid #237c76;
-    border-radius: 20px;
+.speed_test_button:hover{
+    background-color: #39C5BB;
 }
 
-.runningButton:active{
-    font-size: 100%;
-    background-color: #227570;
-    display: inline-block;
-    text-align: center;
-    width: 20%;
-    margin: 1% 0 1% 0;
-    padding: 1% 0 1% 0;
-    border: 2px solid #237c76;
-    border-radius: 20px;
-}
-
-.cryptionMethod{
-    display: inline-flex;
-    background-color: #cbc1d9;
-    flex-direction: column;
-    width: 100%;
-}
-
-.cryptionChoice{
-    display: inline-flex;
-    flex-direction: row;
-}
-
-.cryptionMethodChoice{
-    margin-right: 10px;
-}
-
-.cryptionSizeUnit{
-    margin-right: 10px;
-}
-
-.cryptionInputBlockSize{
-    user-select: none
-}
-
-.cryptionInputKeySize{
-    user-select: none;
-}
-
-.spendTimeField{
-    width: 100%;
-    background-color: #FFB6C1;
-}
-
-#decryptWithConfigField{
-    background-color: #cbc1d9;
-    width: 100%;
-}
-
-#taskArea{
-    height: 100%;
-}
-
-#taskListArea{
-    margin:auto;
-    width: 90%;
-    height: 90%;
-    background-color: #c3e6f8;
-    display: inline-flex;
-    flex-direction: column;
-    overflow: auto;
-}
-
-.singleTaskField{
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 10px;
-    width: 90%;
-    background-color: #001070;
-    padding: 0 20px 0 20px;
-    border-radius: 20px;
-    display: inline-flex;
-    flex-direction: column;
-}
-
-.singeTaskDetailField{
-    display: inline-flex;
-}
-
-.singleTaskText{
-    color: #ffffff;
-    font-size: 15px;
-    overflow: auto;
-}
-
-.singleTaskIcon{
-    width: 75px;
-}
-
-.singleTaskProgress{
-    width: 100%;
-}
-
-#iconField{
-    display: inline-flex;
-    width: 100%;
-}
-
-.singleIcon{
-    margin: 10px;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
+#hash_speed_test{
+    margin: 0;
 }

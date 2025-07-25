@@ -2,16 +2,15 @@
 
 void work::timer::start()
 {
-    startPoint = std::chrono::steady_clock::now();
+    start_point_ = std::chrono::steady_clock::now();
 }
 void work::timer::end()
 {
-    endPoint = std::chrono::steady_clock::now();
+    end_point_ = std::chrono::steady_clock::now();
 }
-double work::timer::getTime()
+double work::timer::get_time()
 {
-    endPoint = std::chrono::steady_clock::now();
-    return std::chrono::duration_cast<std::chrono::microseconds>(endPoint - startPoint).count();
+    return std::chrono::duration_cast<std::chrono::microseconds>(end_point_ - start_point_).count();
 }
 
 work::task::task(uint64_t id,std::string type)
@@ -67,51 +66,109 @@ work::task::~task()
     delete this->thread;
     
 }
-uint64_t work::task::getId() const
+uint64_t work::task::get_id() const
 {
     return this->id;
 }
-double work::task::getProgress()
+double work::task::get_progress()
 {
     return this->progress.load();
 }
-double work::task::getMicroSecond()
+double work::task::get_micro_second()
 {
     std::lock_guard<std::mutex> lock(mutex);
-    return this->stimer.getTime();
+    return this->stimer.get_time();
 }
-int work::task::getStatus()
+int work::task::get_status()
 {
     return this->status.load();
 }
-std::string work::task::getMsg()
+std::string work::task::get_msg()
 {
     std::lock_guard<std::mutex> lock(mutex);
     return this->msg;
 }
-std::string work::task::getType()
+std::string work::task::get_type()
 {
     std::lock_guard<std::mutex> lock(mutex);
     return this->type;
 }
-dog_data::Data work::task::getResult()
+dog_data::Data work::task::get_result()
 {
     std::lock_guard<std::mutex> lock(mutex);
     return this->result;
 }
-std::thread* work::task::getThread()
+std::thread* work::task::get_thread()
 {
     return this->thread;
 }
 bool work::operator==(const task& t1, const task& t2)
 {
-    if (t1.getId() == t1.getId())
+    if (t1.get_id() == t1.get_id())
     {
         return true;
     }
     return false;
 }
-void work::task::start()
+void work::hash_running(task* t, std::string hash, uint64_t effect, std::string input, taskPool* pool)
+{
+    pool->add();
+    try
+    {
+        t->start_timer();
+        t->start_hash_task(hash, effect, input);
+        t->success();
+        t->set_msg("success");
+    }
+    catch (std::exception& e)
+    {
+        t->fail();
+        t->set_msg(e.what());
+    }
+    pool->sub();
+}
+void work::encrypt_running(
+    task* t, bool with_config, bool with_check, bool with_iv, 
+    dog_data::Data iv_data, dog_cryption::CryptionConfig config, 
+    std::string input, std::string output, taskPool* pool)
+{
+    pool->add();
+    try
+    {
+        t->start_timer();
+        t->start_encrypt_task(with_config, with_check, with_iv, iv_data, config, input, output);
+        t->success();
+        t->set_msg("success");
+    }
+    catch (std::exception& e)
+    {
+        t->fail();
+        t->set_msg(e.what());
+    }
+    pool->sub();
+}
+void work::decrypt_running(
+    task* t, bool with_config, bool with_check, bool with_iv, 
+    dog_data::Data iv_data, dog_cryption::CryptionConfig config, 
+    std::string input, std::string output, taskPool* pool)
+{
+    pool->add();
+    try
+    {
+        t->start_timer();
+        t->start_decrypt_task(with_config, with_check, with_iv, iv_data, config, input, output);
+        t->success();
+        t->set_msg("success");
+    }
+    catch (std::exception& e)
+    {
+        t->fail();
+        t->set_msg(e.what());
+    }
+    pool->sub();
+}
+
+void work::task::start_timer()
 {
     this->status.store(0);
     this->stimer.start();
@@ -130,59 +187,36 @@ void work::task::stop()
 {
     this->progress.store(DBL_MIN * -1);
 }
-void work::task::setMsg(std::string msg)
+void work::task::set_msg(std::string msg)
 {
     this->msg = msg;
 }
-void work::task::setThread(std::thread* thread)
+void work::task::set_thread(std::thread* thread)
 {
     this->thread = thread;
 }
-void work::task::startHash(std::string medhod, std::string path)
+
+void work::task::start_hash_task(std::string hash, uint64_t effect, std::string input)
 {
-    dog_hash::hash_crypher h(medhod);
-    std::ifstream input(path, std::ios::binary);
-    dog_data::Data result;
-    dog_hash::hash_crypher::streamHashp(h, input, &(this->progress), &result);
-    this->result = result;
+    dog_hash::HashCrypher hc(hash, effect);
+    std::ifstream ifs(input, std::ios::binary);
+    dog_hash::HashCrypher::streamHashp(hc, ifs, (&this->progress), &this->result);
 }
-void work::task::startEncrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path)
+void work::task::start_encrypt_task(bool with_config, bool with_check, bool with_iv, dog_data::Data iv,
+    dog_cryption::CryptionConfig config, std::string input, std::string output)
 {
-    dog_cryption::Cryptor crypter(config);
-    std::ifstream input(input_path, std::ios::binary);
-    crypter.set_key(key);
-    if (!input.is_open()) { throw std::runtime_error("input file not open"); }
-    std::ofstream output(output_path, std::ios::binary);
-    crypter.encryptp(input, output, &this->progress);
+    dog_cryption::Cryptor c(config);
+    std::ifstream ifs(input, std::ios::binary);
+    std::ofstream ofs(output, std::ios::binary);
+    c.encryptp(ifs, ofs, with_config, with_iv, iv, with_check, &(this->progress));
 }
-void work::task::startEncrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path)
+void work::task::start_decrypt_task(bool with_config, bool with_check, bool with_iv, dog_data::Data iv,
+    dog_cryption::CryptionConfig config, std::string input, std::string output)
 {
-    dog_cryption::Cryptor crypter(config);
-    std::ifstream input(input_path, std::ios::binary);
-    crypter.set_key(key);
-    if (!input.is_open()) { throw std::runtime_error("input file not open"); }
-    std::ofstream output(output_path, std::ios::binary);
-    crypter.encryptp(input, output, withConfig, &this->progress);
-}
-void work::task::startDecrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path)
-{
-    dog_cryption::Cryptor crypter(config);
-    std::ifstream input(input_path, std::ios::binary);
-    crypter.set_key(key);
-    if (!input.is_open()) { throw std::runtime_error("input file not open"); }
-    std::ofstream output(output_path, std::ios::binary);
-    crypter.decryptp(input, output, &this->progress);
-}
-void work::task::startDecrypt(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path)
-{
-    std::ifstream input(input_path, std::ios::binary);
-    if (!input.is_open()) { throw std::runtime_error("input file not open"); }
-    dog_cryption::CryptionConfig thisConfig = config;
-    if (withConfig) {thisConfig = dog_cryption::CryptionConfig::get_cryption_config(input); }
-    dog_cryption::Cryptor crypter(thisConfig);
-    crypter.set_key(key);
-    std::ofstream output(output_path, std::ios::binary);
-    crypter.decryptp(input, output, withConfig, &this->progress);
+    dog_cryption::Cryptor c(config);
+    std::ifstream ifs(input, std::ios::binary);
+    std::ofstream ofs(output, std::ios::binary);
+    c.decryptp(ifs, ofs, with_config, with_iv, iv, with_check, &(this->progress));
 }
 
 work::taskPool::taskPool(uint64_t max_running)
@@ -191,166 +225,67 @@ work::taskPool::taskPool(uint64_t max_running)
     this->id.store(0);
     this->max_running.store(max_running);
     this->now_running.store(0);
+    auto add_task = [this]()
+        {
+            while (this->running)
+            {
+                std::this_thread::sleep_for(std::chrono::seconds(5));
+                if (this->now_running.load() >= this->max_running.load() || this->waiting.empty())
+                {
+                    continue;
+                }
+                auto args = this->waiting.front();
+                this->waiting.pop_front();
+                task* t = std::any_cast<task*>(args->at("task"));
+                std::string type = std::any_cast<std::string>(args->at("type"));
+                uint64_t effect = std::any_cast<uint64_t>(args->at("effect"));
+                std::thread* thread = nullptr;
+                if (type == "hash")
+                {
+                    std::string hash = std::any_cast<std::string>(args->at("hash"));
+                    std::string input = std::any_cast<std::string>(args->at("input"));
+                    thread = new std::thread(work::hash_running, t, hash, effect, input, this);
+                }
+                else if (type == "encrypt")
+                {
+                    bool with_config = std::any_cast<bool>(args->at("with_config"));
+                    bool with_check = std::any_cast<bool>(args->at("with_check"));
+                    bool with_iv = std::any_cast<bool>(args->at("with_iv"));
+                    dog_data::Data iv = std::any_cast<dog_data::Data>(args->at("iv"));
+                    dog_cryption::CryptionConfig config = std::any_cast<dog_cryption::CryptionConfig>(args->at("config"));
+                    std::string input = std::any_cast<std::string>(args->at("input"));
+                    std::string output = std::any_cast<std::string>(args->at("output"));
+                    thread = new std::thread(work::encrypt_running, t, with_config, with_check, with_iv, iv, config, input, output, this);
+                }
+                else if (type == "decrypt")
+                {
+                    bool with_config = std::any_cast<bool>(args->at("with_config"));
+                    bool with_check = std::any_cast<bool>(args->at("with_check"));
+                    bool with_iv = std::any_cast<bool>(args->at("with_iv"));
+                    dog_data::Data iv = std::any_cast<dog_data::Data>(args->at("iv"));
+                    dog_cryption::CryptionConfig config = std::any_cast<dog_cryption::CryptionConfig>(args->at("config"));
+                    std::string input = std::any_cast<std::string>(args->at("input"));
+                    std::string output = std::any_cast<std::string>(args->at("output"));
+                    thread = new std::thread(work::decrypt_running, t, with_config, with_check, with_iv, iv, config, input, output, this);
+                }
+                this->tasks.push_back(t);
+                t->set_thread(thread);
+
+            }
+        };
 }
 work::taskPool::~taskPool()
 {
     std::unique_lock<std::mutex> lock(pool_mutex); 
+    this->running = false;
     for (auto& task : this->tasks) 
     {
-        if (task->getThread() && task->getThread()->joinable()) 
+        if (task->get_thread() && task->get_thread()->joinable())
         {
             task->stop();
-            task->getThread()->join();
+            task->get_thread()->join();
         }
     }
-}
-uint64_t work::taskPool::add_hash_task(std::string method, std::string path)
-{
-    std::lock_guard<std::mutex> lock(pool_mutex);
-    if (this->now_running.load() >= this->max_running.load()) { return UINT64_MAX; }
-    uint64_t id = this->id.load();
-    task* t = new task(id, "hash");
-    this->now_running.store(this->now_running.load() + 1);
-    this->id.store(this->id.load() + 1);
-    auto work = [t, method, path,this]() 
-        {
-            try
-            {
-                t->start();
-                t->startHash(method, path);
-                t->success();
-                t->setMsg("success get hash");
-            }
-            catch (std::exception& e)
-            {
-                t->fail();
-                t->setMsg(e.what());
-            }
-            this->now_running.store(this->now_running.load() - 1);
-        };
-    std::thread *t1 = new std::thread(work);
-    t->setThread(t1);
-    this->tasks.emplace_back(std::move(t));
-    return id;
-}
-uint64_t work::taskPool::add_encrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path)
-{
-    std::lock_guard<std::mutex> lock(pool_mutex);
-    if (this->now_running.load() >= this->max_running.load()) { return UINT64_MAX; }
-    uint64_t id = this->id.load();
-    task* t = new task(id, "encrypt");
-    this->now_running.store(this->now_running.load() + 1);
-    this->id.store(this->id.load() + 1);
-    this->now_running.store(this->now_running.load() + 1);
-    auto work = [t, config, key, input_path, output_path, this]()
-        {
-            try
-            {
-                t->start();
-                t->startEncrypt(config, key, input_path, output_path);
-                t->success();
-                t->setMsg("output in " + output_path);
-            }
-            catch (std::exception& e)
-            {
-                t->fail();
-                t->setMsg(e.what());
-            }
-            this->now_running.store(this->now_running.load() - 1);
-        };
-    std::thread *t1 = new std::thread(work);
-    t->setThread(t1);
-    this->tasks.emplace_back(std::move(t));
-    return id;
-
-}
-uint64_t work::taskPool::add_encrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path)
-{
-    std::lock_guard<std::mutex> lock(pool_mutex);
-    if (this->now_running.load() >= this->max_running.load()) { return UINT64_MAX; }
-    uint64_t id = this->id.load();
-    task* t = new task(id, "encrypt");
-    this->now_running.store(this->now_running.load() + 1);
-    this->id.store(this->id.load() + 1);
-    auto work = [t, config, key, input_path, withConfig, output_path, this]()
-        {
-            try
-            {
-                t->start();
-                t->startEncrypt(config, key, input_path, withConfig, output_path);
-                t->success();
-                t->setMsg("output in " + output_path);
-            }
-            catch (std::exception& e)
-            {
-                t->fail();
-                t->setMsg(e.what());
-            }
-            this->now_running.store(this->now_running.load() - 1);
-        };
-    std::thread *t1 = new std::thread(work);
-    t->setThread(t1);
-    this->tasks.emplace_back(t);
-    return id;
-}
-uint64_t work::taskPool::add_decrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, std::string output_path)
-{
-    std::lock_guard<std::mutex> lock(pool_mutex);
-    if (this->now_running.load() >= this->max_running.load()) { return UINT64_MAX; }
-    uint64_t id = this->id.load();
-    task* t = new task(id, "decrypt");
-    this->now_running.store(this->now_running.load() + 1);
-    this->id.store(this->id.load() + 1);
-    auto work = [t, config, key, input_path, output_path, this]()
-        {
-            try
-            {
-                t->start();
-                t->startDecrypt(config, key, input_path, output_path);
-                t->success();
-                t->setMsg("output in " + output_path);
-            }
-            catch (std::exception& e)
-            {
-                t->fail();
-                t->setMsg(e.what());
-            }
-            this->now_running.store(this->now_running.load() - 1);
-        };
-    std::thread *t1 = new std::thread(work);
-    t->setThread(t1);
-    this->tasks.emplace_back(t);
-    return id;
-}
-uint64_t work::taskPool::add_decrypt_task(dog_cryption::CryptionConfig config, dog_data::Data key, std::string input_path, bool withConfig, std::string output_path)
-{
-    std::lock_guard<std::mutex> lock(pool_mutex);
-    if (this->now_running.load() >= this->max_running.load()) { return UINT64_MAX; }
-    uint64_t id = this->id.load();
-    task* t = new task(id, "decrypt");
-    this->now_running.store(this->now_running.load() + 1);
-    this->id.store(this->id.load() + 1);
-    auto work = [t, config, key, input_path, withConfig, output_path, this]()
-        {
-            try
-            {
-                t->start();
-                t->startDecrypt(config, key, input_path, withConfig, output_path);
-                t->success();
-                t->setMsg("output in " + output_path);
-            }
-            catch (std::exception& e)
-            {
-                t->fail();
-                t->setMsg(e.what());
-            }
-            this->now_running.store(this->now_running.load() - 1);
-            
-        };
-    std::thread *t1 = new std::thread(work);
-    t->setThread(t1);
-    this->tasks.emplace_back(t);
-    return id;
 }
 
 work::taskInfo work::taskPool::get_task_info(uint64_t id)
@@ -359,7 +294,7 @@ work::taskInfo work::taskPool::get_task_info(uint64_t id)
     taskInfo ti;
     for (auto& task : this->tasks)
     {
-        if (task->getId() == id)
+        if (task->get_id() == id)
         {
             ti = taskInfo(task);
             if(ti.status != 0)
@@ -372,15 +307,103 @@ work::taskInfo work::taskPool::get_task_info(uint64_t id)
     return ti;
 }
 
+void work::taskPool::add()
+{
+    this->now_running.store(this->now_running.load() + 1);
+}
+void work::taskPool::sub()
+{
+    this->now_running.store(this->now_running.load() - 1);
+}
+
+void work::taskPool::add_hash(std::string hash, uint64_t effect, std::string input)
+{
+    work::task* t = new work::task(this->id.load(), "hash");
+    this->id.store(this->id.load() + 1);
+    std::filesystem::path p(input);
+    if (!std::filesystem::exists(p))
+    {
+        t->set_msg("file not exist");
+        t->fail();
+        return;
+    }
+    std::map<std::string, std::any>* args = new std::map<std::string, std::any>();
+    args->at("type") = "hash";
+    args->at("task") = t;
+    args->at("hash") = hash;
+    args->at("effect") = effect;
+    args->at("input") = input;
+    //args->at("pool") = this;
+    this->waiting.push_back(args);
+}
+void work::taskPool::add_encrypt(
+    bool with_config, bool with_check, bool with_iv, 
+    dog_cryption::CryptionConfig config, std::string iv, int32_t type, 
+    std::string input, std::string output)
+{
+    work::task* t = new work::task(this->id.load(), "encrypt");
+    this->id.store(this->id.load() + 1);
+    this->tasks.push_back(t);
+    std::filesystem::path p(input);                                                                                                                                                                                                 
+    if (!std::filesystem::exists(p))
+    {
+        t->set_msg("file not exist");
+        t->fail();
+        return;
+    }
+    dog_data::Data iv_data(iv, type);
+    std::map<std::string, std::any>* args = new std::map<std::string, std::any>();
+    args->at("type") = "encrypt";
+    args->at("task") = t;
+    args->at("with_config") = with_config;
+    args->at("with_check") = with_check;
+    args->at("with_iv") = with_iv;
+    args->at("iv") = iv_data;
+    args->at("config") = config;
+    args->at("input") = input;
+    args->at("output") = output;
+    //args->at("pool") = this;
+    this->waiting.push_back(args);
+}
+void work::taskPool::add_decrypt(
+    bool with_config, bool with_check, bool with_iv, 
+    dog_cryption::CryptionConfig config, std::string iv, int32_t type, 
+    std::string input, std::string output)
+{
+    work::task* t = new work::task(this->id.load(), "decrypt");
+    this->id.store(this->id.load() + 1);
+    this->tasks.push_back(t);
+    std::filesystem::path p(input);
+    if (!std::filesystem::exists(p))
+    {
+        t->set_msg("file not exist");
+        t->fail();
+        return;
+    }
+    dog_data::Data iv_data(iv, type);
+    std::map<std::string, std::any>* args = new std::map<std::string, std::any>();
+    args->at("type") = "decrypt";
+    args->at("task") = t;
+    args->at("with_config") = with_config;
+    args->at("with_check") = with_check;
+    args->at("with_iv") = with_iv;
+    args->at("iv") = iv_data;
+    args->at("config") = config;
+    args->at("input") = input;
+    args->at("output") = output;
+    //args->at("pool") = this;
+    this->waiting.push_back(args);
+}
+
 work::taskInfo::taskInfo(task* t)
 {
-    this->id = t->getId();
-    this->progress = t->getProgress();
-    this->microSecond = t->getMicroSecond();
-    this->status = t->getStatus();
-    this->msg = t->getMsg();
-    this->result = t->getResult();
-    this->type = t->getType();
+    this->id = t->get_id();
+    this->progress = t->get_progress();
+    this->microSecond = t->get_micro_second();
+    this->status = t->get_status();
+    this->msg = t->get_msg();
+    this->result = t->get_result();
+    this->type = t->get_type();
 }
 
 work::taskInfo::taskInfo()

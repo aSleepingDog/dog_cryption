@@ -15,70 +15,20 @@
 #include "data_bytes.h"
 #include "big_number.h"
 
-
 namespace dog_cryption
 {
 	namespace utils
 	{
 		uint8_t rand_byte();
-		bool is_in_region(std::string region_str, uint64_t num);
 
 		bool is_integer(std::any a);
 		uint64_t get_integer(std::any a);
 
-		template<class T>
-		uint8_t get_type_size(T value) 
-		{
-			if constexpr (std::is_same_v<T, bool>)
-			{
-				return value ? 0b00001111 : 0b00000000;
-			}
-			else if constexpr (std::is_unsigned_v<T> && std::is_integral_v<T>)
-			{
-				uint8_t size = dog_number::integer::available_size((uint64_t)value);
-				return 0b01000000 | size;
-			}
-			else if constexpr (std::is_signed_v<T> && std::is_integral_v<T>)
-			{
-				uint8_t size = dog_number::integer::available_size((uint64_t)(value < 0 ? -value : value));
-				uint8_t sign_bit = (value < 0) ? 0b00010000 : 0b00000000;
-				return 0b01100000 | sign_bit | size;
-			}
-			else if constexpr (std::is_same_v<T, float>)
-			{
-				return 0b10000100;
-			}
-			else if constexpr (std::is_same_v<T, double>)
-			{
-				return 0b10001000;
-			}
-			else if constexpr (std::is_same_v<T, const char*>)
-			{
-				size_t tmp_size = strlen(value);
-				if (tmp_size == 0 || tmp_size > 127) 
-				{
-					throw dog_number::NumberException("String length invalid", __FILE__, __func__, __LINE__);
-				}
-				return 0b11000000 | static_cast<uint8_t>(tmp_size);
-			}
-			else if constexpr (std::is_same_v<T, std::string>)
-			{
-				size_t tmp_size = value.size();
-				if (tmp_size == 0 || tmp_size > 127)
-				{
-					throw dog_number::NumberException("String length invalid", __FILE__, __func__, __LINE__);
-				}
-				return 0b11000000 | static_cast<uint8_t>(tmp_size);
-			}
-			else
-			{
-				static_assert(!std::is_same_v<T, T>, "Unsupported type");
-			}
-		}
-
 		dog_data::Data squareXOR(dog_data::Data& a, dog_data::Data& b, uint64_t size);
 		void squareXOR_self(dog_data::Data& a, dog_data::Data& b, uint64_t size);
 		dog_data::Data randiv(uint8_t block_size);
+
+		dog_data::Data get_sequence(uint64_t lenght);
 	}
 
 	class CryptionException : public std::exception
@@ -91,31 +41,39 @@ namespace dog_cryption
 		virtual const char* what() const throw();
 	};
 
+	class WrongKeyException : public std::exception
+	{
+	public:
+		const char* what() const throw();
+	};
+
 	class CryptionConfig
 	{
 	public:
-		std::string cryption_algorithm_;//算法名
-		uint64_t block_size_;//块大小
-		uint64_t key_size_;//密钥大小
-        std::string padding_function_;//填充函数
-        std::string mult_function_;//多块加密函数
-		bool using_iv_;//是否使用iv
-		bool with_iv_;//是否携带iv 加密时自动加上iv解密时自动解析iv仅在using_iv_为true时有效
-		bool using_padding_;//是否使用填充
-		std::unordered_map<std::string, std::any> extra_config_;//额外配置
+		std::string cryption_algorithm;//算法名
+		uint64_t block_size = 0;//块大小
+		uint64_t key_size = 0;//密钥大小
+        
+        std::string mult_function;//多块加密函数
+		uint64_t shift = 0;//CFB模式下偏移量
+		bool using_iv = false;//是否使用iv
+		bool using_padding = false;//是否使用填充
+		std::string padding_function;//填充函数
+
+		std::unordered_map<std::string, std::any> extra_config;//额外配置
 
 		CryptionConfig() = default;
 		CryptionConfig(
 			const std::string& cryption_algorithm, const uint64_t block_size, const uint64_t key_size,
 			bool using_padding, const std::string& padding_function,
-			const std::string& mult_function, bool using_iv,bool with_iv,
+			const std::string& mult_function, bool using_iv, uint64_t shift,
 			std::vector<std::pair<std::string, std::any>> extra_config = std::vector<std::pair<std::string, std::any>>()
 		);
 		CryptionConfig(
 			const std::string& cryption_algorithm, const uint64_t block_size, const uint64_t key_size,
 			bool using_padding, const std::string& padding_function,
-			const std::string& mult_function, bool using_iv, bool with_iv,
-			std::unordered_map<std::string, std::any> extra_config = std::unordered_map<std::string, std::any>()
+			const std::string& mult_function, bool using_iv, uint64_t shift,
+			std::unordered_map<std::string, std::any> extra_config
 		);
 		dog_data::Data to_data() const;
 		std::string to_string() const;
@@ -126,7 +84,7 @@ namespace dog_cryption
 		* @return 配置信息
 		*/
 		static CryptionConfig get_cryption_config(std::istream& config_stream, bool return_start = true);
-		static CryptionConfig get_cryption_config(const dog_data::Data& config_data);
+		static CryptionConfig get_cryption_config(dog_data::Data& config_data, bool is_cut);
 	};
 
 	class Cryptor
@@ -134,6 +92,7 @@ namespace dog_cryption
 	private:
 		bool is_valid_ = false;//加密器是否有效
 		CryptionConfig config_;//加密配置信息
+
 		//密钥加工
 		bool is_setting_key_ = false;//是否设置密钥
 		dog_data::Data key_;//可用密钥
@@ -158,11 +117,13 @@ namespace dog_cryption
 		std::function<void(std::istream&, dog_data::Data, std::ostream&, dog_cryption::Cryptor&)> stream_encrypt_;
 		std::function<void(std::istream&, dog_data::Data, std::ostream&, dog_cryption::Cryptor&)> stream_decrypt_;
 
-		std::function<void(std::istream&, dog_data::Data, std::ostream&, dog_cryption::Cryptor&, std::atomic<double>* progress)> stream_encryptp_;
-		std::function<void(std::istream&, dog_data::Data, std::ostream&, dog_cryption::Cryptor&, std::atomic<double>* progress)> stream_decryptp_;
+		std::function<void(std::istream&, dog_data::Data, std::ostream&, dog_cryption::Cryptor&, std::atomic<double>*)> stream_encryptp_;
+		std::function<void(std::istream&, dog_data::Data, std::ostream&, dog_cryption::Cryptor&, std::atomic<double>*)> stream_decryptp_;
 
 	public:
 		static bool is_config_available(const CryptionConfig& config);
+		static std::unordered_map<std::string, std::any> turn_map(std::vector<std::pair<std::string, std::any>> vec);
+		static std::vector<std::pair<std::string, std::any>> turn_vec(std::unordered_map<std::string, std::any> map);
 
 		/*
 		* 构造函数
@@ -172,28 +133,28 @@ namespace dog_cryption
 		* @param padding_function 填充函数
 		* @param mult_function 多块加密函数
 		* @param using_iv 是否使用iv
-		* @param with_iv 是否携带iv
 		* @param using_padding 是否使用填充
 		* @param using_parallelism 是否使用并行
 		*/
 		Cryptor(
 			const std::string& cryption_algorithm, const uint64_t block_size, const uint64_t key_size,
 			bool using_padding, const std::string& padding_function,
-			const std::string& mult_function, bool using_iv, bool with_iv,
+			const std::string& mult_function, bool using_iv, uint64_t shift,
 			std::vector<std::pair<std::string, std::any>> extra_config = std::vector<std::pair<std::string, std::any>>()
 		);
 		Cryptor(
 			const std::string& cryption_algorithm, const uint64_t block_size, const uint64_t key_size,
 			bool using_padding, const std::string& padding_function,
-			const std::string& mult_function, bool using_iv, bool with_iv,
-			std::unordered_map<std::string, std::any> extra_config_ = std::unordered_map<std::string, std::any>()
-		);
+			const std::string& mult_function, bool using_iv, uint64_t shift,
+			std::unordered_map<std::string, std::any> extra_config_
+		) : 
+			Cryptor(cryption_algorithm, block_size, key_size, using_padding, padding_function, mult_function, using_iv, shift, turn_vec(extra_config_)) {};
 		Cryptor(const CryptionConfig& config) : 
 			Cryptor(
-				config.cryption_algorithm_, config.block_size_, config.key_size_, 
-				config.using_padding_, config.padding_function_, 
-				config.mult_function_, config.using_iv_, config.with_iv_, 
-				config.extra_config_
+				config.cryption_algorithm, config.block_size, config.key_size, 
+				config.using_padding, config.padding_function, 
+				config.mult_function, config.using_iv, config.shift,
+				config.extra_config
 			) {}
 		void set_key(dog_data::Data key);
 
@@ -212,220 +173,23 @@ namespace dog_cryption
 		std::function<void(dog_data::Data&, uint8_t)> get_padding() const;
 		std::function<void(dog_data::Data&, uint8_t)> get_unpadding() const;
 
-		std::function<void(dog_data::Data&, uint8_t, const dog_data::Data&, uint8_t)> get_block_encryption() const;
-		std::function<void(dog_data::Data&, uint8_t, const dog_data::Data&, uint8_t)> get_block_decryption() const;
+		std::function<void(dog_data::Data&, uint8_t, const dog_data::Data&, uint8_t)> get_block_self_encryption() const;
+		std::function<void(dog_data::Data&, uint8_t, const dog_data::Data&, uint8_t)> get_block_self_decryption() const;
+
+		std::function<dog_data::Data(dog_data::Data&, uint8_t, const dog_data::Data&, uint8_t)> get_block_encryption() const;
+		std::function<dog_data::Data(dog_data::Data&, uint8_t, const dog_data::Data&, uint8_t)> get_block_decryption() const;
 
 		dog_cryption::CryptionConfig get_config();
 		uint64_t get_reback_size() const;
 		bool is_available() const;
 
-		/*
-         文本加密时
-		 加密时iv和密文crypt情况
-                                                    start开始
-                                                        |
-                                 ---true是-----using_iv加密时是否需要iv----false否---
-                                 |                                                 |
-                    --true是---是否传参iv--false否---                           <"", crypt密文>
-                    |                              |
-        出错<------选取iv------------------------随机iv
-                                  |
-                   --true是---with_iv是否携带iv--false否--
-                   |                                    |
-              <iv, iv|crypt密文>                    <iv, crypt密文>
+		dog_data::Data encrypt(dog_data::Data plain, bool with_config, bool with_iv, dog_data::Data iv, bool with_check);
+		void encrypt(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, dog_data::Data iv, bool with_check);
+		void encryptp(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, dog_data::Data iv, bool with_check, std::atomic<double>* progress);
+		dog_data::Data decrypt(dog_data::Data crypt, bool with_config, bool with_iv, dog_data::Data iv, bool with_check);
+		void decrypt(std::istream& crypt, std::ostream& plain,bool with_config, bool with_iv, dog_data::Data iv, bool with_check);
+		void decryptp(std::istream& crypt, std::ostream& plain, bool with_config, bool with_iv, dog_data::Data iv, bool with_check, std::atomic<double>* progress);
 
-         解密是iv和明文crypt情况
-                                                    start开始
-                                                        |
-                                 ---true是-----using_iv加密时是否需要iv----false否---
-                                 |                                                 |
-                --true是---with_iv是否携带iv--false否--                          忽略参数iv
-                |                                    |                             |
-    出错<------选取iv                    --true是---是否传参iv--false否-->出错     plain明文 
-                |                       |
-              plain明文       出错<----选取iv
-                                        |
-                                     plain明文
-
-		*/
-
-		/*
-		 加密时iv和密文crypt情况
-													start开始
-														|
-								 ---true是-----using_iv加密时是否需要iv----false否---
-								 |                                                 |
-					--true是---是否传参iv--false否---                           <"", crypt密文>
-					|                              |
-		出错<------选取iv------------------------随机iv
-								  |
-				   --true是---with_iv是否携带iv--false否--
-				   |                                    |
-			  <iv, iv|crypt密文>                    <iv, crypt密文>
-		*
-		* @param iv 加密所需随机数据(若算法不需要使用则忽略此项,若过长则截取前部所需范围(如需要16B,输入24B则截取前16B))
-		* @param plain 明文数据
-		* 
-		* @throws 无效的cryptor,可能是cryptor未正确配置或未设置密钥
-		* @throws 无效的iv,可能是iv长度不够
-		* 
-		* @return std::pair<iv,crypt> 如果using_iv为false则iv为空容器,反之则包含参数iv的数据.如果with_iv为true则crypt前部包含iv,反之则不包含.
-		*/
-		std::pair<dog_data::Data, dog_data::Data> encrypt(dog_data::Data iv, dog_data::Data plain);
-
-		/*
-		 加密时iv和密文crypt情况
-													start开始
-														|
-								 ---true是-----using_iv加密时是否需要iv----false否---
-								 |                                                 |
-					--true是---是否传参iv--false否---                           <"", crypt密文>
-					|                              |
-		出错<------选取iv------------------------随机iv
-								  |
-				   --true是---with_iv是否携带iv--false否--
-				   |                                    |
-			  <iv, iv|crypt密文>                    <iv, crypt密文>
-
-		* @param plain 密文数据
-		* 
-		* @throws 无效的cryptor,可能是cryptor未正确配置或未设置密钥
-		* @throws 当using_iv为true时使用抛出异常
-		* 
-		* @return std::pair<iv,crypt> 如果using_iv为false则iv为空容器,反之则包含随机生成的iv数据.如果with_iv为true则crypt前部包含iv,反之则不包含.
-		*/
-		std::pair<dog_data::Data, dog_data::Data> encrypt(dog_data::Data plain);
-
-		/*
-		 解密是iv和明文crypt情况
-													start开始
-														|
-								 ---true是-----using_iv加密时是否需要iv----false否---
-								 |                                                 |
-				--true是---with_iv是否携带iv--false否--                          忽略参数iv
-				|                                    |                             |
-	出错<------选取iv                    --true是---是否传参iv--false否-->出错     plain明文
-				|                       |
-			  plain明文       出错<----选取iv
-										|
-									 plain明文
-
-		* 
-		* @param iv_crypt 加密所需随机数据(若算法不需要使用则忽略此项,若过长则截取前部所需范围(如需要16B,输入24B则截取前16B))和密文数据
-		* 
-		* @throws 无效的cryptor,可能是cryptor未正确配置或未设置密钥
-		* @throws 无效的iv,可能是iv长度不够
-		* 
-		* @return 明文数据
-		*/
-        dog_data::Data decrypt(std::pair<dog_data::Data, dog_data::Data> iv_crypt);
-
-		/*
-		 解密是iv和明文crypt情况
-													start开始
-														|
-								 ---true是-----using_iv加密时是否需要iv----false否---
-								 |                                                 |
-				--true是---with_iv是否携带iv--false否--                          忽略参数iv
-				|                                    |                             |
-	出错<------选取iv                    --true是---是否传参iv--false否-->出错     plain明文
-				|                       |
-			  plain明文       出错<----选取iv
-										|
-									 plain明文
-
-		*/
-		dog_data::Data decrypt(dog_data::Data iv, dog_data::Data crypt);
-
-		/*
-		 解密是iv和明文crypt情况
-													start开始
-														|
-								 ---true是-----using_iv加密时是否需要iv----false否---
-								 |                                                 |
-				--true是---with_iv是否携带iv--false否--                          忽略参数iv
-				|                                    |                             |
-	出错<------选取iv                    --true是---是否传参iv--false否-->出错     plain明文
-				|                       |
-			  plain明文       出错<----选取iv
-										|
-									 plain明文
-
-		*/
-		dog_data::Data decrypt(dog_data::Data crypt);
-
-		/*
-		* @param plain 明文输入流引用
-		* @param crypt 密文输出流引用
-		* @param iv 加密所需随机数据(若算法不需要使用则忽略此项,若过长则截取前部所需范围(如需要16B,输入24B则截取前16B))
-		* @param with_config 是否将配置信息写入密文流头部
-		* 
-		* @throws 无效的cryptor,可能是cryptor未正确配置或未设置密钥
-		* @throws 无效的iv,可能是iv长度不够
-		*/
-		void encrypt(std::istream& plain, std::ostream& crypt, dog_data::Data iv, bool with_config);
-
-		/*
-		* @param plain 明文输入流引用
-		* @param crypt 密文输出流引用
-		* @param iv 加密所需随机数据(若算法不需要使用则忽略此项,若过长则截取前部所需范围(如需要16B,输入24B则截取前16B))
-		* @param with_config=false 默认不将配置信息写入密文流头部
-		* 
-		* @throws 无效的cryptor,可能是cryptor未正确配置或未设置密钥
-		* @throws 无效的iv,可能是iv长度不够
-		*/
-		void encrypt(std::istream& plain, std::ostream& crypt, dog_data::Data iv);
-
-		/*
-		* @param plain 明文输入流引用
-		* @param crypt 密文输出流引用
-		* @param iv (此项无需输入)若必须则随机生成,若不需要则留空
-		* @param with_config 是否将配置信息写入密文流头部
-		*
-		* @throws 无效的cryptor,可能是cryptor未正确配置或未设置密钥
-		* @throws 无效的iv,可能是iv长度不够
-		* 
-		* @return 若必须则返回随机生成的iv,若不需要则返回空容器
-		*/
-		dog_data::Data encrypt(std::istream& plain, std::ostream& crypt, bool with_config);
-		dog_data::Data encryptp(std::istream& plain, std::ostream& crypt, bool with_config, std::atomic<double>* progress);
-		
-		/*
-		* @param plain 明文输入流引用
-		* @param crypt 密文输出流引用
-		* @param iv 若必须则随机生成,若不需要则留空
-		* @param with_config=false 默认不将配置信息写入密文流头部
-		*
-		* @throws 无效的cryptor,可能是cryptor未正确配置或未设置密钥
-		* @throws 无效的iv,可能是iv长度不够
-		* 
-		* @return 若必须则返回随机生成的iv,若不需要则返回空容器
-		*/
-		dog_data::Data encrypt(std::istream& plain, std::ostream& crypt);
-		dog_data::Data encryptp(std::istream& plain, std::ostream& crypt, std::atomic<double>* progress);
-		
-		/*
-		* @param crypt 密文输入流引用
-		* @param plain 明文输出流引用
-		* @param with_config 是否从密文流头部读取并自动临时更改配置
-		* 
-		* @throws 无效的config,可能是从密文流头部读取的配置不正确
-		* @throws 无效的cryptor,可能是cryptor未正确配置或未设置密钥
-		* @throws 无效的iv,可能是iv长度不够
-		*/
-		void decrypt(std::istream& crypt, std::ostream& plain, bool with_config);
-		void decryptp(std::istream& crypt, std::ostream& plain, bool with_config, std::atomic<double>* progress);
-
-		/*
-		* @param crypt 密文输入流引用
-		* @param plain 明文输出流引用
-		* @param with_config=false 不从密文流头部读取并自动临时更改配置
-		* 
-		* @throws 无效的cryptor,可能是cryptor未正确配置或未设置密钥
-		* @throws 无效的iv,可能是iv长度不够
-		*/
-		void decrypt(std::istream& crypt, std::ostream& plain);
-		void decryptp(std::istream& crypt, std::ostream& plain, std::atomic<double>* progress);
 	};
 
 	namespace padding
@@ -434,64 +198,81 @@ namespace dog_cryption
 		    0 NONE        no fill                                                                       不填充
 			1 PKCS7       all fill value of length less than 16B                                        全部填充少于16B的长度值
 			2 ZERO        all fill 0 -- not suggestion                                                  全部填充0--不建议使用
-			3 ANSI923     all fill 0 but the last one fill value of length less than 16B                全部填充0，但是最后一个填充的是少于16B的长度值
+			3 ANSIX923    all fill 0 but the last one fill value of length less than 16B                全部填充0，但是最后一个填充的是少于16B的长度值
 			4 ISO7816_4   all fill 0 but the first one fill value 0x80                                  全部填充0，但是第一个填充的是0x80
 			5 ISO10126    all fill randon value but the last one fill value of length less than 16B     全部填充随机数，但是最后一个填充的是少于16B的长度值
 		*/
 
-		const bool USING_PADDING = true;
-		const bool NOT_USING_PADDING = false;
+		class Config
+		{
+		public:
+			std::string name_;
+			uint8_t code_;
+			Config(std::string name, uint8_t code);
+		};
 
 		const std::string NONE = "NONE";
 		const uint8_t NONE_CODE = 0;
+		const Config NONE_CONFIG = Config(NONE, NONE_CODE);
 		void NONE_padding(dog_data::Data& data, uint8_t block_size);
 		void NONE_unpadding(dog_data::Data& data, uint8_t block_size);
 
 		const std::string PKCS7 = "PKCS7";
 		const uint8_t PKCS7_CODE = 1;
+		const Config PKCS7_CONFIG = Config(PKCS7, PKCS7_CODE);
 		void PKCS7_padding(dog_data::Data& data,uint8_t block_size);
 		void PKCS7_unpadding(dog_data::Data& data, uint8_t block_size);
         
 		const std::string ZERO = "ZERO";
 		const uint8_t ZERO_CODE = 2;
+		const Config ZERO_CONFIG = Config(ZERO, ZERO_CODE);
 		void ZERO_padding(dog_data::Data& data, uint8_t block_size);
 		void ZERO_unpadding(dog_data::Data& data, uint8_t block_size);
 
 		const std::string ANSIX923 = "ANSIX923";
 		const uint8_t ANSIX923_CODE = 3;
+		const Config ANSIX923_CONFIG = Config(ANSIX923, ANSIX923_CODE);
 		void ANSIX923_padding(dog_data::Data& data, uint8_t block_size);
 		void ANSIX923_unpadding(dog_data::Data& data, uint8_t block_size);
 
 		const std::string ISO7816_4 = "ISO7816_4";
 		const uint8_t ISO7816_4_CODE = 4;
+		const Config ISO7816_4_CONFIG = Config(ISO7816_4, ISO7816_4_CODE);
 		void ISO7816_4_padding(dog_data::Data& data, uint8_t block_size);
 		void ISO7816_4_unpadding(dog_data::Data& data, uint8_t block_size);
 
 		const std::string ISO10126 = "ISO10126";
 		const uint8_t ISO10126_CODE = 5;
+		const Config ISO10126_CONFIG = Config(ISO10126, ISO10126_CODE);
 		void ISO10126_padding(dog_data::Data& data, uint8_t block_size);
 		void ISO10126_unpadding(dog_data::Data& data, uint8_t block_size);
+
+		const std::vector<Config> list = { PKCS7_CONFIG,ZERO_CONFIG,ANSIX923_CONFIG,ISO7816_4_CONFIG,ISO10126_CONFIG };
 	}
 
 	namespace mode
 	{
 		/*
 		   vx:不强制 v:强制
-		         iv|填充|
-			ECB |vx|v |
-			CBC |v |v |
-			OFB |v |vx|
-			CTR |v |vx|
-			CFB |v |vx|
-
-			0 ECB
-			1 CBC
-			2 OFB
-			3 CTR
-			4 CFBB
-			5 CFBb
-
+		          iv|填充|
+			ECB  |vx|v |
+			CBC  |v |v |
+			PCBC |v |v |
+			OFB  |v |vx|
+			CTR  |v |vx|
+			CFB  |v |vx|
 		*/
+
+		class Config
+		{
+		public:
+			std::string name_;
+			uint8_t code_;
+			bool force_iv_;
+			bool force_padding_;
+			bool force_shift_;
+			Config(std::string name, uint8_t code, bool force_iv, bool force_padding, bool force_shift_);
+		};
 
 		double update_progress(double progress, double progress_step, double progress_max);
 
@@ -499,6 +280,7 @@ namespace dog_cryption
 		{
 			const std::string name = "ECB";
 			const uint8_t CODE = 0;
+			const Config CONFIG = Config(name, CODE, false, true, false);
 			dog_data::Data encrypt(dog_data::Data plain, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			dog_data::Data decrypt(dog_data::Data crypt, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			void encrypt_stream(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor);
@@ -511,6 +293,7 @@ namespace dog_cryption
 		{
 			const std::string name = "CBC";
 			const uint8_t CODE = 1;
+			const Config CONFIG = Config(name, CODE, true, true, false);
 			dog_data::Data encrypt(dog_data::Data plain, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			dog_data::Data decrypt(dog_data::Data crypt, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			void encrypt_stream(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor);
@@ -519,10 +302,24 @@ namespace dog_cryption
 			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
 		}
 
+		namespace PCBC
+		{
+			const std::string name = "PCBC";
+			const uint8_t CODE = 2;
+			const Config CONFIG = Config(name, CODE, true, true, false);
+			dog_data::Data encrypt(dog_data::Data plain, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
+			dog_data::Data decrypt(dog_data::Data crypt, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
+			void encrypt_stream(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor);
+			void decrypt_stream(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor);
+			void encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
+			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
+		};
+
 		namespace OFB
 		{
 			const std::string name = "OFB";
-			const uint8_t CODE = 2;
+			const uint8_t CODE = 3;
+			const Config CONFIG = Config(name, CODE, true, false, false);
 			dog_data::Data encrypt(dog_data::Data plain, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			dog_data::Data decrypt(dog_data::Data crypt, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			void encrypt_stream(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor);
@@ -534,7 +331,8 @@ namespace dog_cryption
 		namespace CTR
 		{
 			const std::string name = "CTR";
-			const uint8_t CODE = 3;
+			const uint8_t CODE = 4;
+			const Config CONFIG = Config(name, CODE, true, false, false);
 			dog_data::Data encrypt(dog_data::Data plain, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			dog_data::Data decrypt(dog_data::Data crypt, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			void encrypt_stream(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor);
@@ -546,7 +344,8 @@ namespace dog_cryption
 		namespace CFBB
 		{
 			const std::string name = "CFBB";
-			const uint8_t CODE = 4;
+			const uint8_t CODE = 5;
+			const Config CONFIG = Config(name, CODE, true, false, true);
 			dog_data::Data encrypt(dog_data::Data plain, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			dog_data::Data decrypt(dog_data::Data crypt, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			void encrypt_stream(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor);
@@ -572,8 +371,8 @@ namespace dog_cryption
 		namespace CFBb
 		{
 			const std::string name = "CFBb";
-			const uint8_t CODE = 5;
-			//此处6个方法未实现
+			const uint8_t CODE = 6;
+			const Config CONFIG = Config(name, CODE, true, false, true);
 			dog_data::Data encrypt(dog_data::Data plain, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			dog_data::Data decrypt(dog_data::Data crypt, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			void encrypt_stream(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor);
@@ -589,16 +388,15 @@ namespace dog_cryption
 			void decrypt_CFB1_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
 
 		}
-			
+
+		const std::vector<Config> list = { ECB::CONFIG,CBC::CONFIG,PCBC::CONFIG,OFB::CONFIG,CTR::CONFIG,CFBb::CONFIG,CFBB::CONFIG };
 	}
 
 	/*
 	namespace <加密算法>
 	{
 		const std::string name = "加密算法名";
-
 		const std::string BLOCK_REGION = "分组范围";
-
 		const std::string KEY_REGION = "密钥范围";
 
 		<!--
@@ -607,30 +405,41 @@ namespace dog_cryption
 
 		//密钥加工
 		const dog_data::Data extend_key(dog_data::Data& key, uint64_t key_size);
-
 		//加密有返回
 		dog_data::Data encoding(dog_data::Data& plain, uint8_t block_size, const dog_data::Data& key, uint8_t key_size);
 		dog_data::Data decoding(dog_data::Data& crypt, uint8_t block_size, const dog_data::Data& key, uint8_t key_size);
-
 		//加密无返回
 		void encoding_self(dog_data::Data& plain, uint8_t block_size, const dog_data::Data& key, uint8_t key_size);
 		void decoding_self(dog_data::Data& crypt, uint8_t block_size, const dog_data::Data& key, uint8_t key_size);
 	}
 	*/
 
+	/*
+	RC6, MARS, Twofish, Serpent, CAST-256,ARIA, Blowfish, CHAM, HIGHT, IDEA, Kalyna (128/256/512), LEA, SEED, RC5, SHACAL-2, SIMECK, SIMON (64/128), Skipjack, SPECK (64/128), Simeck,Threefish (256/512/1024), Triple-DES (DES-EDE2 and DES-EDE3), TEA, XTEA
+	*/
+
+	class AlgorithmConfig
+	{
+	public:
+		std::string name;
+		std::string block_size_region;
+		std::string key_size_region;
+		AlgorithmConfig(std::string name, std::string block_size_region, std::string key_size_region);
+	};
+
 	namespace AES
 	{
 		//unit单位:uint8_t字节
 		const std::string name = "AES";
-
-		const std::string BLOCK_REGION = "[16,32]:8";
+		
+		const std::string BLOCK_REGION = "[16,16]0";
 		const uint8_t BLOCK_128 = 16;
 		
-		const std::string KEY_REGION = "[16,32]:8";
+		const std::string KEY_REGION = "[16,32]8";
 		const uint64_t KEY_128 = 16;
         const uint64_t KEY_192 = 24;
 		const uint64_t KEY_256 = 32;
-
+		const AlgorithmConfig CONFIG = AlgorithmConfig(name, BLOCK_REGION, KEY_REGION);
 		const uint8_t SBox[16][16] = {
 			//0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
 			{0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76},//0
@@ -698,11 +507,12 @@ namespace dog_cryption
 		//unit单位:uint8_t字节
 		const std::string name = "SM4";
 
-		const std::string BLOCK_REGION = "[16,16]:0";
+		const std::string BLOCK_REGION = "[16,16]0";
 		const uint8_t BLOCK_128 = 16; 
-
-		const std::string KEY_REGION = "[16,16]:0";
+		
+		const std::string KEY_REGION = "[16,16]0";
 		const uint64_t KEY_128 = 16;
+		const AlgorithmConfig CONFIG = AlgorithmConfig(name, BLOCK_REGION, KEY_REGION);
 
 		const uint8_t SBox[16][16] = {
 			//0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
@@ -746,15 +556,17 @@ namespace dog_cryption
 
 	namespace camellia
 	{
+		//unit单位:uint8_t字节
 		const std::string name = "camellia";
 
-		const std::string BLOCK_REGION = "[16,32]:8";
+		const std::string BLOCK_REGION = "[16,16]0";
 		const uint8_t BLOCK_128 = 16;
 
-		const std::string KEY_REGION = "[16,32]:8";
+		const std::string KEY_REGION = "[16,32]8";
 		const uint64_t KEY_128 = 16;
 		const uint64_t KEY_192 = 24;
 		const uint64_t KEY_256 = 32;
+		const AlgorithmConfig CONFIG = AlgorithmConfig(name, BLOCK_REGION, KEY_REGION);
 
 		const uint8_t Sbox[256] =
 		{
@@ -809,4 +621,11 @@ namespace dog_cryption
 		void decoding_self(dog_data::Data& crypt, uint8_t block_size, const dog_data::Data& key, uint8_t key_size);
 
 	}
+
+	namespace Twofish
+	{
+
+	}
+
+	const std::vector<AlgorithmConfig> Algorithm_list = { AES::CONFIG,SM4::CONFIG,camellia::CONFIG };
 }

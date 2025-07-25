@@ -1,95 +1,11 @@
-var worker=[];
-
-new QWebChannel(qt.webChannelTransport, function(channel) {
-    window.taskInfoBridge = channel.objects.taskInfoBridge;
-    window.fileChooseBridge = channel.objects.fileChooseBridge;
-    window.dataTurnBridge = channel.objects.dataTurnBridge;
-    window.hashBridge = channel.objects.hashBridge;
-    window.encryptBridge = channel.objects.encryptBridge;
-    window.decryptBridge = channel.objects.decryptBridge;
-});
-
-let fileInput = document.querySelectorAll("input[type=\"button\"]");
-////console.log(fileInput);
-fileInput.forEach(element=>{
-    element.addEventListener("click",(event)=>{
-        ////console.log("click");
-        window.fileChooseBridge.receive(element.id);
-    })
-})
-
-function updateFile(data){
-    document.getElementById(data.id+"Box").textContent = data.path;
-    let type = data.id.replace("InputFile","");
-    //console.log(type);
-    if(type === "decrypt"){
-        document.getElementById(type+"OutputText").value = "输出>>>"+data.path+".PLAIN";
-    }else if(type === "encrypt"){
-        document.getElementById(type+"OutputText").value = "输出>>>"+data.path+".CRYPT";
-    }
-    
-}
-
-function startUpdateTaskStatus(){
-    setInterval(()=>{
-        ////console.log("update")
-        let tasks=[];
-        for(let i=0;i<worker.length;++i){
-            if(worker[i].status === "running"){
-                tasks.push(worker[i]);
-            }
-        }
-        if(tasks.length === 0){
-            return;
-        }
-        //console.log(tasks);
-        //(tasks)从后台调接口……
-        window.taskInfoBridge.receive(tasks);
-    },40);
-}
-document.addEventListener('DOMContentLoaded',()=>{
-    startUpdateTaskStatus();
-});
-//only qt
-function updateTaskStatus(data){
-    //console.log(data);
-    for(let i=0;i<data.length;++i){
-        //console.log(data[i]);
-        worker[data[i].id].status = data[i].status;
-        worker[data[i].id].time = data[i].time;
-        worker[data[i].id].result = data[i].result;
-        let singleTaskProgress = document.getElementById("TaskProgress:"+data[i].id);
-        let singleTaskTime = document.getElementById("TaskTime:"+data[i].id);
-        let singleTaskTextOutput = document.getElementById("TextOutput:"+data[i].id);
-        if(data[i].status === "success"){
-            //console.log("TaskOutput:"+data[i].id);
-            if(data[i].type === "hash"){
-                singleTaskTextOutput.textContent = singleTaskTextOutput.textContent + data[i].result;
-            }else if(data[i].type === "encrypt" || data[i].type === "decrypt"){
-                singleTaskTextOutput.textContent = data[i].msg;
-            }
-            singleTaskProgress.value = 100;
-            singleTaskTime.textContent = "耗时："+fmtTime(data[i].time);
-        }else if(data[i].status === "running"){
-            singleTaskProgress.value = data[i].progress;
-            singleTaskTime.textContent = "预计剩余用时："+fmtTime(data[i].time);
-        }else if(data[i].status === "fail"){
-            singleTaskTextOutput.textContent = data[i].error;
-            singleTaskProgress.value = 0;
-            singleTaskTime.textContent = "耗时："+fmtTime(data[i].time);
-        }
-    }
-}
-
-
 function fmtTime(time){
     const list = [
-        {"radix":1000,"unit":"微秒"},
-        {"radix":1000,"unit":"毫秒"},
-        {"radix":60,"unit":"秒"},
-        {"radix":60,"unit":"分钟"},
-        {"radix":24,"unit":"小时"},
-        {"radix":30,"unit":"天"},
+    //  {"radix":1000,"unit":"us"},
+        {"radix":1000,"unit":"ms"},
+        {"radix":60,"unit":"s"},
+        {"radix":60,"unit":"min"},
+        {"radix":24,"unit":"h"},
+        {"radix":30,"unit":"d"},
     ];
     let result = "";
     for(let i=0;i<list.length;++i){
@@ -101,1097 +17,1030 @@ function fmtTime(time){
         }
     }
     return result;
-    
 }
 
-function getOriInput(tag){
-    let inputType = document.querySelector("input[name=\""+tag+"InputType\"]:checked").value;
-    let midResult;
-    if(inputType === "UTF_8"){
-        let text = document.getElementById(tag+"InputText").value;
-        midResult = {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":0,
-            "value":text
+var dialogId = [];
+function getSpaceDialogId(){
+    dialogId.sort((a, b) => a - b);
+    let id = 0;
+    for(let i=0;i<dialogId.length;++i){
+        if(dialogId[i] !== id){
+            break;
         }
-    }else if(inputType === "hex"){
-        let text = document.getElementById(tag+"InputText").value;
-        const charList = "0123456789ABCDEFabcdef"
-        for(let i=0;i<text.length;++i){
-            if(!charList.includes(text[i])){
-                return  {
-                    "status":false,
-                    "error":"该模式下输入字符必须为"+charList
-                }
-            }
-        }
-        midResult = {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":2,
-            "value":text
-        }
-    }else if(inputType === "base64"){
-        let text = document.getElementById(tag+"InputText").value;
-        let inputChar1 = document.getElementById(tag+"InputReplace+").value;
-        let inputChar2 = document.getElementById(tag+"InputReplace/").value;
-        let inputChar3 = document.getElementById(tag+"InputReplace=").value;
-        if(inputChar1 === inputChar2 || inputChar1 === inputChar3 || inputChar2 === inputChar3){
-            return  {
-                "status":false,
-                "error":"输入替换的字符不能相同"
-            }
-        }    
-        let charList = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/="
-        charList = charList.replace("+",inputChar1);
-        charList = charList.replace("/",inputChar2);
-        charList = charList.replace("=",inputChar3);
-        for(let i=0;i<text.length;++i){
-            if(!charList.includes(text[i])){
-                return {
-                    "status":false,
-                    "error":"该模式下输入字符必须为"+charList
-                }
-            }
-        }
-        midResult =  {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":1,
-            "value":text,
-            "inputChar1":inputChar1,
-            "inputChar2":inputChar2,
-            "inputChar3":inputChar3
-        }
-    }else if(inputType === "file"){
-        let path = document.getElementById(tag+"InputFileBox").textContent;
-        document.getElementById(tag+"InputFileBox").textContent = "";
-        //let file = document.getElementById(tag+"InputFileBox").files[0];
-        //document.getElementById(tag+"InputFileBox").value = '';
-        if(path === ""){
-            return  {
-                "status":false,
-                "error":"未选择文件"
-            }
-        }
-        //let path = window.electronAPI.getPath(file)
-        midResult =  {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":3,
-            "value":path
-        }
-    }else{
-        midResult =  {
-            "status":false,
-            "error":"未知输入类型"
-        }
+        ++id;
     }
-    if(!midResult.status){return midResult}
-    let outputType = document.querySelector("input[name=\""+tag+"OutputType\"]:checked").value;
-    if(outputType === "UTF_8"){
-        midResult.outputType = outputType;
-        midResult.outputTypeCode = 0;
-    }else if(outputType === "hex"){
-        midResult.outputType = outputType;
-        midResult.outputTypeCode = 2;
-        let isUpper = document.querySelector("input[name=\""+tag+"OutputUpper\"]:checked").value;
-        if(isUpper === "true"){
-            midResult.isUpper = true;
-        }else{
-            midResult.isUpper = false;
-        }
-    }else if(outputType === "base64"){
-        midResult.outputType = outputType;
-        midResult.outputTypeCode = 1;
-        let outputChar1 = document.getElementById(tag+"OutputReplace+").value;
-        let outputChar2 = document.getElementById(tag+"OutputReplace/").value;
-        let outputChar3 = document.getElementById(tag+"OutputReplace=").value;
-        if(outputChar1 === outputChar2 || outputChar1 === outputChar3 || outputChar2 === outputChar3){
-            midResult =  {
-                "status":false,
-                "error":"输出替换的字符不能相同"
-            }
-        }
-        midResult.outputChar1 = outputChar1;
-        midResult.outputChar2 = outputChar2;
-        midResult.outputChar3 = outputChar3;
-    }else if(outputType === "file"){
-        midResult.outputType = outputType;
-        midResult.outputTypeCode = 3;
+    dialogId.push(id);
+    return id;
+}
+//弹窗显示
+function showing(type,msg){
+    let msgDialog = document.getElementById("msg_dialog");
+    let msgArea = document.createElement("div");
+    msgArea.className = "msg_area";
+    let msgTitleField = document.createElement("div");
+    msgTitleField.className = "msg_title_field";
+    let msgTitleEmoji = document.createElement("a");
+    let msgTitle = document.createElement("div");
+    msgTitle.className = "msg_title";
+    msgTitleEmoji.className = "msg_title_emoji";
+    if(type===0){
+        msgTitleEmoji.innerHTML = "✔️";
+        msgTitle.innerHTML = "成功";
+    }else if(type===1){
+        msgTitleEmoji.innerHTML = "❌";
+        msgTitle.innerHTML = "失败";
+    }else if(type===2){
+        msgTitleEmoji.innerHTML = "⚠️";
+        msgTitle.innerHTML = "警告";
     }
-    return midResult;
+    let msgClose = document.createElement("div");
+    msgClose.className = "msg_close";
+    msgClose.innerHTML = "×";
+    msgArea.appendChild(msgTitleField);
+    msgTitleField.appendChild(msgTitleEmoji);
+    msgTitleField.appendChild(msgTitle);
+    msgTitleField.appendChild(msgClose);
+    let msgContent = document.createElement("div");
+    msgContent.className = "msg_content";
+    msgContent.innerHTML = msg;
+    msgArea.appendChild(msgContent);
+    msgDialog.appendChild(msgArea);
+    msgClose.addEventListener("click",(event)=>{
+       msgDialog.removeChild(msgArea);
+    })
+    setTimeout(()=>{
+        if(msgDialog.children.length > 0){
+            msgDialog.removeChild(msgArea);
+        }   
+    },1500)
+    msgDialog.show();
 }
 
-function addTaskTag(task){
-    /**
-     * task = {
-     *      type: "hash" | "encrypt" | "decrypt",
-     *      status: "waiting" | "running" | "success" | "fail",
-     *      id: "",
-     *      title: "",
-     *      result: "",
-     }
-     */
-
-    let taskListArea = document.getElementById("taskListArea");
-    let signleTaskField = document.createElement("div");
-    signleTaskField.className = "singleTaskField";
-    signleTaskField.id = "taskTag:"+task.id;
-    signleTaskField.status = task.status;
-     let singeTaskDetailField = document.createElement("div");
-     singeTaskDetailField.className = "singeTaskDetailField";
-      let singleTaskIconField = document.createElement("div");
-      singleTaskIconField.className = "singleTaskIconField";
-       let singleTaskIcon = document.createElement("img");
-       singleTaskIcon.className = "singleTaskIcon";
-       if(task.type === "hash"){
-           singleTaskIcon.src = "resource/fileHash.png";
-       }else if(task.type === "encrypt"){
-           singleTaskIcon.src = "resource/fileLock.png";
-       }else if(task.type === "decrypt"){
-           singleTaskIcon.src = "resource/fileUnlock.png";
-       }
-       singleTaskIconField.appendChild(singleTaskIcon);
-       singeTaskDetailField.appendChild(singleTaskIconField);
-      let singleTaskText = document.createElement("div");
-      singleTaskText.className = "singleTaskText";
-      singleTaskText.id = "taskText:"+task.id;
-      singeTaskDetailField.appendChild(singleTaskText);
-       //添加内容
-
-       let singleTaskInput = document.createElement("div");
-       //console.log(task.title);
-       let taskList = task.title.split(">");
-       singleTaskInput.textContent = taskList[0];
-       singleTaskInput.className = "singleTaskTextInput";
-       singleTaskInput.id = "TaskTextInput:"+task.id;
-       singleTaskText.appendChild(singleTaskInput);
-       let singleTaskConfig = document.createElement("div");
-       singleTaskConfig.textContent = taskList[1];
-       singleTaskConfig.className = "singleTaskTextConfig";
-       singleTaskConfig.id = "TaskTextConfig:"+task.id;
-       singleTaskText.appendChild(singleTaskConfig);
-       let singleTaskOutput = document.createElement("div");
-       singleTaskOutput.textContent = taskList[2];
-       singleTaskOutput.className = "singleTaskTextOutput";
-       singleTaskOutput.id = "TextOutput:"+task.id;
-       singleTaskText.appendChild(singleTaskOutput);
-       let singleTaskTime = document.createElement("div");
-       singleTaskTime.textContent = "耗时";
-       singleTaskTime.className = "singleTaskTime";
-       singleTaskTime.id = "TaskTime:"+task.id;
-       singleTaskText.appendChild(singleTaskTime);
-
-      signleTaskField.appendChild(singeTaskDetailField);
-     let singleTaskProgressField = document.createElement("div");
-     singleTaskProgressField.className = "singleTaskProgressField";
-      let singleTaskProgress = document.createElement("progress");
-      singleTaskProgress.className = "singleTaskProgress";
-      //singleTaskProgress.value = 0;
-      singleTaskProgress.id = "TaskProgress:"+task.id;
-      singleTaskProgress.max = 100;
-      singleTaskProgressField.appendChild(singleTaskProgress);
-    signleTaskField.appendChild(singleTaskProgressField);
-    taskListArea.appendChild(signleTaskField);
+//添加剪贴板操作
+function copyToClipboard(text) {
+    window.copyBridge.receive(text);
 }
+function qtCopyBack(result){
+    showing(0,result.msg);
+}
+var taskInfo=[];
 
-
-//全局标签切换
-var functionChoice = document.querySelectorAll('[function-choice]');
-////console.log(functionChoice);
-var functionChoiceStage=new Map();
-functionChoiceStage.set("dataChoice",true);
-functionChoiceStage.set("hashChoice",false);
-functionChoiceStage.set("encryptChoice",false);
-functionChoiceStage.set("decryptChoice",false);
-functionChoiceStage.set("taskChoice",false);
-functionChoiceStage.set("aboutChoice",false);
-
-
-functionChoice.forEach(element => {
-    element.addEventListener("click",(event) => {
-        functionChoiceStage.forEach((value, key, map) => {
-            map.set(key,false);
+//页标签切换
+let sidebar = document.getElementById("sidebar")
+let main = document.getElementById("main")
+sidebar.childNodes.forEach((self)=>{
+    self.addEventListener("click",(event)=>{
+        let target = event.target;
+        sidebar.childNodes.forEach((element)=>{
+            //console.log(element);
+            if(element.className === "sidebar_item_active"){
+                element.className = "sidebar_item";
+            }
         })
-        var target = event.target.closest('[function-choice]');
-        functionChoiceStage.set(target.id,true);
+        main.childNodes.forEach((element)=>{
+            if(element.className === "main_box"){
+                element.hidden = true;
+            }
+        })
+        while(target.className !== "sidebar_item"){
+            target = target.parentElement;
+        }
+        target.className = "sidebar_item_active";
+        let this_area = document.getElementById(target.id.split("_")[0]+"_area");
+        this_area.hidden = false;        
+    })
+})
 
-        functionChoiceStage.forEach((value,key,map) => {
-            let element = document.getElementById(key);
-            ////console.log(key.replace("Choice","Area"));
-            let area = document.getElementById(key.replace("Choice","Area"));
-            if(value){
-                element.className="menuChoiceActive"
-                area.hidden = false;
+function breakRegion(region){
+    region = region.replace("[","");
+    region = region.replace("]",",");
+    let list = [];
+    region.split(",").forEach(str=>{
+        if(str === "$"){
+            list.push(9007199254740991);
+        }else{
+            list.push(parseInt(str));
+        }
+    })
+    return list;
+}
+
+document.addEventListener("DOMContentLoaded",(event)=>{
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+        window.copyBridge = channel.objects.copyBridge;
+        window.fileBridge = channel.objects.fileBridge;
+
+        window.hashListBridge = channel.objects.hashListBridge;
+        getHashConfig();
+        window.paddingListBridge = channel.objects.paddingListBridge;
+        getPaddingConfig();
+        window.modeListBridge = channel.objects.modeListBridge;
+        getModeConfig();
+        window.algorithmListBridge = channel.objects.algorithmListBridge;
+        getAlgorithmConfig();
+
+        window.exchangeBridge = channel.objects.exchangeBridge;
+        window.hashBridge = channel.objects.hashBridge;
+        window.encryptionBridge = channel.objects.encryptionBridge;
+        
+    });
+    showing(0,"欢迎使用文件散列加密器!这里是各种消息的显示区域")
+})
+
+//文件选择函数
+let fileInput = document.getElementsByClassName("file_input_field");
+Array.from(fileInput).forEach(node=>{
+    //console.log(node.id)
+    node.addEventListener("click",(event)=>{
+        window.fileBridge.open(
+            JSON.stringify(
+                {
+                    "id": event.target.id,
+                }
+            )
+        );
+    })
+})
+function updateFile(result){
+    let target = document.getElementById(result.id);
+    while(target.firstChild){
+        target.removeChild(target.firstChild);
+    }
+    let title = document.createElement("p");
+    title.innerText = "请点击选择文件或将文件拖拽至窗口";
+    target.appendChild(title);
+    let file = document.createElement("p");
+    file.innerText = "当前文件:"+result.filePath;
+    target.appendChild(file);
+    target.dataset.path=result.filePath;
+    let fileOutputInput = document.getElementById(target.id.split("_")[0]+"_file_output_input");
+    if(fileOutputInput === null){
+        return;
+    }
+    fileOutputInput.value = target.dataset.path+".encrypt";
+}
+function dropUpdateFile(filePath){
+    let fileInputs = document.querySelectorAll('.input_area:has(.input_type .input_type_file:checked) .file_input_field');
+    let choice = document.getElementsByClassName("sidebar_item_active");
+    let target = undefined;
+    fileInputs.forEach(node=>{
+        if(node.id.split("_")[0] === choice[0].id.split("_")[0]){
+            target = node;
+        }
+    })
+    if(target === undefined){
+        return;
+    }
+    while(target.firstChild){
+        target.removeChild(target.firstChild);
+    }
+    let title = document.createElement("p");
+    title.innerText = "请点击选择文件或将文件拖拽至窗口";
+    target.appendChild(title);
+    let file = document.createElement("p");
+    file.innerText = "当前文件:"+filePath;
+    target.appendChild(file);
+    target.dataset.path=filePath;
+    let fileOutputInput = document.getElementById(target.id.split("_")[0]+"_file_output_input");
+    fileOutputInput.value = target.dataset.path+".encrypt";
+}
+function updateDir(result){
+    let target = document.getElementById(result.id);
+    target.value = result.dirPath;
+}
+let fileOutputSaveBtn = document.getElementsByName("file_output_save_btn");
+Array.from(fileOutputSaveBtn).forEach(node=>{
+    node.addEventListener("click",(event)=>{
+        let file_input_field = document.getElementById(event.target.id.split("_")[0]+"_file_input_field");
+        window.fileBridge.save(JSON.stringify(
+                {
+                    "path": file_input_field.dataset.path+"."+event.target.id.split("_")[0],
+                    "id": event.target.id.split("_")[0]+"_file_output_input"
+                }
+            )
+        )
+    })
+})
+
+//文件输出输入框展示
+let encryptOutputType = document.getElementsByName("encrypt_output_type");
+encryptOutputType.forEach(node=>{
+    node.addEventListener("change",(event)=>{
+        let encrypt_file_output_field = document.getElementById("encrypt_file_output_field");
+        let encrypt_text_output_field = document.getElementById("encrypt_text_output_field");
+        if(node.checked && node.value === "3"){
+            encrypt_file_output_field.className = "file_output_field_active";
+            encrypt_text_output_field.hidden = true;
+        }else{
+            encrypt_file_output_field.className = "file_output_field";
+            encrypt_text_output_field.hidden = false;
+        }
+    })
+})
+let decryptOutputType = document.getElementsByName("decrypt_output_type");
+decryptOutputType.forEach(node=>{
+    node.addEventListener("change",(event)=>{
+        let decrypt_file_output_field = document.getElementById("decrypt_file_output_field");
+        let decrypt_text_output_field = document.getElementById("decrypt_text_output_field");
+        if(node.checked && node.value === "3"){
+            decrypt_file_output_field.className = "file_output_field_active";
+            decrypt_text_output_field.hidden = true;
+        }else{
+            decrypt_file_output_field.className = "file_output_field";
+            decrypt_text_output_field.hidden = false;
+        }
+    })
+})
+
+//获取散列算法
+var hashConfigs = []
+function getHashConfig(){
+    window.hashListBridge.receive();
+}
+//only qt接收散列算法
+function receiveHashConfig(hashes){
+    let hashTypeSelects = document.querySelectorAll("select[data-hash-type=\"true\"]")
+    // let hashEffectSelects = document.querySelectorAll("select[data-hash-effect=\"true\"]")
+    hashes.forEach(hash=>{
+        hashConfigs.push(hash)
+    })
+    hashTypeSelects.forEach(node=>{
+        let nearHashEffectSelect = document.getElementById(node.id.split("hash_type_choice")[0]+"hash_effective_choice");
+        while(nearHashEffectSelect.firstChild){
+                nearHashEffectSelect.removeChild(nearHashEffectSelect.firstChild);
+        }
+        let region = hashConfigs[0].region;
+        for(let c of region){
+            if(c === '|'){
+                region = region.replace('|',',');
+            }
+        }
+        region.split(",").forEach(str=>{
+            let option = document.createElement("option");
+            option.innerText = parseInt(str)*8;
+            nearHashEffectSelect.appendChild(option);
+        })
+        node.addEventListener("change",(event)=>{
+            let hashEffectSelect = document.getElementById(event.target.id.split("hash_type_choice")[0]+"hash_effective_choice");
+            while(hashEffectSelect.firstChild){
+                hashEffectSelect.removeChild(hashEffectSelect.firstChild);
+            }
+            let opinion = event.target.options[event.target.selectedIndex];
+            let region = null;
+            hashConfigs.forEach(config=>{
+                if(config.name === opinion.innerText){
+                    region = config.region;
+                }
+            })
+            for(let c of region){
+                if(c === '|'){
+                    region = region.replace('|',',');
+                }
+            }
+            region.split(",").forEach(str=>{
+                let option = document.createElement("option");
+                option.innerText = parseInt(str)*8;
+                hashEffectSelect.appendChild(option);
+            })
+        })
+        hashes.forEach(hash=>{
+            let option = document.createElement("option");
+            option.innerText = hash.name;
+            node.appendChild(option);
+        })
+    })
+}
+
+//获得填充方法
+var paddingConfigs = []
+function getPaddingConfig(){
+    window.paddingListBridge.receive();
+    //fetch()
+}
+//only qt接收填充方法
+function receivePaddingConfig(paddings){
+    let paddingSelects = document.querySelectorAll("select[data-padding=\"true\"]")
+    paddings.forEach(padding=>{
+        paddingConfigs.push(padding)
+    })
+    paddingSelects.forEach(node=>{
+        paddings.forEach(padding=>{
+            let option = document.createElement("option");
+            option.value = padding.code;
+            option.innerText = padding.name;
+            node.appendChild(option);
+        })
+    })
+}
+
+//获得模式
+var modeConfigs = []
+function getModeConfig(){
+    window.modeListBridge.receive();
+}
+//only qt接收加密模式
+function receiveModeConfig(modes){
+    let modeSelects = document.querySelectorAll("select[data-mode=\"true\"]")
+    modes.forEach(mode=>{
+        modeConfigs.push(mode)
+    })
+    modeSelects.forEach(node=>{
+        let isPadding = document.getElementById(node.id.split("_")[0]+"_is_padding");
+        isPadding.checked = (modeConfigs[0].forcePadding === true)?true:false;
+        isPadding.disabled = (modeConfigs[0].forcePadding === true)?true:false;
+        node.addEventListener("change",(event)=>{
+            let opinion = event.target.options[event.target.selectedIndex];
+            let isPadding = document.getElementById(event.target.id.split("_")[0]+"_is_padding");
+            let isShiftFrame = document.getElementById(event.target.id.split("_")[0]+"_setting_shift_frame");
+            let isShift = document.getElementById(event.target.id.split("_")[0]+"_shift");
+            let blockSize = document.getElementById(event.target.id.split("_")[0]+"_block_size");
+            if(opinion.dataset.forcePadding === "true"){
+                isPadding.checked = true;
+                isPadding.disabled = true;
             }else{
-                element.className="menuChoice"
-                area.hidden = true;
+                isPadding.disabled = false;
+            }
+            if(opinion.dataset.forceShift === "true"){
+                isShiftFrame.className = "crypt_setting_shift_frame_active"
+                if(opinion.innerText === "CFBB"){
+                    isShift.max = blockSize.max;
+                }else if(opinion.innerText === "CFBb"){
+                    isShift.max = blockSize.max*8;
+                }
+                isShift.min = 1;
+                isShift.value = 1;
+            }else{
+                isShiftFrame.className = "crypt_setting_shift_frame"
             }
         })
-        
+        modes.forEach(mode=>{
+            let option = document.createElement("option");
+            option.value = mode.code;
+            option.innerText = mode.name;
+            option.dataset.forcePadding = mode.forcePadding;
+            option.dataset.forceShift = mode.forceShift;
+            node.appendChild(option);
+        })
     })
-})
-//结束
-
-//数据转换逻辑
-var dataInputTypes = document.getElementsByName("dataInputType");
-dataInputTypes.forEach(element => {
-    element.addEventListener("change", (event) => {
-        let inputReplaceChar = document.getElementById("dataReplaceCharField");
-        let value = event.target.value;
-        if (value === "base64") {
-            inputReplaceChar.hidden = false;
-        }else{
-            inputReplaceChar.hidden = true;
-        }
-    })
-})
-
-var dataButton = document.getElementById("dataButton");
-dataButton.addEventListener("click", (event) => {
-    let valueConfig = getOriInput("data");
-    //console.log(valueConfig);
-    if(!valueConfig.status){
-        alert(valueConfig.error);
-        return;
-    }else if(valueConfig.value === ""){
-        alert("请输入数据");
-        return;
-    }
-    //dataTurn(valueConfig);
-    window.dataTurnBridge.receive(JSON.stringify(valueConfig));
-});
-
-//only qt
-function setDataResult(data){
-    //console.log(data);
-    let dataSpendTimeField = document.getElementById("dataSpendTimeField");
-    if(data.status === false){
-        alert(data.error);
-        dataSpendTimeField.textContent = "耗时";
-        return;
-    }
-    let dataOutputText = document.getElementById("dataOutputText");
-    dataOutputText.value = data.result;
-    dataSpendTimeField.textContent = "耗时:"+fmtTime(data.time);
 }
 
-var dataOutputTypes = document.getElementsByName("dataOutputType");
-
-dataOutputTypes.forEach(element => {
-    element.addEventListener("change", (event) => {
-        let outputReplaceChar = document.getElementById("dataOutputReplaceCharField");
-        let outputIsUpper = document.getElementById("dataOutputIsUpperField");
-        let value = event.target.value;
-        if (value === "base64") {
-            outputReplaceChar.hidden = false;
-            outputIsUpper.hidden = true;
-        }else if(value === "hex"){
-            outputReplaceChar.hidden = true;
-            outputIsUpper.hidden = false;
-        }else{
-            outputReplaceChar.hidden = true;
-            outputIsUpper.hidden = true;
-        }
+//获取加密算法
+var algorithmConfigs = []
+function getAlgorithmConfig(){
+    window.algorithmListBridge.receive();
+}
+//only qt接收加密算法
+function receiveAlgorithmConfig(algorithms){
+    let algorithmSelects = document.querySelectorAll("select[data-algorithm=\"true\"]")
+    algorithms.forEach(algorithm=>{
+        algorithmConfigs.push(algorithm)
     })
-})
-//结束
-
-var hashInputTypes = document.getElementsByName("hashInputType");
-
-hashInputTypes.forEach(element => {
-    element.addEventListener("change", (event) => {
-        var textInputField = document.getElementById("hashInputTextField");
-        var fileInput = document.getElementById("hashInputFileField");
-        var textInput = document.getElementById("hashTextInput");
-        var inputReplaceChar = document.getElementById("hashInputReplaceCharField");
-        var value = event.target.value;
-        if (value === "file") {
-            inputReplaceChar.hidden = true;
-            textInputField.hidden = true;
-            fileInput.hidden = false;
-        }else if(value === "base64"){
-            inputReplaceChar.hidden = false;
-            textInputField.hidden = false;
-            fileInput.hidden = true;
-        }else if(value === "hex"){
-            inputReplaceChar.hidden = true;
-            textInputField.hidden = false;
-            fileInput.hidden = true;
-        }else{
-            inputReplaceChar.hidden = true;
-            textInputField.hidden = false;
-            fileInput.hidden = true;
-        }
+    algorithmSelects.forEach(node=>{
+        let blockSize = document.getElementById(node.id.split("_")[0]+"_block_size");
+        let keySize = document.getElementById(node.id.split("_")[0]+"_key_size");
+        let blockList = breakRegion(algorithmConfigs[0].blockSizeRegion);
+        let keyList = breakRegion(algorithmConfigs[0].keySizeRegion);
+        blockSize.value = blockList[0];
+        blockSize.min = blockList[0];
+        blockSize.max = blockList[1];
+        blockSize.step = blockList[2];
+        keySize.value = keyList[0];
+        keySize.min = keyList[0];
+        keySize.max = keyList[1];
+        keySize.step = keyList[2];
+        node.addEventListener("change",(event)=>{
+            let blockSize = document.getElementById(event.target.id.split("_")[0]+"_block_size");
+            let keySize = document.getElementById(event.target.id.split("_")[0]+"_key_size");
+            let opinion = event.target.options[event.target.selectedIndex];
+            let blockList = breakRegion(opinion.dataset.blockSizeRegion);
+            let keyList = breakRegion(opinion.dataset.keySizeRegion);
+            blockSize.value = blockList[0];
+            blockSize.min = blockList[0];
+            blockSize.max = blockList[1];
+            blockSize.step = blockList[2];
+            keySize.value = keyList[0];
+            keySize.min = keyList[0];
+            keySize.max = keyList[1];
+            keySize.step = keyList[2];                
+        })
+        algorithms.forEach(algorithm=>{
+            let option = document.createElement("option");
+            option.value = algorithm.name;
+            option.innerText = algorithm.name;
+            option.dataset.blockSizeRegion = algorithm.blockSizeRegion;
+            option.dataset.keySizeRegion = algorithm.keySizeRegion;
+            node.appendChild(option);
+        })
     })
-});
+    algorithmConfigs.forEach(algorithm=>{
 
-var hashOutputTypes = document.getElementsByName("hashOutputType");
-
-hashOutputTypes.forEach(element => {
-    element.addEventListener("change", (event) => {
-        let outputReplaceChar = document.getElementById("hashOutputReplaceCharField");
-        let outputIsUpper = document.getElementById("hashOutputIsUpperField");
-        let value = event.target.value;
-        if (value === "base64") {
-            outputReplaceChar.hidden = false;
-            outputIsUpper.hidden = true;
-        }else{
-            outputReplaceChar.hidden = true;
-            outputIsUpper.hidden = false;
-        }
     })
-})
-
-var hashButton = document.getElementById("hashButton");
-hashButton.addEventListener("click",(event) =>{
-    let valueConfig = getOriInput("hash");
-    //console.log(valueConfig);
-    if(!valueConfig.status){
-        alert(valueConfig.error);
-        return;
-    }
-    let hashType = document.getElementById("hashMethodChoice").value;
-    //console.log(hashType);
-    //(valueConfig,hashType)从后台调用接口……
-    window.hashBridge.receive(JSON.stringify(valueConfig),hashType);
-
-})
-
-//only qt
-function setHashResult(data){
-    //console.log(data);
-    let SpendTimeField = document.getElementById("hashSpendTimeField");
-    if(data.status === false){
-        alert(data.error);
-        dataSpendTimeField.textContent = "耗时";
-        return;
-    }
-    let OutputText = document.getElementById("hashOutputText");
-    if(data.type === "text"){
-        OutputText.value = data.result;
-        SpendTimeField.textContent = "耗时:"+fmtTime(data.time);
-    }else if(data.type === "file"){
-        let msg = data.file+">"+data.hash+">"+data.output;
-        OutputText.value = msg+"已添加至任务队列";
-        let task = {
-            type: "hash",
-            status: "running",
-            id: parseInt(data.id),
-            output: data.output,
-            outputCode: data.outputCode,
-            title: msg,
-            result: "",
-            process: "",
-            time: 0,
-            outputChar1:data.outputChar1,
-            outputChar2: data.outputChar2,
-            outputChar3: data.outputChar3,
-            isUpper: data.isUpper
-        }
-        //console.log(task);
-        worker.push(task);
-        addTaskTag(task);
-    }
-
 }
 
-//结束
-
-//加密区域逻辑
-//控制明文输入时 base64显示替换字符 file隐藏输入框 其他隐藏文件输入
-var encryptInputTypes = document.getElementsByName("encryptInputType");
-encryptInputTypes.forEach(element => {
-    element.addEventListener("change", (event) => {
-        var textInputField = document.getElementById("encryptInputTextField");
-        var fileInput = document.getElementById("encryptInputFileField");
-        var inputReplaceChar = document.getElementById("encryptInputReplaceCharField");
-        
-        let encryptOutputUTF_8 = document.getElementById("encryptOutputUTF_8");
-        let encryptOutputHex = document.getElementById("encryptOutputHex");
-        let encryptOutputBase64 = document.getElementById("encryptOutputBase64");
-        let encryptOutputFile = document.getElementById("encryptOutputFile");
-        let encryptOutputTypeChoice = document.getElementById("encryptOutputTypeChoice");
-        let encryptOutputText = document.getElementById("encryptOutputText");
-        let encryptWithConfigField = document.getElementById("encryptWithConfigField");
-        let encryptInputFileBox = document.getElementById("encryptInputFileBox");
-        var value = event.target.value;
-        if (value === "file") {
-            inputReplaceChar.hidden = true;
-            textInputField.hidden = true;
-            fileInput.hidden = false;
-
-            encryptOutputUTF_8.disabled = true;
-            encryptOutputHex.disabled = true;
-            encryptOutputBase64.disabled = true;
-            encryptOutputFile.disabled = false;
-
-            encryptOutputFile.checked = true;
-            encryptOutputTypeChoice.hidden = true;
-
-            encryptOutputText.rows = 1;
-            encryptOutputText.placeholder = "输出文件路径";
-            encryptOutputText.readOnly = "";
-
-            encryptWithConfigField.hidden = false;
-        }else if(value === "base64"){
-            encryptOutputUTF_8.disabled = false;
-            encryptOutputHex.disabled = false;
-            encryptOutputBase64.disabled = false;
-            encryptOutputFile.disabled = true;
-
-            encryptOutputFile.checked = false;
-            encryptOutputHex.checked = true;
-            encryptOutputTypeChoice.hidden = false;
-
-            inputReplaceChar.hidden = false;
-            textInputField.hidden = false;
-            fileInput.hidden = true;
-
-            encryptOutputText.value = ""
-            encryptOutputText.rows = 10;
-            encryptOutputText.placeholder = "密文输出";
-            encryptOutputText.readOnly = true;
-
-            encryptWithConfigField.hidden = true;
-
-            encryptInputFileBox.value = '';
-            
-        }else{
-            encryptOutputUTF_8.disabled = false;
-            encryptOutputHex.disabled = false;
-            encryptOutputBase64.disabled = false;
-            encryptOutputFile.disabled = true;
-
-            encryptOutputFile.checked = false;
-            encryptOutputHex.checked = true;
-            encryptOutputTypeChoice.hidden = false;
-
-            inputReplaceChar.hidden = true;
-            textInputField.hidden = false;
-            fileInput.hidden = true;
-
-            encryptOutputText.value = ""
-            encryptOutputText.rows = 10;
-            encryptOutputText.placeholder = "密文输出";
-            encryptOutputText.readOnly = true;
-
-            encryptWithConfigField.hidden = true;
-            encryptInputFileBox.value = '';
-        }
-    })
-})
-
-var encryptInputFileBox = document.getElementById("encryptInputFileField");
-encryptInputFileBox.addEventListener("change",(event)=>{
-    let encryptOutputText = document.getElementById("encryptOutputText");
-    let path = window.electronAPI.getPath(event.target.files[0]);
-    encryptOutputText.value = "输出>>>"+path+".CRYPT";
-})
-
-//控制base64显示替换字符 hex显示是否大写 其他隐藏
-var encryptOutputTypes = document.getElementsByName("encryptOutputType");
-encryptOutputTypes.forEach(element => {
-    element.addEventListener("change", (event) => {
-        let outputReplaceChar = document.getElementById("encryptOutputReplaceCharField");
-        let outputIsUpper = document.getElementById("encryptOutputIsUpperField");
-        let value = event.target.value;
-        if (value === "base64") {
-            outputReplaceChar.hidden = false;
-            outputIsUpper.hidden = true;
-        }else if(value === "hex"){
-            outputReplaceChar.hidden = true;
-            outputIsUpper.hidden = false;
-        }else{
-            outputReplaceChar.hidden = true;
-            outputIsUpper.hidden = true;
-        }
-    })
-})
-
-//根据算法控制可选控制块大小和密钥长度
-var encryptMethodChoice = document.getElementById("encryptMethodChoice");
-encryptMethodChoice.addEventListener("change", (event) => {
-    //console.log(event.target.value);
-    let encryptBlockSize = document.getElementById("encryptInputBlockSize");
-    let encryptKeySize = document.getElementById("encryptInputKeySize");
-    if(event.target.value === "AES"){
-        encryptBlockSize.min=16;
-        encryptBlockSize.max=16;
-        encryptBlockSize.value=16;
-        
-        encryptKeySize.min=16;
-        encryptKeySize.max=32;
-        encryptKeySize.value=16;
-        encryptKeySize.step=8;
-    }else if(event.target.value === "SM4"){
-        encryptBlockSize.min=16;
-        encryptBlockSize.max=16;
-        encryptBlockSize.value=16;
-
-        encryptKeySize.min=16;
-        encryptKeySize.max=16;
-        encryptKeySize.value=16;
-        encryptKeySize.step=0;
-    }
-})
-
-//根据选择展示填充算法
-var encryptIsPadding = document.getElementsByName("encryptIsPadding");
-encryptIsPadding.forEach(element => {
-    element.addEventListener("change", (event) =>{
-        let paddingChoiceField = document.getElementById("encryptPaddingChoiceField");
-        if(event.target.value === "true"){
-            paddingChoiceField.hidden = false;
-        }else{
-            paddingChoiceField.hidden = true;
-        }
-    })
-})
-
-let encryptButton = document.getElementById("encryptButton");
-encryptButton.addEventListener("click",(event)=>{
-    let valueConfig = getOriInput("encrypt");
-    if(!valueConfig.status){
-        alert(valueConfig.error);
-        return;
-    }else if(valueConfig.value === ""){
-        alert("请输入明文");
+//获取常规输入输出
+function getNormalInputOutput(id){
+    let args = {}
+    let textInput = document.getElementById(id+"_text_input");
+    let input = textInput.value;
+    if(input === ""){
+        showing(1,"请输入内容")
         return;
     }
-    //console.log(valueConfig);
+    let inputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_input_type\"]:checked");
+    if(inputType.value==="1"){
+        let replace0 = document.getElementById(id+"_input_base64_replace+").value;//+
+        let replace1 = document.getElementById(id+"_input_base64_replace/").value;// /
+        let replace2 = document.getElementById(id+"_input_base64_replace=").value;//=
+        if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
+            showing(1,"替换字符不能相同")
+        }
+        while(input.indexOf(replace0) !== -1){
+            input = input.replace(replace0,"+");
+        }
+        while(input.indexOf(replace1) !== -1){
+            input = input.replace(replace1,"/");
+        }
+        while(input.indexOf(replace2) !== -1){
+            input = input.replace(replace2,"=");
+        }
+        const regex = /[^A-Za-z0-9\+\/\=]/g;
+        if(regex.test(input)){
+            showing(1,"输入内容含有非法字符,base64仅可以为0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"+replace0+replace1+replace2)
+            return;
+        }
+    }else if(inputType.value==="2"){
+        const regex = /[^0-9a-fA-F]/g;
+        if(regex.test(input)){
+            showing(1,"输入内容含有非法字符,hex仅可以为0123456789abcdefABCDEF")
+            return;
+        }
+    }
+    args.input = input;
+    args.inputType = parseInt(inputType.value);
+    let outputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_output_type\"]:checked");
+    args.outputType = parseInt(outputType.value);
+    if(outputType.value==="1"){
+        args.replace0 = document.getElementById(id+"_output_base64_replace+").value;//+
+        args.replace1 = document.getElementById(id+"_output_base64_replace/").value;// /
+        args.replace2 = document.getElementById(id+"_output_base64_replace=").value;//=
+        if(args.replace0 === args.replace1 || args.replace0 === args.replace2 || args.replace1 === args.replace2){
+            showing(1,"替换字符不能相同")
+            return;
+        }
+    }else if(outputType.value==="2"){
+        args.upper = document.getElementById(id+"_output_hex_case_upper").checked;
+    }
+    return args;
+}
+function getInput(id){
+    let args = {}
+    let idTextInput = document.getElementById(id+"_text_input");
+    let input = idTextInput.value;
+    let idInputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_input_type\"]:checked");
+    if(idInputType.value==="0") {
+        if(input === ""){
+            showing(1,"请输入内容")
+            return;
+        }
+        args.input = input;
+    }else if(idInputType.value==="1"){
+        if(input === ""){
+            showing(1,"请输入内容")
+            return;
+        }
+        let replace0 = document.getElementById(id+"_input_base64_replace+").value;//+
+        let replace1 = document.getElementById(id+"_input_base64_replace/").value;// /
+        let replace2 = document.getElementById(id+"_input_base64_replace=").value;//=
+        if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
+            showing(1,"替换字符不能相同")
+        }
+        while(input.indexOf(replace0) !== -1){
+            input = input.replace(replace0,"+");
+        }
+        while(input.indexOf(replace1) !== -1){
+            input = input.replace(replace1,"/");
+        }
+        while(input.indexOf(replace2) !== -1){
+            input = input.replace(replace2,"=");
+        }
+        const regex = /[^A-Za-z0-9\+\/\=]/g;
+        if(regex.test(input)){
+            showing(1,"输入内容含有非法字符,base64仅可以为0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"+replace0+replace1+replace2)
+            return;
+        }
+        args.input = input;
+    }else if(idInputType.value==="2"){
+        if(input === ""){
+            showing(1,"请输入内容")
+            return;
+        }
+        const regex = /[^0-9a-fA-F]/g;
+        if(regex.test(input)){
+            showing(1,"输入内容含有非法字符,hex仅可以为0123456789abcdefABCDEF")
+            return;
+        }
+        args.input = input;
+    }else if(idInputType.value==="3"){
+        let idFileInputField = document.getElementById(id+"_file_input_field");
+        if(idFileInputField.dataset.path === ""){
+            showing(1,"请选择文件")
+            return;
+        }
+        args.input = idFileInputField.dataset.path;
+    }
+    args.inputType = parseInt(idInputType.value);
+    let idOutputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_output_type\"]:checked");
+    args.outputType = parseInt(idOutputType.value);
+    if(idOutputType.value==="1"){
+        args.replace0 = document.getElementById(id+"_output_base64_replace+").value;//+
+        args.replace1 = document.getElementById(id+"_output_base64_replace/").value;// /
+        args.replace2 = document.getElementById(id+"_output_base64_replace=").value;//=
+        if(args.replace0 === args.replace1 || args.replace0 === args.replace2 || args.replace1 === args.replace2){
+            showing(1,"替换字符不能相同")
+            return;
+        }
+    }else if(idOutputType.value==="2"){
+        args.upper = document.getElementById(id+"_output_hex_case_upper").checked;
+    }else if(idOutputType.value==="3"){
+        args.output = document.getElementById(id+"_file_output_input").value;
+    }
+    return args;
+}
+function getInputNoOutput(id){
+    let args = {}
+    let idTextInput = document.getElementById(id+"_text_input");
+    let input = idTextInput.value;
+    let idInputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_input_type\"]:checked");
+    if(idInputType.value==="0") {
+        args.input = input;
+    }else if(idInputType.value==="1"){
+        let replace0 = document.getElementById(id+"_input_base64_replace+").value;//+
+        let replace1 = document.getElementById(id+"_input_base64_replace/").value;// /
+        let replace2 = document.getElementById(id+"_input_base64_replace=").value;//=
+        if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
+            showing(1,"替换字符不能相同")
+        }
+        while(input.indexOf(replace0) !== -1){
+            input = input.replace(replace0,"+");
+        }
+        while(input.indexOf(replace1) !== -1){
+            input = input.replace(replace1,"/");
+        }
+        while(input.indexOf(replace2) !== -1){
+            input = input.replace(replace2,"=");
+        }
+        const regex = /[^A-Za-z0-9\+\/\=]/g;
+        if(regex.test(input)){
+            showing(1,"输入内容含有非法字符,base64仅可以为0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"+replace0+replace1+replace2)
+            return;
+        }
+        args.input = input;
+    }else if(idInputType.value==="2"){
+        const regex = /[^0-9a-fA-F]/g;
+        if(regex.test(input)){
+            showing(1,"输入内容含有非法字符,hex仅可以为0123456789abcdefABCDEF")
+            return;
+        }
+        args.input = input;
+    }else if(idInputType.value==="3"){
+        let idFileInputField = document.getElementById(id+"_file_input_field");
+        if(idFileInputField.dataset.path === ""){
+            showing(1,"请选择文件")
+            return;
+        }
+        args.input = idFileInputField.dataset.path;
+    }
+    args.inputType = parseInt(idInputType.value);
+    return args;
+}
+function getInputAllowEmpty(id){
+    let args = {}
+    let idTextInput = document.getElementById(id+"_text_input");
+    let input = idTextInput.value;
+    let idInputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_input_type\"]:checked");
+    if(idInputType.value==="0") {
+        args.input = input;
+    }else if(idInputType.value==="1"){
+        let replace0 = document.getElementById(id+"_input_base64_replace+").value;//+
+        let replace1 = document.getElementById(id+"_input_base64_replace/").value;// /
+        let replace2 = document.getElementById(id+"_input_base64_replace=").value;//=
+        if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
+            showing(1,"替换字符不能相同")
+        }
+        while(input.indexOf(replace0) !== -1){
+            input = input.replace(replace0,"+");
+        }
+        while(input.indexOf(replace1) !== -1){
+            input = input.replace(replace1,"/");
+        }
+        while(input.indexOf(replace2) !== -1){
+            input = input.replace(replace2,"=");
+        }
+        const regex = /[^A-Za-z0-9\+\/\=]/g;
+        if(regex.test(input)){
+            showing(1,"输入内容含有非法字符,base64仅可以为0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"+replace0+replace1+replace2)
+            return;
+        }
+        args.input = input;
+    }else if(idInputType.value==="2"){
+        const regex = /[^0-9a-fA-F]/g;
+        if(regex.test(input)){
+            showing(1,"输入内容含有非法字符,hex仅可以为0123456789abcdefABCDEF")
+            return;
+        }
+        args.input = input;
+    }else if(idInputType.value==="3"){
+        let idFileInputField = document.getElementById(id+"_file_input_field");
+        if(idFileInputField.dataset.path === ""){
+            showing(1,"请选择文件")
+            return;
+        }
+        args.input = idFileInputField.dataset.path;
+    }
+    args.inputType = parseInt(idInputType.value);
+    let idOutputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_output_type\"]:checked");
+    args.outputType = parseInt(idOutputType.value);
+    if(idOutputType.value==="1"){
+        args.replace0 = document.getElementById(id+"_output_base64_replace+").value;//+
+        args.replace1 = document.getElementById(id+"_output_base64_replace/").value;// /
+        args.replace2 = document.getElementById(id+"_output_base64_replace=").value;//=
+        if(args.replace0 === args.replace1 || args.replace0 === args.replace2 || args.replace1 === args.replace2){
+            showing(1,"替换字符不能相同")
+            return;
+        }
+    }else if(idOutputType.value==="2"){
+        args.upper = document.getElementById(id+"_output_hex_case_upper").checked;
+    }else if(idOutputType.value==="3"){
+        args.outputPath = document.getElementById(id+"_file_output_input").value;
+    }
+    return args;
+}
 
-    let encryptMethodChoice = document.getElementById("encryptMethodChoice");
-    let encryptInputBlockSize = document.getElementById("encryptInputBlockSize");
-    let encryptInputKeySize = document.getElementById("encryptInputKeySize");
-    let encryptModeChoice = document.getElementById("encryptModeChoice");
-    let encryptIsPaddingChoice = document.querySelector("input[name=\"encryptIsPadding\"]:checked");
-    let encryptPaddingChoice = document.getElementById("encryptPaddingChoice");
-    let encryptWithConfigChoice = document.getElementById("encryptWithConfig");
+//转换相关操作
+let exchangeButton = document.getElementById("exchange_button");
+exchangeButton.addEventListener("click",()=>{
+    let args = getInput("exchange");
+    //console.log(args)
+    if(args===undefined){
+        return;
+    }
+    window.exchangeBridge.receive(JSON.stringify(args))
+})
+function qtExchangeBack(result){
+    if(result.code !== 0){
+        showing(1,result.msg)
+        document.getElementById("exchange_resolve_time").textContent = "出错";
+        return;
+    }
+    showing(0,"转换成功")
+    document.getElementById("exchange_text_output").value = result.res;
+    document.getElementById("exchange_resolve_time").textContent = "耗时:"+fmtTime(result.time);
+}
+let exchangeOutputTextCopy = document.getElementById("exchange_output_text_copy");
+exchangeOutputTextCopy.addEventListener("click",()=>{
+    let exchangeOutputText = document.getElementById("exchange_text_output");
+    if(exchangeOutputText.value === ""){
+        return;
+    }
+    copyToClipboard(exchangeOutputText.value);
+
+})
+
+//散列相关操作
+let hashButton = document.getElementById("hash_button");
+hashButton.addEventListener("click",()=>{
+    let args = getInputAllowEmpty("hash");
+    if(args===undefined){
+        return;
+    }
+    let hash_type_choice = document.getElementById("hash_type_choice");
+    let hash_type = hash_type_choice.value;
+    let hash_effective_choice = document.getElementById("hash_effective_choice");
+    let hash_effective = hash_effective_choice.value;
+    args.type = hash_type;
+    args.effective = parseInt(parseInt(hash_effective)/8);
+    //console.log(args)
+    window.hashBridge.work(JSON.stringify(args))
+})
+function updateHashResult(result){
+    let hash_text_output = document.getElementById("hash_text_output");
+    let hash_resolve_time = document.getElementById("hash_resolve_time");
+    if(result.code !== 0){
+        showing(1,result.msg)
+        hash_resolve_time.textContent = "出错";
+        return;
+    }
+    showing(0,"计算成功")
+    hash_text_output.value = result.res;
+    hash_resolve_time.textContent = "耗时:"+fmtTime(result.time);
+}
+let hashSpeedTest = document.getElementById("hash_speed_test");
+hashSpeedTest.addEventListener("click",()=>{
+    let hash_type_choice = document.getElementById("hash_type_choice");
+    let hash_type = hash_type_choice.value;
+    let hash_effective_choice = document.getElementById("hash_effective_choice");
+    let hash_effective = hash_effective_choice.value;
+    let param = {
+        "type":hash_type,
+        "effective":parseInt(parseInt(hash_effective)/8),
+    }
+    window.hashBridge.test(JSON.stringify(param));
+})
+function updateHashSpeed(result){
+    let hashSpeedResult = document.getElementById("hash_speed_result");
+    hashSpeedResult.textContent = "耗时:"+fmtTime(result.time);
+}
+let hashOutputTextCopy = document.getElementById("hash_output_text_copy");
+hashOutputTextCopy.addEventListener("click",()=>{
+    let hashOutputText = document.getElementById("hash_text_output");
+    if(hashOutputText.value === ""){
+        return;
+    }
+    copyToClipboard(hashOutputText.value);
+})
+
+function sizeBack(result){
+    if(result.code !== 0){
+        showing(1,result.msg)
+        return;
+    }
+    let target = document.getElementById(result.id)
+    if(result.size === "overflow"){
+        target.textContent = "当前:超出最大值"
+        target.dataset.size = 0;
+    }else{
+        target.textContent = "当前:"+result.size+"字节(B)"
+        target.dataset.size = parseInt(result.size);
+    }
+}
+
+//加密相关操作
+let encryptFileOutputSaveBtn = document.getElementById("encrypt_file_output_save_btn");
+encryptFileOutputSaveBtn.addEventListener("click",()=>{
+    let encrypt_file_input_field = document.getElementById("encrypt_file_input_field");
+    window.fileBridge.save(JSON.stringify(
+            {
+                "path": (encrypt_file_input_field.dataset.path===undefined)?(""):(encrypt_file_input_field.dataset.path+".encrypt"),
+                "id": "encrypt_file_output_input"
+            }
+        )
+    )
+})
+let encryptInputType = document.getElementsByName("encrypt_input_type");
+encryptInputType.forEach((inputChoice)=>{
+    inputChoice.addEventListener("change",(event)=>{
+        let target = event.target;
+        let encryptOutputType = document.getElementsByName("encrypt_output_type");
+        let encrypt_file_output_field = document.getElementById("encrypt_file_output_field");
+        let encrypt_text_output_field = document.getElementById("encrypt_text_output_field");
+        if(target.checked && target.value === "3"){
+            encryptOutputType.forEach((outputChoice)=>{
+                if(outputChoice.value === "3"){
+                    outputChoice.checked = true;
+                    encrypt_file_output_field.className = "file_output_field_active";
+                    encrypt_text_output_field.hidden = true;
+                }else{
+                    outputChoice.disabled = true;
+                }
+            })
+        }else{
+            encryptOutputType.forEach((outputChoice)=>{
+                if(outputChoice.value === "3"){
+                    outputChoice.checked = false;
+                    encrypt_file_output_field.className = "file_output_field";
+                    encrypt_text_output_field.hidden = false;
+                }else if(outputChoice.value === "2"){
+                    outputChoice.checked = true;
+                    outputChoice.disabled = false;
+                }else{
+                    outputChoice.disabled = false;
+                }
+            })
+        }
+    })
+})
+let encrypt_key_input_type = document.getElementsByName("encrypt_key_input_type");
+encrypt_key_input_type.forEach((inputChoice)=>{
+    inputChoice.addEventListener("change",(event)=>{
+        let args = getInputNoOutput("encrypt_key");
+        if(args === undefined){
+            let encrypt_key_text_input_size = document.getElementById("encrypt_key_text_input_size");
+            encrypt_key_text_input_size.textContent = "输入格式不正确";
+            encrypt_key_text_input_size.dataset.size=0;
+            return;
+        }
+        args.id = "encrypt_key_text_input_size";
+        //console.log(args)
+        window.exchangeBridge.get_data_size(JSON.stringify(args))
+    })
+})
+let encrypt_key_text_input = document.getElementById("encrypt_key_text_input");
+encrypt_key_text_input.addEventListener("input",()=>{
+    let args = getInputNoOutput("encrypt_key");
+    if(args === undefined){
+        let encrypt_key_text_input_size = document.getElementById("encrypt_key_text_input_size");
+        encrypt_key_text_input_size.textContent = "输入格式不正确";
+        encrypt_key_text_input_size.dataset.size=0;
+        return;
+    }
+    args.id = "encrypt_key_text_input_size";
+    //console.log(args)
+    window.exchangeBridge.get_data_size(JSON.stringify(args))
+})
+let encrypt_mode = document.getElementById("encrypt_mode");
+encrypt_mode.addEventListener("change",(event)=>{
+    let mode = null;
+    modeConfigs.forEach((config)=>{
+        console.log(config)
+        if(config.code === parseInt(event.target.value)){
+            mode = config;
+        }
+    })
+    let encrypt_is_iv = document.getElementById("encrypt_is_iv");
+    let encrypt_iv_field = document.getElementById("encrypt_iv_field");
+    if(mode.forceIv){
+        encrypt_is_iv.checked = true;
+        encrypt_iv_field.style.display = "flex"
+        encrypt_is_iv.disabled = true;
+    }else{
+        encrypt_is_iv.disabled = false;
+    }
+})
+let encrypt_is_iv = document.getElementById("encrypt_is_iv");
+encrypt_is_iv.addEventListener("change",(event)=>{
+    let encrypt_iv_field = document.getElementById("encrypt_iv_field");
+    if(event.target.checked){
+        encrypt_iv_field.style.display = "flex"
+    }else{
+        encrypt_iv_field.style.display = "none"
+    }
+})
+let encrypt_iv_input_type = document.getElementsByName("encrypt_iv_input_type");
+encrypt_iv_input_type.forEach((inputChoice)=>{
+    inputChoice.addEventListener("change",(event)=>{
+        let args = getInputNoOutput("encrypt_iv");
+        if(args === undefined){
+            let encrypt_iv_text_input_size = document.getElementById("encrypt_iv_text_input_size");
+            encrypt_iv_text_input_size.textContent = "输入格式不正确";
+            encrypt_key_text_input_size.dataset.size=0;
+            return;
+        }
+        args.id = "encrypt_iv_text_input_size";
+        //console.log(args)
+        window.exchangeBridge.get_data_size(JSON.stringify(args))
+    })
+})
+let encrypt_iv_text_input = document.getElementById("encrypt_iv_text_input");
+encrypt_iv_text_input.addEventListener("input",()=>{
+    let args = getInputNoOutput("encrypt_iv");
+    if(args === undefined){
+        let encrypt_key_text_input_size = document.getElementById("encrypt_iv_text_input_size");
+        encrypt_key_text_input_size.textContent = "输入格式不正确";
+        encrypt_key_text_input_size.dataset.size=0;
+        return;
+    }
+    args.id = "encrypt_iv_text_input_size";
+    //console.log(args)
+    window.exchangeBridge.get_data_size(JSON.stringify(args))
+})
+let encrypt_speed_test = document.getElementById("encrypt_speed_test");
+encrypt_speed_test.addEventListener("click",()=>{
+    let encrypt_method = document.getElementById("encrypt_method");
+    let encrypt_block_size = document.getElementById("encrypt_block_size");
+    let encrypt_key_size = document.getElementById("encrypt_key_size");
+    let encrypt_type = encrypt_method.value;
+    let encrypt_block = encrypt_block_size.value;
+    let encrypt_key = encrypt_key_size.value;
+    let args = {
+        "type":encrypt_type,
+        "blockSize":parseInt(encrypt_block),
+        "keySize":parseInt(encrypt_key)
+    }
+    window.encryptionBridge.test(JSON.stringify(args))
+})
+function updateEncryptionSpeed(result){
+    if(result.code !== 0){
+        showing(1,result.msg)
+        hash_resolve_time.textContent = "出错";
+        return;
+    }
+    let encrypt_speed_result = document.getElementById("encrypt_speed_result");
+    encrypt_speed_result.textContent = "耗时:"+fmtTime(result.time);
+}
+let encrypt_button = document.getElementById("encrypt_button");
+encrypt_button.addEventListener("click",()=>{
+    let params = {};
+    let args = getInput("encrypt");
+    if(args === undefined){
+        return;
+    }
+    params.input= args;
+    let config = {};
+    let encrypt_method = document.getElementById("encrypt_method");
+    let encrypt_block_size = document.getElementById("encrypt_block_size");
+    let encrypt_key_size = document.getElementById("encrypt_key_size");
+    let encrypt_type = encrypt_method.value;
+    let encrypt_block = encrypt_block_size.value;
+    let encrypt_key = encrypt_key_size.value;
+    config.type = encrypt_type;
+    config.blockSize = parseInt(encrypt_block);
+    config.keySize = parseInt(encrypt_key);
+
+    let encrypt_mode = document.getElementById("encrypt_mode");
+    let temp_mode = encrypt_mode.value;
+    modeConfigs.forEach((mode)=>{
+        if(parseInt(mode.code) === parseInt(temp_mode)){
+            config.mode = mode.name;
+        }
+    })
+
+    let encrypt_is_padding = document.getElementById("encrypt_is_padding");
+    config.isPadding = encrypt_is_padding.checked;
+
+    let encrypt_padding = document.getElementById("encrypt_padding");
+    let temp_padding = encrypt_padding.value;
+    paddingConfigs.forEach((padding)=>{
+        if(parseInt(padding.code) === parseInt(temp_padding)){
+            config.padding = padding.name;
+        }
+    })
+
+    let encrypt_shift = document.getElementById("encrypt_shift");
+    let temp_shift = parseInt(encrypt_shift.value);
+    if(temp_shift > config.blockSize && temp_mode === "CFBB"){
+        showing(1,"CFBB模式位移量不能大于块大小");
+        return;
+    }else if(temp_shift > config.blockSize*8 && temp_mode === "CFBb"){
+        showing(1,"CFBb模式位移量不能大于块大小*8");
+        return;
+    }
+    config.shift = temp_shift;
+    params.config = config;
+
+    let encrypt_key_text_input_size = document.getElementById("encrypt_key_text_input_size");
+    if(encrypt_key_text_input_size.dataset.size < config.keySize){
+        showing(1,"密钥长度不足,应为"+config.keySize+"位(B),当前为"+encrypt_key_text_input_size.dataset.size+"位(B)");
+        return;
+    }
+    let key = getInputNoOutput("encrypt_key");
+    if(key===undefined){
+        return;
+    }
     
-    let encryptAlgorithm = encryptMethodChoice.value;
-    let encryptBlockSize = encryptInputBlockSize.value;
-    let encryptKeySize = encryptInputKeySize.value;
-    let encryptMode = encryptModeChoice.value;
-    let encryptIsPadding = encryptIsPaddingChoice.value==="true"?true:false;
-    let encryptPadding = encryptPaddingChoice.value;
-    let encryptWithConfig = encryptWithConfigChoice.checked;
-    let encryptConfig = {
-        algorithm: encryptAlgorithm,
-        blockSize: parseInt(encryptBlockSize),
-        keySize: parseInt(encryptKeySize),
-        mode: encryptMode,
-        isPadding: encryptIsPadding,
-        padding: encryptPadding,
-        withConfig: encryptWithConfig
+    let encrypt_auto_iv = document.getElementById("encrypt_auto_iv");
+    if(encrypt_auto_iv.checked){
+        let iv = {}
+        iv.auto = true;
+        params.iv = iv;
     }
-    //console.log(encryptConfig);
-    let tag = "encryptKey";
-    let inputType = document.querySelector("input[name=\""+tag+"InputType\"]:checked").value;
-    let midResult;
-    if(inputType === "UTF_8"){
-        let text = document.getElementById(tag+"InputText").value;
-        midResult = {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":0,
-            "value":text
+    else{
+        let encrypt_iv_text_input_size = document.getElementById("encrypt_iv_text_input_size");
+        if(encrypt_iv_text_input_size.dataset.size < config.blockSize){
+            showing(1,"iv长度不足,应为"+config.blockSize+"位(B),当前为"+encrypt_iv_text_input_size.dataset.size+"位(B)");
+            return;
         }
-    }else if(inputType === "hex"){
-        let text = document.getElementById(tag+"InputText").value;
-        const charList = "0123456789ABCDEFabcdef"
-        for(let i=0;i<text.length;++i){
-            if(!charList.includes(text[i])){
-                midResult =  {
-                    "status":false,
-                    "error":"该模式下输入字符必须为"+charList
-                }
-            }
+        let iv = getInputNoOutput("encrypt_iv");
+        if(iv===undefined){
+            return;
         }
-        midResult = {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":2,
-            "value":text
-        }
-    }else if(inputType === "base64"){
-        let text = document.getElementById(tag+"InputText").value;
-        let inputChar1 = document.getElementById(tag+"InputReplace+").value;
-        let inputChar2 = document.getElementById(tag+"InputReplace/").value;
-        let inputChar3 = document.getElementById(tag+"InputReplace=").value;
-        if(inputChar1 === inputChar2 || inputChar1 === inputChar3 || inputChar2 === inputChar3){
-            midResult =  {
-                "status":false,
-                "error":"输入替换的字符不能相同"
-            }
-        }    
-        let charList = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/="
-        charList = charList.replace("+",inputChar1);
-        charList = charList.replace("/",inputChar2);
-        charList = charList.replace("=",inputChar3);
-        for(let i=0;i<text.length;++i){
-            if(!charList.includes(text[i])){
-                midResult = {
-                    "status":false,
-                    "error":"该模式下输入字符必须为"+charList
-                }
-            }
-        }
-        midResult =  {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":1,
-            "value":text,
-            "inputChar1":inputChar1,
-            "inputChar2":inputChar2,
-            "inputChar3":inputChar3
-        }
-    }else if(inputType === "file"){
-        let file = document.getElementById(tag+"InputFileBox").files[0];
-        document.getElementById(tag+"InputFileBox").value = '';
-        if(file === undefined){
-            midResult =  {
-                "status":false,
-                "error":"未选择文件"
-            }
-        }
-        let path = window.electronAPI.getPath(file)
-        midResult =  {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":3,
-            "value":path
-        }
-    }else{
-        midResult =  {
-            "status":false,
-            "error":"未知输入类型"
-        }
+        params.iv = iv;
     }
-    if(!midResult.status){
-        alert(midResult.error);
-        return;
-    }else if(midResult.value === ""){
-        alert("密钥输入不能为空");
-        return;
-    }
-    let encryptKeyConfig = midResult;
-    //console.log(encryptKeyConfig);
-    console.log(valueConfig);
-    console.log(encryptConfig);
-    console.log(encryptKeyConfig);
-    window.encryptBridge.receive(valueConfig,encryptConfig,encryptKeyConfig)
+    params.key = key;
+    head={};
+    let encrypt_is_config = document.getElementById("encrypt_is_config");
+    let encrypt_is_iv = document.getElementById("encrypt_is_iv");
+    let encrypt_is_check = document.getElementById("encrypt_is_check");
+    head.withConfig = encrypt_is_config.checked;
+    head.withIV = encrypt_is_iv.checked;
+    head.withCheck = encrypt_is_check.checked;
+    params.head = head;
+    //console.log(params)
+    window.encryptionBridge.work(JSON.stringify(params))
 })
-
-//only qt
-function setEncryptResult(data){
-    if(!data.status){
-        alert(data.error);
-        return;
+function updateEncryptionResult(result){
+    showing(result.code,result.msg)
+    let encrypt_resolve_time = document.getElementById("encrypt_resolve_time");
+    let encrypt_text_output = document.getElementById("encrypt_text_output");
+    encrypt_text_output.value = result.res;
+    if(result.code !== 0){
+        encrypt_resolve_time.textContent = "出错";
     }else{
-        let OutputText = document.getElementById("encryptOutputText");
-        if(data.type === "text"){
-            OutputText.value = data.result;
-            let encryptSpendTimeField = document.getElementById("encryptSpendTimeField");
-            encryptSpendTimeField.textContent = "耗时:"+fmtTime(data.time);
-        }else if(data.type === "file"){
-            let msg = data.inputFile+">"+data.cryption+">"+data.outputFile;
-            OutputText.value = msg+"已添加至任务队列";
-            let task = {
-                type: "encrypt",
-                status: "running",
-                id: parseInt(data.id),
-                inputFile: data.inputFile,
-                outputFile: data.outputFile,
-                title: msg,
-                process: "",
-                time: 0
-            }
-            //console.log(task);
-            worker.push(task);
-            addTaskTag(task);
-        }
-
+        encrypt_resolve_time.textContent = "耗时:"+fmtTime(result.time);
     }
+    if(result.iv !== undefined){
+        let encrypt_iv_text_input = document.getElementById("encrypt_iv_text_input");
+        encrypt_iv_text_input.value = result.iv;
+        let encrypt_iv_input_type_hex = document.getElementById("encrypt_iv_input_type_hex");
+        encrypt_iv_input_type_hex.checked = true;
+        encrypt_iv_text_input.dispatchEvent(new Event("input"));
+    }
+
 }
-
-//根据模式限制填充算法
-var encryptModeChoice = document.getElementById("encryptModeChoice");
-encryptModeChoice.addEventListener("change", (event) => {
-    let encryptIsPaddingTrue = document.getElementById("encryptIsPaddingTrue");
-    let encryptIsPaddingFalse = document.getElementById("encryptIsPaddingFalse");
-    let paddingChoiceField = document.getElementById("encryptPaddingChoiceField");
-    let value = event.target.value;
-    if(value === "ECB" || value === "CBC"){
-        encryptIsPaddingTrue.checked = true;
-        encryptIsPaddingFalse.disabled = true;
-        paddingChoiceField.hidden = false;
-    }else{
-        encryptIsPaddingFalse.disabled = false;
-        paddingChoiceField.hidden = false;
-    }
-})
-
-//控制密钥输入时 base64显示替换字符 其他隐藏
-var encryptKeyInputType = document.getElementsByName("encryptKeyInputType");
-encryptKeyInputType.forEach(element => {
-    element.addEventListener("change",(event) => {
-        let encryptKeyInputReplaceCharField = document.getElementById("encryptKeyInputReplaceCharField");
-        let value = event.target.value;
-        if(value === "base64"){
-            encryptKeyInputReplaceCharField.hidden = false;
-        }else{
-            encryptKeyInputReplaceCharField.hidden = true;
-        }
-    })
-})
-
-//结束
-
-//解密区域逻辑
-//控制明文输入时 base64显示替换字符 file隐藏输入框 其他隐藏文件输入
-var decryptInputTypes = document.getElementsByName("decryptInputType");
-decryptInputTypes.forEach(element => {
-    element.addEventListener("change", (event) => {
-        var textInputField = document.getElementById("decryptInputTextField");
-        var fileInput = document.getElementById("decryptInputFileField");
-        var inputReplaceChar = document.getElementById("decryptInputReplaceCharField");
-        
-        let decryptOutputUTF_8 = document.getElementById("decryptOutputUTF_8");
-        let decryptOutputHex = document.getElementById("decryptOutputHex");
-        let decryptOutputBase64 = document.getElementById("decryptOutputBase64");
-        let decryptOutputFile = document.getElementById("decryptOutputFile");
-        let decryptOutputTypeChoice = document.getElementById("decryptOutputTypeChoice");
-        let decryptOutputText = document.getElementById("decryptOutputText");
-        let decryptWithConfigField = document.getElementById("decryptWithConfigField");
-        let decryptInputFileBox = document.getElementById("decryptInputFileBox");
-        var value = event.target.value;
-        if (value === "file") {
-            inputReplaceChar.hidden = true;
-            textInputField.hidden = true;
-            fileInput.hidden = false;
-
-            decryptOutputUTF_8.disabled = true;
-            decryptOutputHex.disabled = true;
-            decryptOutputBase64.disabled = true;
-            decryptOutputFile.disabled = false;
-
-            decryptOutputFile.checked = true;
-            decryptOutputTypeChoice.hidden = true;
-
-            decryptOutputText.rows = 1;
-            decryptOutputText.placeholder = "输出文件路径";
-            decryptOutputText.readOnly = "";
-
-            decryptWithConfigField.hidden = false;
-        }else if(value === "base64"){
-            inputReplaceChar.hidden = false;
-            textInputField.hidden = false;
-            fileInput.hidden = true;
-
-            decryptOutputUTF_8.disabled = false;
-            decryptOutputHex.disabled = false;
-            decryptOutputBase64.disabled = false;
-            decryptOutputFile.disabled = true;
-
-            decryptOutputFile.checked = false;
-            decryptOutputHex.checked = true;
-            decryptOutputTypeChoice.hidden = false;
-
-            inputReplaceChar.hidden = false;
-            textInputField.hidden = false;
-            fileInput.hidden = true;
-
-            decryptOutputText.value = ""
-            decryptOutputText.rows = 10;
-            decryptOutputText.placeholder = "密文输出";
-            decryptOutputText.readOnly = true;
-
-            decryptWithConfigField.hidden = true;
-
-            decryptInputFileBox.value = '';
-        }else{
-            inputReplaceChar.hidden = true;
-            textInputField.hidden = false;
-            fileInput.hidden = true;
-            
-            decryptOutputUTF_8.disabled = false;
-            decryptOutputHex.disabled = false;
-            decryptOutputBase64.disabled = false;
-            decryptOutputFile.disabled = true;
-
-            decryptOutputFile.checked = false;
-            decryptOutputHex.checked = true;
-            decryptOutputTypeChoice.hidden = false;
-
-            decryptOutputText.value = ""
-            decryptOutputText.rows = 10;
-            decryptOutputText.placeholder = "密文输出";
-            decryptOutputText.readOnly = true;
-
-            decryptWithConfigField.hidden = true;
-
-            decryptInputFileBox.value = '';
-        }
-    })
-})
-
-var decryptInputFileBox = document.getElementById("decryptInputFileField");
-decryptInputFileBox.addEventListener("change",(event)=>{
-    let decryptOutputText = document.getElementById("decryptOutputText");
-    let path = window.electronAPI.getPath(event.target.files[0]);
-    decryptOutputText.value = "输出>>>"+path+".PLAIN";
-})
-
-//控制base64显示替换字符 hex显示是否大写 其他隐藏
-var decryptOutputTypes = document.getElementsByName("decryptOutputType");
-decryptOutputTypes.forEach(element => {
-    element.addEventListener("change", (event) => {
-        let outputReplaceChar = document.getElementById("decryptOutputReplaceCharField");
-        let outputIsUpper = document.getElementById("decryptOutputIsUpperField");
-        let value = event.target.value;
-        if (value === "base64") {
-            outputReplaceChar.hidden = false;
-            outputIsUpper.hidden = true;
-        }else if(value === "hex"){
-            outputReplaceChar.hidden = true;
-            outputIsUpper.hidden = false;
-        }else{
-            outputReplaceChar.hidden = true;
-            outputIsUpper.hidden = true;
-        }
-    })
-})
-
-//根据算法控制可选控制块大小和密钥长度
-var decryptMethodChoice = document.getElementById("decryptMethodChoice");
-decryptMethodChoice.addEventListener("change", (event) => {
-    ////console.log(event.target.value);
-    let decryptBlockSize = document.getElementById("decryptInputBlockSize");
-    let decryptKeySize = document.getElementById("decryptInputKeySize");
-    if(event.target.value === "AES"){
-        decryptBlockSize.min=16;
-        decryptBlockSize.max=16;
-        decryptBlockSize.value=16;
-        
-        decryptKeySize.min=16;
-        decryptKeySize.max=32;
-        decryptKeySize.value=16;
-        decryptKeySize.step=8;
-    }else if(event.target.value === "SM4"){
-        decryptBlockSize.min=16;
-        decryptBlockSize.max=16;
-        decryptBlockSize.value=16;
-
-        decryptKeySize.min=16;
-        decryptKeySize.max=16;
-        decryptKeySize.value=16;
-    }
-})
-
-//根据选择展示填充算法
-var decryptIsPadding = document.getElementsByName("decryptIsPadding");
-decryptIsPadding.forEach(element => {
-    element.addEventListener("change", (event) =>{
-        let paddingChoiceField = document.getElementById("decryptPaddingChoiceField");
-        if(event.target.value === "true"){
-            paddingChoiceField.hidden = false;
-        }else{
-            paddingChoiceField.hidden = true;
-        }
-    })
-})
-
-//根据模式限制填充算法
-var decryptModeChoice = document.getElementById("decryptModeChoice");
-decryptModeChoice.addEventListener("change", (event) => {
-    let decryptIsPaddingTrue = document.getElementById("decryptIsPaddingTrue");
-    let decryptIsPaddingFalse = document.getElementById("decryptIsPaddingFalse");
-    let paddingChoiceField = document.getElementById("decryptPaddingChoiceField");
-    let value = event.target.value;
-    if(value === "ECB" || value === "CBC"){
-        decryptIsPaddingTrue.checked = true;
-        decryptIsPaddingFalse.disabled = true;
-        paddingChoiceField.hidden = false;
-    }else{
-        decryptIsPaddingFalse.disabled = false;
-        paddingChoiceField.hidden = false;
-    }
-})
-
-//控制密钥输入时 base64显示替换字符 其他隐藏
-var decryptKeyInputType = document.getElementsByName("decryptKeyInputType");
-decryptKeyInputType.forEach(element => {
-    element.addEventListener("change",(event) => {
-        let decryptKeyInputReplaceCharField = document.getElementById("decryptKeyInputReplaceCharField");
-        let value = event.target.value;
-        if(value === "base64"){
-            decryptKeyInputReplaceCharField.hidden = false;
-        }else{
-            decryptKeyInputReplaceCharField.hidden = true;
-        }
-    })
-})
-
-let decryptButton = document.getElementById("decryptButton");
-decryptButton.addEventListener("click",(event)=>{
-    let valueConfig = getOriInput("decrypt");
-    if(!valueConfig.status){
-        alert(valueConfig.error);
-        return;
-    }else if(valueConfig.value === ""){
-        alert("请输入密文");
+let encrypt_output_text_copy = document.getElementById("encrypt_output_text_copy");
+encrypt_output_text_copy.addEventListener("click",()=>{
+    let encrypt_text_output = document.getElementById("encrypt_text_output");
+    if(encrypt_text_output.value === ""){
         return;
     }
-    //console.log(valueConfig);
-
-    let decryptMethodChoice = document.getElementById("decryptMethodChoice");
-    let decryptInputBlockSize = document.getElementById("decryptInputBlockSize");
-    let decryptInputKeySize = document.getElementById("decryptInputKeySize");
-    let decryptModeChoice = document.getElementById("decryptModeChoice");
-    let decryptIsPaddingChoice = document.querySelector("input[name=\"decryptIsPadding\"]:checked");
-    let decryptPaddingChoice = document.getElementById("decryptPaddingChoice");
-    let decryptWithConfigChoice = document.getElementById("decryptWithConfig");
-    
-    let decryptAlgorithm = decryptMethodChoice.value;
-    let decryptBlockSize = decryptInputBlockSize.value;
-    let decryptKeySize = decryptInputKeySize.value;
-    let decryptMode = decryptModeChoice.value;
-    let decryptIsPadding = decryptIsPaddingChoice.value==="true"?true:false;
-    let decryptPadding = decryptPaddingChoice.value;
-    let decryptWithConfig = decryptWithConfigChoice.checked;
-    let decryptConfig = {
-        algorithm: decryptAlgorithm,
-        blockSize: parseInt(decryptBlockSize),
-        keySize: parseInt(decryptKeySize),
-        mode: decryptMode,
-        isPadding: decryptIsPadding,
-        padding: decryptPadding,
-        withConfig: decryptWithConfig
-    }
-    //console.log(decryptConfig);
-    let tag = "decryptKey";
-    let inputType = document.querySelector("input[name=\""+tag+"InputType\"]:checked").value;
-    let midResult;
-    if(inputType === "UTF_8"){
-        let text = document.getElementById(tag+"InputText").value;
-        midResult = {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":0,
-            "value":text
-        }
-    }else if(inputType === "hex"){
-        let text = document.getElementById(tag+"InputText").value;
-        const charList = "0123456789ABCDEFabcdef"
-        for(let i=0;i<text.length;++i){
-            if(!charList.includes(text[i])){
-                midResult =  {
-                    "status":false,
-                    "error":"该模式下输入字符必须为"+charList
-                }
-            }
-        }
-        midResult = {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":2,
-            "value":text
-        }
-    }else if(inputType === "base64"){
-        let text = document.getElementById(tag+"InputText").value;
-        let inputChar1 = document.getElementById(tag+"InputReplace+").value;
-        let inputChar2 = document.getElementById(tag+"InputReplace/").value;
-        let inputChar3 = document.getElementById(tag+"InputReplace=").value;
-        if(inputChar1 === inputChar2 || inputChar1 === inputChar3 || inputChar2 === inputChar3){
-            midResult =  {
-                "status":false,
-                "error":"输入替换的字符不能相同"
-            }
-        }    
-        let charList = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/="
-        charList = charList.replace("+",inputChar1);
-        charList = charList.replace("/",inputChar2);
-        charList = charList.replace("=",inputChar3);
-        for(let i=0;i<text.length;++i){
-            if(!charList.includes(text[i])){
-                midResult = {
-                    "status":false,
-                    "error":"该模式下输入字符必须为"+charList
-                }
-            }
-        }
-        midResult =  {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":1,
-            "value":text,
-            "inputChar1":inputChar1,
-            "inputChar2":inputChar2,
-            "inputChar3":inputChar3
-        }
-    }else if(inputType === "file"){
-        let file = document.getElementById(tag+"InputFileBox").files[0];
-        document.getElementById(tag+"InputFileBox").value = '';
-        if(file === undefined){
-            midResult =  {
-                "status":false,
-                "error":"未选择文件"
-            }
-        }
-        let path = window.electronAPI.getPath(file)
-        midResult =  {
-            "status":true,
-            "inputType":inputType,
-            "inputTypeCode":3,
-            "value":path
-        }
-    }else{
-        midResult =  {
-            "status":false,
-            "error":"未知输入类型"
-        }
-    }
-    if(!midResult.status){
-        alert(midResult.error);
-        return;
-    }else if(midResult.value === ""){
-        alert("密钥不能为空");
-        return;
-    }
-    let decryptKeyConfig = midResult;
-    window.decryptBridge.receive(valueConfig,decryptConfig,decryptKeyConfig)
+    copyToClipboard(encrypt_text_output.value);
 })
-function setDecryptResult(data){
-    if(!data.status){
-        alert(data.error);
-        return;
-    }else{
-        let OutputText = document.getElementById("decryptOutputText");
-        if(data.type === "text"){
-            OutputText.value = data.result;
-            let decryptSpendTimeField = document.getElementById("decryptSpendTimeField");
-            decryptSpendTimeField.textContent = "耗时:"+fmtTime(data.time);
-        }else if(data.type === "file"){
-            let msg = data.inputFile+">"+data.cryption+">"+data.outputFile;
-            OutputText.value = msg+"已添加至任务队列";
-            let task = {
-                type: "decrypt",
-                status: "running",
-                id: parseInt(data.id),
-                inputFile: data.inputFile,
-                outputFile: data.outputFile,
-                title: msg,
-                process: "",
-                time: 0
-            }
-            //console.log(task);
-            worker.push(task);
-            addTaskTag(task);
-        }
-        
-    }
-}
-//结束

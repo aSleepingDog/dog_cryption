@@ -10,108 +10,129 @@ const char* dog_hash::HashException::what() const throw()
 }
 
 
-dog_hash::hash_crypher::hash_crypher(std::string sign)
+dog_hash::HashCrypher::HashCrypher(std::string type, uint64_t effective)
 {
-	if (sign == SHA2::SHA256)
+	if (type == SHA2::name)
 	{
-		this->type = SHA2::SHA256;
-		this->max = SHA2::SHA256_MAX;
+		this->effective_ = effective;
+		if (effective == 28)
+		{
+			using namespace SHA2::b224;
+			this->type_ = SHA2::name;
+			this->max_ = MAX;
 
-		this->initial_value = SHA2::SHA256_IV;
-		this->effective_size = SHA2::SHA256_EFFECTIVE_SIZE;
+			this->initial_value_ = IV;
+			this->effective_size_ = EFFECTIVE_SIZE;
 
-		this->block_size = SHA2::SHA256_BLOCK_SIZE;
-		this->number_size = SHA2::SHA256_NUMBER_SIZE;
-		this->hash_function = SHA2::SHA256_update;
+			this->block_size_ = BLOCK_SIZE;
+			this->number_size_ = NUMBER_SIZE;
+			this->hash_function_ = single_update;
+		}
+		else if (effective == 32)
+		{
+			using namespace SHA2::b256;
+			this->type_ = SHA2::name;
+			this->max_ = MAX;
+
+			this->initial_value_ = IV;
+			this->effective_size_ = EFFECTIVE_SIZE;
+
+			this->block_size_ = BLOCK_SIZE;
+			this->number_size_ = NUMBER_SIZE;
+			this->hash_function_ = single_update;
+
+		}
+		else if (effective == 48)
+		{
+			using namespace SHA2::b384;
+			this->type_ = SHA2::name;
+			this->max_ = MAX;
+
+			this->initial_value_ = IV;
+			this->effective_size_ = EFFECTIVE_SIZE;
+
+			this->block_size_ = BLOCK_SIZE;
+			this->number_size_ = NUMBER_SIZE;
+			this->hash_function_ = single_update;
+		}
+		else if (effective == 64)
+		{
+			using namespace SHA2::b512;
+			this->type_ = SHA2::name;
+			this->max_ = MAX;
+
+			this->initial_value_ = IV;
+			this->effective_size_ = EFFECTIVE_SIZE;
+
+			this->block_size_ = BLOCK_SIZE;
+			this->number_size_ = NUMBER_SIZE;
+			this->hash_function_ = single_update;
+		}
+		else
+		{
+			throw dog_hash::HashException("Unknown hash type", __FILE__, __FUNCTION__, __LINE__);
+		}
 	}
-	else if (sign == SHA2::SHA224)
+	else if (type == SM3::name)
 	{
-		this->type = SHA2::SHA224;
-		this->max = SHA2::SHA224_MAX;
+		this->effective_ = effective;
+		if (effective == 32)
+		{
+			using namespace SM3::b256;
+			this->type_ = SHA2::name;
+			this->max_ = MAX;
 
-		this->initial_value = SHA2::SHA224_IV;
-		this->effective_size = SHA2::SHA224_EFFECTIVE_SIZE;
+			this->initial_value_ = IV;
+			this->effective_size_ = EFFECTIVE_SIZE;
 
-		this->block_size = SHA2::SHA224_BLOCK_SIZE;
-		this->number_size = SHA2::SHA224_NUMBER_SIZE;
-		this->hash_function = SHA2::SHA224_update;
-	}
-	else if (sign == SHA2::SHA384)
-	{
-		this->type = SHA2::SHA384;
-		this->max = SHA2::SHA384_MAX;
-
-		this->initial_value = SHA2::SHA384_IV;
-		this->effective_size = SHA2::SHA384_EFFECTIVE_SIZE;
-
-		this->block_size = SHA2::SHA384_BLOCK_SIZE;
-		this->number_size = SHA2::SHA384_NUMBER_SIZE;
-		this->hash_function = SHA2::SHA384_update;
-	}
-	else if (sign == SHA2::SHA512)
-	{
-		this->type = SHA2::SHA512;
-		this->max = SHA2::SHA512_MAX;
-
-		this->initial_value = SHA2::SHA512_IV;
-		this->effective_size = SHA2::SHA512_EFFECTIVE_SIZE;
-
-		this->block_size = SHA2::SHA512_BLOCK_SIZE;
-		this->number_size = SHA2::SHA512_NUMBER_SIZE;
-		this->hash_function = SHA2::SHA512_update;
-	}
-	else if (sign == SM3::SM3)
-	{
-		this->type = SM3::SM3;
-		this->max = SM3::SM3_MAX;
-
-		this->initial_value = SM3::SM3_IV;
-		this->effective_size = SM3::SM3_EFFECTIVE_SIZE;
-
-		this->block_size = SM3::SM3_BLOCK_SIZE;
-		this->number_size = SM3::SM3_NUMBER_SIZE;
-		this->hash_function = SM3::SM3_update;
-
+			this->block_size_ = BLOCK_SIZE;
+			this->number_size_ = NUMBER_SIZE;
+			this->hash_function_ = single_update;
+		}
+		else
+		{
+            throw dog_hash::HashException("Unknown hash type", __FILE__, __FUNCTION__, __LINE__);
+		}
 	}
 	else
 	{
 		throw dog_hash::HashException("Unknown hash type", __FILE__, __FUNCTION__, __LINE__);
 	}
 }
-void dog_hash::hash_crypher::update(dog_data::Data data)
+void dog_hash::HashCrypher::update(dog_data::Data data)
 {
 	//std::cout << initial_value.getHexString() << std::endl;
 	uint64_t size = data.size();
-	if (size == this->block_size)
+	if (size == this->block_size_)
 	{
-		hash_function(data, this->initial_value);
-		this->total += this->block_size << 3;
+		hash_function_(data, this->initial_value_);
+		this->total_ += this->block_size_ << 3;
 	}
-	else if (size > (this->block_size))
+	else if (size > (this->block_size_))
 	{
-		while (size > (this->block_size))
+		while (size > (this->block_size_))
 		{
 			data.pop_back();
 		}
-		hash_function(data, this->initial_value);
-		this->total += this->block_size << 3;
+		hash_function_(data, this->initial_value_);
+		this->total_ += this->block_size_ << 3;
 	}
-	else if (size < (this->block_size))
+	else if (size < (this->block_size_))
 	{
-		this->total += size * 8;
+		this->total_ += size * 8;
 		data.push_back(0x80);
 		size++;
 		//DogData::print::block(data);
-		if (size <= (this->block_size - this->number_size))
+		if (size <= (this->block_size_ - this->number_size_))
 		{
 
-			while (data.size() < (this->block_size - this->number_size))
+			while (data.size() < (this->block_size_ - this->number_size_))
 			{
 				data.push_back(0x00);
 			}
 
-			std::vector<uint8_t> temp_number = this->total.get_bytes();
-			while (temp_number.size() < (this->number_size))
+			std::vector<uint8_t> temp_number = this->total_.get_bytes();
+			while (temp_number.size() < (this->number_size_))
 			{
 				temp_number.insert(temp_number.begin(), 0x00);
 			}
@@ -120,28 +141,28 @@ void dog_hash::hash_crypher::update(dog_data::Data data)
 				data.push_back(i);
 			}
 
-			hash_function(data, this->initial_value);
+			hash_function_(data, this->initial_value_);
 
-			this->is_effective = true;
+			this->is_effective_ = true;
 		}
 		else
 		{
 			//DogData::print::block(data);
-			while (data.size() < this->block_size)
+			while (data.size() < this->block_size_)
 			{
 				data.push_back(0x00);
 			}
-			hash_function(data, this->initial_value);
+			hash_function_(data, this->initial_value_);
 
 			dog_data::Data temp_block;
-			temp_block.reserve(this->block_size);
-			for (int i = 0; i < (this->block_size - this->number_size); i++)
+			temp_block.reserve(this->block_size_);
+			for (int i = 0; i < (this->block_size_ - this->number_size_); i++)
 			{
 				temp_block.push_back(0x00);
 			}
-			std::vector<uint8_t> temp_number = this->total.get_bytes();
+			std::vector<uint8_t> temp_number = this->total_.get_bytes();
 			
-			while (temp_number.size() < (this->number_size))
+			while (temp_number.size() < (this->number_size_))
 			{
 				temp_number.insert(temp_number.begin(), 0x00);
 			}
@@ -149,58 +170,75 @@ void dog_hash::hash_crypher::update(dog_data::Data data)
 			{
 				temp_block.push_back((uint8_t)i);
 			}
-			hash_function(temp_block, this->initial_value);
+			hash_function_(temp_block, this->initial_value_);
 			//DogData::print::block(temp_block);
 
-			this->is_effective = true;
+			this->is_effective_ = true;
 		}
 
 	}
 	//DogData::print::block(data);
 	
 }
-void dog_hash::hash_crypher::init()
+void dog_hash::HashCrypher::init()
 {
-	this->total = 0;
-	if (type == SHA2::SHA256)
+	if (type_ == SHA2::name)
 	{
-		this->initial_value = SHA2::SHA256_IV;
+		if (effective_ == 28)
+		{
+			using namespace SHA2::b224;
+			this->initial_value_ = IV;
+		}
+		else if (effective_ == 32)
+		{
+			using namespace SHA2::b256;
+			this->initial_value_ = IV;
+		}
+		else if (effective_ == 48)
+		{
+			using namespace SHA2::b384;
+			this->initial_value_ = IV;
+		}
+		else if (effective_ == 64)
+		{
+			using namespace SHA2::b512;
+			this->initial_value_ = IV;
+		}
+		else
+		{
+			throw dog_hash::HashException("Unknown hash type", __FILE__, __FUNCTION__, __LINE__);
+		}
 	}
-	else if (type == SHA2::SHA224)
+	else if (type_ == SM3::name)
 	{
-		this->initial_value = SHA2::SHA224_IV;
-	}
-	else if (type == SHA2::SHA384)
-	{
-		this->initial_value = SHA2::SHA384_IV;
-	}
-	else if (type == SHA2::SHA512)
-	{
-		this->initial_value = SHA2::SHA512_IV;
-	}
-	else if (type == SM3::SM3)
-	{
-		this->initial_value = SM3::SM3_IV;
+		if (effective_ == 32)
+		{
+			using namespace SM3::b256;
+			this->initial_value_ = IV;
+		}
+		else
+		{
+			throw dog_hash::HashException("Unknown hash type", __FILE__, __FUNCTION__, __LINE__);
+		}
 	}
 	else
 	{
 		throw dog_hash::HashException("Unknown hash type", __FILE__, __FUNCTION__, __LINE__);
 	}
-	this->is_effective = false;
 }
-void dog_hash::hash_crypher::finish()
+void dog_hash::HashCrypher::finish()
 {
-	if (!this->is_effective)
+	if (!this->is_effective_)
 	{
 		dog_data::Data temp_block;
-		temp_block.reserve(this->block_size);
+		temp_block.reserve(this->block_size_);
 		temp_block.push_back(0x80);
-		for (int i = 1; i < (this->block_size - this->number_size); i++)
+		for (int i = 1; i < (this->block_size_ - this->number_size_); i++)
 		{
 			temp_block.push_back(0x00);
 		}
-		std::string number = this->total.get_num(16, true);
-		while (number.size() < (this->number_size*2))
+		std::string number = this->total_.get_num(16, true);
+		while (number.size() < (this->number_size_*2))
 		{
 			number = "0" + number;
 		}
@@ -209,39 +247,43 @@ void dog_hash::hash_crypher::finish()
 		{
 			temp_block.push_back(i);
 		}
-		hash_function(temp_block, this->initial_value);
+		hash_function_(temp_block, this->initial_value_);
 		//DogData::print::block(temp_block);
-		this->is_effective = true;
+		this->is_effective_ = true;
 	}
 }
-dog_data::Data dog_hash::hash_crypher::get_hash()
+dog_data::Data dog_hash::HashCrypher::get_hash()
 {
-	return this->initial_value.sub_by_pos(0, this->effective_size);
+	return this->initial_value_.sub_by_pos(0, this->effective_size_);
 }
-std::string dog_hash::hash_crypher::get_type() const
+std::string dog_hash::HashCrypher::get_type() const
 {
-	return this->type;
+	return this->type_;
 }
-dog_data::Data dog_hash::hash_crypher::getDataHash(dog_data::Data data)
+std::function<void(dog_data::Data, dog_data::Data&)> dog_hash::HashCrypher::get_update() const
+{
+	return this->hash_function_;
+}
+dog_data::Data dog_hash::HashCrypher::getDataHash(dog_data::Data data)
 {
 	uint64_t size = 0;
 	while (size < data.size())
 	{
-		this->update(data.sub_by_pos(size, size + this->block_size));
-		size += this->block_size;
+		this->update(data.sub_by_pos(size, size + this->block_size_));
+		size += this->block_size_;
 	}
 	this->finish();
 	dog_data::Data res = this->get_hash();
 	this->init();
 	return res;
 }
-dog_data::Data dog_hash::hash_crypher::getStringHash(std::string data)
+dog_data::Data dog_hash::HashCrypher::getStringHash(std::string data)
 {
 	return this->getDataHash(dog_data::Data(data.c_str(), 0));
 }
-dog_data::Data dog_hash::hash_crypher::streamHash(hash_crypher& crypher, std::istream& data)
+dog_data::Data dog_hash::HashCrypher::streamHash(HashCrypher& crypher, std::istream& data)
 {
-	uint8_t block_size = crypher.block_size;
+	uint8_t block_size = crypher.block_size_;
 	data.seekg(0, std::ios::end);
 	uint64_t file_size = data.tellg();
 	data.seekg(0, std::ios::beg);
@@ -261,9 +303,9 @@ dog_data::Data dog_hash::hash_crypher::streamHash(hash_crypher& crypher, std::is
 	crypher.init();
 	return res;
 }
-void dog_hash::hash_crypher::streamHashp(hash_crypher& crypher, std::istream& data,std::atomic<double>* progress, dog_data::Data* result)
+void dog_hash::HashCrypher::streamHashp(HashCrypher& crypher, std::istream& data,std::atomic<double>* progress, dog_data::Data* result)
 {
-	uint8_t block_size = crypher.block_size;
+	uint8_t block_size = crypher.block_size_;
 	data.seekg(0, std::ios::end);
 	uint64_t file_size = data.tellg();
 	data.seekg(0, std::ios::beg);
@@ -344,7 +386,7 @@ uint64_t dog_hash::SHA2::function2_128(uint64_t a, uint64_t b, uint64_t c)
 	return S0 + maj;
 }
 
-void dog_hash::SHA2::SHA256_update(dog_data::Data plain, dog_data::Data& change_value)
+void dog_hash::SHA2::b256::single_update(dog_data::Data plain, dog_data::Data& change_value)
 {
 	if (plain.size() != 64)
 	{
@@ -406,7 +448,7 @@ void dog_hash::SHA2::SHA256_update(dog_data::Data plain, dog_data::Data& change_
 		}
 	}
 }
-void dog_hash::SHA2::SHA224_update(dog_data::Data plain, dog_data::Data& change_value)
+void dog_hash::SHA2::b224::single_update(dog_data::Data plain, dog_data::Data& change_value)
 {
 	if (plain.size() != 64)
 	{
@@ -469,7 +511,7 @@ void dog_hash::SHA2::SHA224_update(dog_data::Data plain, dog_data::Data& change_
 	}
 }
 
-void dog_hash::SHA2::SHA512_update(dog_data::Data plain, dog_data::Data& change_value)
+void dog_hash::SHA2::b512::single_update(dog_data::Data plain, dog_data::Data& change_value)
 {
 	if (plain.size() != 128)
 	{
@@ -533,7 +575,7 @@ void dog_hash::SHA2::SHA512_update(dog_data::Data plain, dog_data::Data& change_
 		}
 	}
 }
-void dog_hash::SHA2::SHA384_update(dog_data::Data plain, dog_data::Data& change_value)
+void dog_hash::SHA2::b384::single_update(dog_data::Data plain, dog_data::Data& change_value)
 {
 	if (plain.size() != 128)
 	{
@@ -642,7 +684,7 @@ uint32_t dog_hash::SM3::functionGG1_SM3(uint32_t a, uint32_t b, uint32_t c, int 
 	}
 }
 
-void dog_hash::SM3::SM3_update(dog_data::Data plain, dog_data::Data& change_value)
+void dog_hash::SM3::b256::single_update(dog_data::Data plain, dog_data::Data& change_value)
 {
 	if (plain.size() != 64)
 	{
@@ -704,4 +746,10 @@ void dog_hash::SM3::SM3_update(dog_data::Data plain, dog_data::Data& change_valu
 			change_value[i * 4 + i0] = (uint8_t)((tempH[i] >> (24 - i0 * 8)) & 0xFF);
 		}
 	}
+}
+
+dog_hash::HashConfig::HashConfig(std::string name, std::string region)
+{
+	this->name = name;
+	this->region = region;
 }

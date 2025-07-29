@@ -763,3 +763,11 @@ dialog:focus {
 #hash_speed_test{
     margin: 0;
 }
+
+#hash_speed_result{
+    margin: 0 0 0 1%;
+}
+
+.resolve_time{
+    margin: 0 0 0 1%;
+}

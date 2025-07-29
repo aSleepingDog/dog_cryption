@@ -1039,12 +1039,12 @@
                         </div>
                     </div>
                     <div id="encrypt_head_field">
-                        <label for="encrypt_is_config">是否写入加密配置</label>
-                        <input type="checkbox" id="encrypt_is_config" checked>
-                        <label for="encrypt_is_iv">是否写入加密iv</label>
-                        <input type="checkbox" id="encrypt_is_iv" checked>
-                        <label for="encrypt_is_check">是否写入密钥校验</label>
-                        <input type="checkbox" id="encrypt_is_check" checked>
+                        <label for="encrypt_with_config">是否写入加密配置</label>
+                        <input type="checkbox" id="encrypt_with_config" checked>
+                        <label for="encrypt_with_iv">是否写入加密iv</label>
+                        <input type="checkbox" id="encrypt_with_iv" checked>
+                        <label for="encrypt_with_check">是否写入密钥校验</label>
+                        <input type="checkbox" id="encrypt_with_check" checked>
                     </div>
                 </div>
                 <div class="button" id="encrypt_button">加密</div>
@@ -1200,16 +1200,16 @@
             <!-- 标识区 -->
             <div class="sign_area" id="decrypt_sign_area">
                 <div>
-                    <label for="decrypt_config">是否携带配置</label>
-                    <input type="checkbox" name="" id="decrypt_config" checked>
+                    <label for="decrypt_with_config">是否携带配置</label>
+                    <input type="checkbox" name="" id="decrypt_with_config" checked>
                 </div>
                 <div>
-                    <label for="decrypt_iv">是否携带iv</label>
-                    <input type="checkbox" name="" id="decrypt_iv" checked>
+                    <label for="decrypt_with_iv">是否携带iv</label>
+                    <input type="checkbox" name="" id="decrypt_with_iv" checked>
                 </div>
                 <div>
-                    <label for="decrypt_check">是否携带密钥校验</label>
-                    <input type="checkbox" name="" id="decrypt_check" checked>
+                    <label for="decrypt_with_check">是否携带密钥校验</label>
+                    <input type="checkbox" name="" id="decrypt_with_check" checked>
                 </div>
             </div>
             <!-- 输入区 -->
@@ -1335,9 +1335,9 @@
                     </div>
                 </div>
                 <div class="text_input_field">
-                    <textarea class="text_input" name="" id="" rows="10" ></textarea>
+                    <textarea class="text_input" name="" id="decrypt_text_input" rows="10" ></textarea>
                 </div>
-                <div id="decrypt_file_input_field" class="file_input_field">
+                <div id="decrypt_file_input_field" class="file_input_field" data-path="">
                     <!--
                     <label class="file_input_label" for="hash_file_input">请点击选择文件或将文件拖拽至此处</label>
                     <input id="hash_file_input" class="file_input" type="file">
@@ -1364,7 +1364,7 @@
                         <select name="" id="decrypt_mode" data-mode="true"></select>
                         <div id="decrypt_setting_shift_frame" class="crypt_setting_shift_frame">
                             <label for="decrypt_shift">模式偏移</label>
-                            <input type="number" id="decrypt_shift">
+                            <input type="number" id="decrypt_shift" value="1" min="1">
                         </div>
                         <label for="decrypt_is_padding">是否填充</label>
                         <input type="checkbox" id="decrypt_is_padding">
@@ -1495,10 +1495,10 @@
                                 </div>
                             </div>
                             <input type="text" name="" id="decrypt_key_text_input">
-                            <label for="decrypt_key_text_input_size">当前:0字节(B)</label>
+                            <label for="decrypt_key_text_input" id="decrypt_key_text_input_size">当前:0字节(B)</label>
                         </div>
                         <div id="decrypt_iv_field">
-                            <label for="decrypt_iv">解密iv</label>
+                            <label>解密iv</label>
                                 <div class="input_type">                    
                                     <input type="radio" class="input_type_utf8" name="decrypt_iv_input_type" id="decrypt_iv_input_type_utf8" value="0" checked>
                                     <label class="label_space" for="decrypt_iv_input_type_utf8">UTF-8</label>
@@ -1618,7 +1618,7 @@
                                     </div>
                                 </div>
                             <input type="text" name="" id="decrypt_iv_text_input">
-                            <label for="decrypt_iv_text_input_size">当前:0字节(B)</label>
+                            <label for="decrypt_iv_text_input" id="decrypt_iv_text_input_size">当前:0字节(B)</label>
                         </div>
                     </div>
                 </div>
@@ -1633,7 +1633,7 @@
                     <label class="label_space" for="decrypt_output_type_hex">HEX(16进制)</label>
                     <input type="radio" class="output_type_base64" name="decrypt_output_type" id="decrypt_output_type_base64" value="1">
                     <label class="label_space" for="decrypt_output_type_base64">Base64</label>
-                    <input type="radio" class="output_type_file" name="decrypt_output_type" id="decrypt_output_type_file" value="3">
+                    <input type="radio" class="output_type_file" name="decrypt_output_type" id="decrypt_output_type_file" value="3" disabled>
                     <label class="label_space" for="decrypt_output_type_file">文件</label>
 
                     <div class="hex_case_field">
@@ -1756,12 +1756,16 @@
 
                 </div>
                 <div id="decrypt_text_output_field" class="text_output_field">
-                    <textarea class="text_output" name="" id="" rows="10" ></textarea>
+                    <textarea class="text_output" name="" id="decrypt_text_output" rows="10" ></textarea>
                 </div>
-                 <div id="decrypt_file_output_field" class="file_output_field">
+                <div id="decrypt_file_output_field" class="file_output_field">
                     <label for="decrypt_file_output">输出路径:</label>
                     <input type="text" class="file_output_input" id="decrypt_file_output_input" width="50">
                     <div id="decrypt_file_output_save_btn" class="file_output_save_btn">选择输出</div>
+                </div>
+                <div class="output_operation">
+                    <div id="decrypt_output_text_copy" class="output_text_copy">复制</div>
+                    <div class="resolve_time" id="decrypt_resolve_time">耗时:</div>
                 </div>
             </div>
         </div>

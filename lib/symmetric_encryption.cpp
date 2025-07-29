@@ -1,5 +1,14 @@
 #include "symmetric_encryption.h"
 
+#define THREAD_UPDATE std::unique_lock<std::mutex> lock(*mutex_);\
+while (*paused_ && !*stop_)\
+{\
+	cond_->wait(lock);\
+}\
+if (stop_) break;\
+lock.unlock();\
+progress->store(dog_cryption::mode::update_progress(progress->load(), block_size, file_size));
+
 dog_cryption::CryptionException::CryptionException(const char* msg, const char* file, const char* function, uint64_t line)
 {
 	this->msg = std::format("{}:{}\n at {}({}:{})", typeid(*this).name(), msg, function, file, line);
@@ -12,6 +21,11 @@ const char* dog_cryption::CryptionException::what() const throw()
 const char* dog_cryption::WrongKeyException::what() const throw()
 {
 	return "wrong key";
+}
+
+const char* dog_cryption::WrongConfigException::what() const throw()
+{
+	return "invalid cryption algorithm";
 }
 
 dog_cryption::CryptionConfig::CryptionConfig(
@@ -586,7 +600,8 @@ dog_cryption::Cryptor::Cryptor(
 	}
 	else
 	{
-		throw CryptionException("invalid cryption algorithm", __FILE__, __FUNCTION__, __LINE__);
+		//throw CryptionException("invalid cryption algorithm", __FILE__, __FUNCTION__, __LINE__);
+		throw WrongConfigException();
 	}
 
 	{
@@ -849,8 +864,6 @@ void dog_cryption::Cryptor::swap_config(Cryptor& other)
 {
 	std::swap(this->is_valid_,               other.is_valid_);
 	std::swap(this->config_,                 other.config_);
-	std::swap(this->is_setting_key_,         other.is_setting_key_);
-	std::swap(this->original_key_,           other.original_key_);
 	std::swap(this->extend_key_,             other.extend_key_);
 	std::swap(this->padding_,                other.padding_);
 	std::swap(this->unpadding_,              other.unpadding_);
@@ -989,38 +1002,14 @@ void dog_cryption::Cryptor::encrypt(std::istream& plain, std::ostream& crypt, bo
 	}
 	this->stream_encrypt_(plain, iv, crypt, *this);
 }
-void dog_cryption::Cryptor::encryptp(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, dog_data::Data iv, bool with_check, std::atomic<double>* progress)
-
-{
-	if (!this->is_available())
-	{
-		throw CryptionException("Cryptor config is invalid", __FILE__, __FUNCTION__, __LINE__);
-	}
-	if (with_config)
-	{
-		dog_data::Data config_data = this->config_.to_data();
-		crypt.write((char*)config_data.data(), config_data.size());
-	}
-	if (with_check)
-	{
-		dog_data::Data check = dog_cryption::utils::get_sequence(this->config_.block_size);
-		this->get_block_self_encryption()(check, this->config_.block_size, this->get_available_key(), this->get_key_size());
-		crypt.write((char*)check.data(), check.size());
-	}
-	if (with_iv)
-	{
-		crypt.write((char*)iv.data(), this->config_.block_size);
-	}
-	this->stream_encryptp_(plain, iv, crypt, *this, progress);
-}
 dog_data::Data dog_cryption::Cryptor::decrypt(dog_data::Data crypt, bool with_config, bool with_iv, dog_data::Data iv, bool with_check)
 {
-	std::unique_ptr<dog_cryption::CryptionConfig> ori_config;
+	std::unique_ptr<dog_cryption::Cryptor> ori_cryptor;
 	if (with_config)
 	{
-		dog_cryption::CryptionConfig config = dog_cryption::CryptionConfig::get_cryption_config(crypt, true);
-		ori_config = std::make_unique<dog_cryption::CryptionConfig>(this->config_);
-		this->config_ = config;
+		ori_cryptor = std::make_unique<dog_cryption::Cryptor>(*this);
+        dog_cryption::Cryptor temp_cryptor(dog_cryption::CryptionConfig::get_cryption_config(crypt, true));
+		this->swap_config(temp_cryptor);
 	}
 	if (!this->is_available())
 	{
@@ -1051,7 +1040,7 @@ dog_data::Data dog_cryption::Cryptor::decrypt(dog_data::Data crypt, bool with_co
 	res = this->mult_decrypt_(crypt, iv_, *this);
 	if (with_config)
 	{
-		this->config_ = *ori_config;
+		this->swap_config(*ori_cryptor);
 	}
 	return res;
 } 
@@ -1090,47 +1079,6 @@ void dog_cryption::Cryptor::decrypt(std::istream& crypt, std::ostream& plain, bo
 		iv_ = iv;
 	}
 	this->stream_decrypt_(crypt, iv, plain, *this);
-	if (with_config)
-	{
-		this->config_ = *ori_config;
-	}
-}
-void dog_cryption::Cryptor::decryptp(std::istream& crypt, std::ostream& plain, bool with_config, bool with_iv, dog_data::Data iv, bool with_check, std::atomic<double>* progress)
-
-{
-	std::unique_ptr<dog_cryption::CryptionConfig> ori_config;
-	if (with_config)
-	{
-		dog_cryption::CryptionConfig config = dog_cryption::CryptionConfig::get_cryption_config(crypt, false);
-		ori_config = std::make_unique<dog_cryption::CryptionConfig>(this->config_);
-		this->config_ = config;
-	}
-	if (!this->is_available())
-	{
-		throw CryptionException("Cryptor config is invalid", __FILE__, __FUNCTION__, __LINE__);
-	}
-	if (with_check)
-	{
-		dog_data::Data crypt_check(config_.block_size);
-		crypt.read((char*)crypt_check.data(), crypt_check.size());
-		this->get_block_self_decryption()(crypt_check, this->config_.block_size, this->get_available_key(), this->get_key_size());
-		dog_data::Data plain_check = dog_cryption::utils::get_sequence(this->config_.block_size);
-		if (plain_check != crypt_check)
-		{
-			//throw CryptionException("wrong key", __FILE__, __FUNCTION__, __LINE__);
-			throw WrongKeyException();
-		}
-	}
-	dog_data::Data iv_(this->config_.block_size);
-	if (with_iv)
-	{
-		crypt.read((char*)iv_.data(), this->config_.block_size);
-	}
-	else
-	{
-		iv_ = iv;
-	}
-	this->stream_decryptp_(crypt, iv, plain, *this, progress);
 	if (with_config)
 	{
 		this->config_ = *ori_config;
@@ -1434,7 +1382,8 @@ void dog_cryption::mode::ECB::decrypt_stream(std::istream& crypt, dog_data::Data
 	plain.flush();
 	//printf("100%%\r");
 }
-void dog_cryption::mode::ECB::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress)
+void dog_cryption::mode::ECB::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, 
+	std::mutex* mutex_ ,std::condition_variable* cond_,std::atomic<double>* progress,std::atomic<bool>* running_,std::atomic<bool>* paused_,std::atomic<bool>* stop_)
 {
 	uint8_t block_size = cryptor.get_block_size();
 	plain.seekg(0, std::ios::end);
@@ -1442,27 +1391,21 @@ void dog_cryption::mode::ECB::encrypt_streamp(std::istream& plain, dog_data::Dat
 	plain.seekg(0, std::ios::beg);
 
 	dog_data::Data tempBlock(block_size);
-	while (plain.tellg() <= file_size - block_size)
+	while (plain.tellg() <= file_size - block_size || !stop_)
 	{
 		plain.read((char*)tempBlock.data(), block_size);
 		cryptor.get_block_self_encryption()(tempBlock, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 		crypt.write((char*)tempBlock.data(), block_size);
-		if (progress->load() < 0.0)
-		{
-			return;
-		}
-		progress->store(update_progress(progress->load(), block_size, file_size));
+		THREAD_UPDATE
 	}
 	plain.read((char*)tempBlock.data(), block_size);
 	if (plain.gcount() < block_size)
 	{
 		for (uint64_t i = 0; i < block_size - plain.gcount(); ++i) { tempBlock.pop_back(); }
 		cryptor.get_padding()(tempBlock, block_size);
-
 	}
 	cryptor.get_block_self_encryption()(tempBlock, block_size, cryptor.get_available_key(), cryptor.get_key_size());
-	if (progress->load() < 0.0) { return; }
-	progress->store(update_progress(progress->load(), block_size, file_size));
+	progress->store(dog_cryption::mode::update_progress(progress->load(), block_size, file_size));
 	crypt.write((char*)tempBlock.data(), block_size);
 	crypt.flush();
 	progress->store(1.0);
@@ -1585,7 +1528,8 @@ void dog_cryption::mode::CBC::decrypt_stream(std::istream& crypt, dog_data::Data
 	plain.write((char*)tempBlock.data(), tempBlock.size());
 	plain.flush();
 }
-void dog_cryption::mode::CBC::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress)
+void dog_cryption::mode::CBC::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
+	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 {
 	uint8_t block_size = cryptor.get_block_size();
 	plain.seekg(0, std::ios::end);
@@ -1600,11 +1544,7 @@ void dog_cryption::mode::CBC::encrypt_streamp(std::istream& plain, dog_data::Dat
 		dog_cryption::utils::squareXOR_self(tempBlock, tempKey, block_size);
 		cryptor.get_block_self_encryption()(tempBlock, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 		crypt.write((char*)tempBlock.data(), block_size);
-		if (progress->load() < 0.0)
-		{
-			return;
-		}
-		progress->store(update_progress(progress->load(), block_size, file_size));
+		THREAD_UPDATE
 		tempKey = tempBlock;
 	}
 	plain.read((char*)tempBlock.data(), block_size);
@@ -1616,7 +1556,6 @@ void dog_cryption::mode::CBC::encrypt_streamp(std::istream& plain, dog_data::Dat
 	dog_cryption::utils::squareXOR_self(tempBlock, tempKey, block_size);
 	cryptor.get_block_self_encryption()(tempBlock, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 	crypt.write((char*)tempBlock.data(), block_size);
-	if(progress->load()<0){return;}progress->store(update_progress(progress->load(), block_size, file_size));
 	crypt.flush();
 	progress->store(1.0);
 }
@@ -1737,7 +1676,8 @@ void dog_cryption::mode::PCBC::decrypt_stream(std::istream& crypt, dog_data::Dat
 	plain.write((char*)tempBlock2.data(), tempBlock2.size());
     plain.flush();
 }
-void dog_cryption::mode::PCBC::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress)
+void dog_cryption::mode::PCBC::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
+	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 
 {
 	uint8_t block_size = cryptor.get_block_size();
@@ -1752,8 +1692,7 @@ void dog_cryption::mode::PCBC::encrypt_streamp(std::istream& plain, dog_data::Da
 		tempBlock2 = dog_cryption::utils::squareXOR(tempBlock1, tempBlock0, tempBlock0.size());
 		cryptor.get_block_self_encryption()(tempBlock2, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 		crypt.write((char*)tempBlock2.data(), block_size);
-		if (progress->load() < 0.0) { return; }
-		progress->store(update_progress(progress->load(), block_size, file_size));
+		THREAD_UPDATE
 		tempBlock1 = dog_cryption::utils::squareXOR(tempBlock2, tempBlock0, tempBlock0.size());
 	}
 	plain.read((char*)tempBlock0.data(), block_size);
@@ -1882,7 +1821,8 @@ void dog_cryption::mode::OFB::decrypt_stream(std::istream& crypt, dog_data::Data
 	plain.write((char*)tempBlock1.data(), tempBlock1.size());
 	plain.flush();
 }
-void dog_cryption::mode::OFB::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress)
+void dog_cryption::mode::OFB::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
+	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 {
 	uint8_t block_size = cryptor.get_block_size();
 	plain.seekg(0, std::ios::end);
@@ -1895,11 +1835,7 @@ void dog_cryption::mode::OFB::encrypt_streamp(std::istream& plain, dog_data::Dat
 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 		plain.read((char*)tempBlock1.data(), block_size);
 		crypt.write((char*)dog_cryption::utils::squareXOR(tempBlock0, tempBlock1, block_size).data(), block_size);
-		if (progress->load() < 0.0)
-		{
-			return;
-		}
-		progress->store(update_progress(progress->load(), block_size, file_size));
+		THREAD_UPDATE
 	}
 	cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 	plain.read((char*)tempBlock1.data(), block_size);
@@ -1909,7 +1845,6 @@ void dog_cryption::mode::OFB::encrypt_streamp(std::istream& plain, dog_data::Dat
 		cryptor.get_padding()(tempBlock1, block_size);
 	}
 	crypt.write((char*)dog_cryption::utils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size()).data(), tempBlock1.size());
-	if(progress->load()<0){return;}progress->store(update_progress(progress->load(), block_size, file_size));
 	crypt.flush();
 	progress->store(1.0);
 }
@@ -2086,7 +2021,8 @@ void dog_cryption::mode::CTR::decrypt_stream(std::istream& crypt, dog_data::Data
 	plain.write((char*)tempBlock1.data(), tempBlock1.size());
 	plain.flush();
 }
-void dog_cryption::mode::CTR::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress)
+void dog_cryption::mode::CTR::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
+	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 {
 	uint8_t block_size = cryptor.get_block_size();
 	plain.seekg(0, std::ios::end);
@@ -2107,11 +2043,7 @@ void dog_cryption::mode::CTR::encrypt_streamp(std::istream& plain, dog_data::Dat
 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 		plain.read((char*)tempBlock1.data(), block_size);
 		crypt.write((char*)dog_cryption::utils::squareXOR(tempBlock0, tempBlock1, block_size).data(), block_size);
-		if (progress->load() < 0.0)
-		{
-			return;
-		}
-		progress->store(update_progress(progress->load(), block_size, file_size));
+		THREAD_UPDATE
 		endNum++;
 		for (int i1 = 0; i1 < 8; i1++)
 		{
@@ -2128,7 +2060,6 @@ void dog_cryption::mode::CTR::encrypt_streamp(std::istream& plain, dog_data::Dat
 		cryptor.get_padding()(tempBlock1, block_size);
 	}
 	crypt.write((char*)dog_cryption::utils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size()).data(), tempBlock1.size());
-	if(progress->load()<0){return;}progress->store(update_progress(progress->load(), block_size, file_size));
 	crypt.flush();
 	progress->store(1.0);
 }
@@ -2283,7 +2214,8 @@ void dog_cryption::mode::CFBB::decrypt_stream(std::istream& crypt, dog_data::Dat
 	plain.write((char*)tempBlock2.data(), nbyte);
 	plain.flush();
 }
-void dog_cryption::mode::CFBB::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress)
+void dog_cryption::mode::CFBB::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
+	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 {
 	uint8_t block_size = cryptor.get_block_size();
 	plain.seekg(0, std::ios::end);
@@ -2302,11 +2234,7 @@ void dog_cryption::mode::CFBB::encrypt_streamp(std::istream& plain, dog_data::Da
 		tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
 		dog_cryption::utils::squareXOR_self(tempBlock1, tempBlock2, nbyte);
 		crypt.write((char*)tempBlock1.data(), nbyte);
-		if (progress->load() < 0.0)
-		{
-			return;
-		}
-		progress->store(update_progress(progress->load(), nbyte, file_size));
+		THREAD_UPDATE
 		tempBlock0 = tempBlock0.sub_by_len(nbyte, block_size - nbyte) + tempBlock1;
 	}
 	cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -2446,7 +2374,8 @@ void dog_cryption::mode::CFBB::decrypt_CFB8_stream(std::istream& crypt, dog_data
 	//DogData::print::block(middleResult);
 	plain.flush();
 }
-void dog_cryption::mode::CFBB::encrypt_CFB8_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress)
+void dog_cryption::mode::CFBB::encrypt_CFB8_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
+	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 {
 	uint8_t block_size = cryptor.get_block_size();
 	plain.seekg(0, std::ios::end);
@@ -2465,11 +2394,7 @@ void dog_cryption::mode::CFBB::encrypt_CFB8_streamp(std::istream& plain, dog_dat
 		if (middleResult.size() == block_size)
 		{
 			crypt.write((char*)middleResult.data(), block_size);
-			if (progress->load() < 0.0)
-			{
-				return;
-			}
-			progress->store(update_progress(progress->load(), block_size, file_size));
+			THREAD_UPDATE
 			middleResult.clear_leave_pos();
 		}
 		tempBlock1.push_back(b);
@@ -2779,7 +2704,8 @@ void dog_cryption::mode::CFBb::decrypt_stream(std::istream& crypt, dog_data::Dat
 	}
 	plain.flush();
 }
-void dog_cryption::mode::CFBb::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress)
+void dog_cryption::mode::CFBb::encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
+	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 {
 	uint64_t shift = cryptor.get_reback_size();
 	plain.seekg(0, std::ios::end);
@@ -2843,10 +2769,13 @@ void dog_cryption::mode::CFBb::encrypt_streamp(std::istream& plain, dog_data::Da
 		while (tempBlock1.size() < cryptor.get_block_size()) { tempBlock1.push_back(0x00); }
 		dog_cryption::utils::squareXOR_self(tempBlock1, tempBlock0, cryptor.get_block_size());
 		add_block(tempBlock1);
-		if (progress->load() < 0.0)
+		std::unique_lock<std::mutex> lock(*mutex_);
+		while (*paused_ && !*stop_)
 		{
-			return;
+			cond_->wait(lock);
 		}
+		if (stop_) break; 
+		lock.unlock();
 		progress->store(update_progress(progress->load(), shift/8.0, file_size));
 		tempBlock0 = tempBlock0.bit_left_move_norise(shift) | tempBlock1.bit_right_move_norise(cryptor.get_block_size() * 8 - shift);
 	}
@@ -3050,7 +2979,8 @@ void dog_cryption::mode::CFBb::decrypt_CFB1_stream(std::istream& crypt, dog_data
 	}
 	plain.flush();
 }
-void dog_cryption::mode::CFBb::encrypt_CFB1_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress)
+void dog_cryption::mode::CFBb::encrypt_CFB1_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
+	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 {
 	uint8_t block_size = cryptor.get_block_size();
 	plain.seekg(0, std::ios::end);
@@ -3080,10 +3010,13 @@ void dog_cryption::mode::CFBb::encrypt_CFB1_streamp(std::istream& plain, dog_dat
 		}
 		plain.get();
 		crypt.put(B);
-		if (progress->load() < 0.0)
+		std::unique_lock<std::mutex> lock(*mutex_);
+		while (*paused_ && !*stop_)
 		{
-			return;
+			cond_->wait(lock);
 		}
+		if (stop_) break;
+		lock.unlock();
 		progress->store(update_progress(progress->load(), 1, file_size));
 	}
 	crypt.flush();
@@ -3226,7 +3159,8 @@ void dog_cryption::mode::CFBB::decrypt_CFB128_stream(std::istream& crypt, dog_da
 	plain.write((char*)tempBlock1.data(), tempBlock1.size());
 	plain.flush();
 }
-void dog_cryption::mode::CFBB::encrypt_CFB128_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress)
+void dog_cryption::mode::CFBB::encrypt_CFB128_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
+	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 {
 	uint8_t block_size = cryptor.get_block_size();
 	plain.seekg(0, std::ios::end);
@@ -3241,11 +3175,14 @@ void dog_cryption::mode::CFBB::encrypt_CFB128_streamp(std::istream& plain, dog_d
 		plain.read((char*)tempBlock1.data(), 16);
 		dog_cryption::utils::squareXOR_self(tempBlock0, tempBlock1, block_size);
 		crypt.write((char*)tempBlock0.data(), 16);
-		if (progress->load() < 0.0)
+		std::unique_lock<std::mutex> lock(*mutex_); 
+		while (*paused_ && !*stop_) 
 		{
-			return;
+			cond_->wait(lock);
 		}
-		progress->store(update_progress(progress->load(), 16, file_size));
+		if (stop_) break; 
+		lock.unlock(); 
+		progress->store(dog_cryption::mode::update_progress(progress->load(), 16, file_size));
 	}
 	cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 	plain.read((char*)tempBlock1.data(), 16);
@@ -4478,3 +4415,5 @@ dog_cryption::AlgorithmConfig::AlgorithmConfig(std::string name, std::string blo
 	this->block_size_region = block_sizeregion;
 	this->key_size_region = key_size_region;
 }
+
+

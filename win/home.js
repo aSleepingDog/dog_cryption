@@ -142,6 +142,7 @@ document.addEventListener("DOMContentLoaded",(event)=>{
         window.exchangeBridge = channel.objects.exchangeBridge;
         window.hashBridge = channel.objects.hashBridge;
         window.encryptionBridge = channel.objects.encryptionBridge;
+        window.decryptionBridge = channel.objects.decryptionBridge;
         
     });
     showing(0,"欢迎使用文件散列加密器!这里是各种消息的显示区域")
@@ -177,7 +178,14 @@ function updateFile(result){
     if(fileOutputInput === null){
         return;
     }
-    fileOutputInput.value = target.dataset.path+".encrypt";
+    if(target.id.split("_")[0] === "encrypt"){
+        fileOutputInput.value = target.dataset.path+".crypt";
+    }else if(target.id.split("_")[0] === "decrypt"){
+        fileOutputInput.value = target.dataset.path+".plain";
+    }else{
+        fileOutputInput.value = target.dataset.path;
+    }
+    
 }
 function dropUpdateFile(filePath){
     let fileInputs = document.querySelectorAll('.input_area:has(.input_type .input_type_file:checked) .file_input_field');
@@ -202,7 +210,13 @@ function dropUpdateFile(filePath){
     target.appendChild(file);
     target.dataset.path=filePath;
     let fileOutputInput = document.getElementById(target.id.split("_")[0]+"_file_output_input");
-    fileOutputInput.value = target.dataset.path+".encrypt";
+    if(target.id.split("_")[0] === "encrypt"){
+        fileOutputInput.value = target.dataset.path+".crypt";
+    }else if(target.id.split("_")[0] === "decrypt"){
+        fileOutputInput.value = target.dataset.path+".plain";
+    }else{
+        fileOutputInput.value = target.dataset.path;
+    }
 }
 function updateDir(result){
     let target = document.getElementById(result.id);
@@ -454,13 +468,13 @@ function getNormalInputOutput(id){
         if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
             showing(1,"替换字符不能相同")
         }
-        while(input.indexOf(replace0) !== -1){
+        while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
             input = input.replace(replace0,"+");
         }
-        while(input.indexOf(replace1) !== -1){
+        while(input.indexOf(replace1) !== -1 && replace0 !== "/"){
             input = input.replace(replace1,"/");
         }
-        while(input.indexOf(replace2) !== -1){
+        while(input.indexOf(replace2) !== -1 && replace0 !== "="){
             input = input.replace(replace2,"=");
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;
@@ -514,13 +528,13 @@ function getInput(id){
         if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
             showing(1,"替换字符不能相同")
         }
-        while(input.indexOf(replace0) !== -1){
+        while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
             input = input.replace(replace0,"+");
         }
-        while(input.indexOf(replace1) !== -1){
+        while(input.indexOf(replace1) !== -1 && replace0 !== "/"){
             input = input.replace(replace1,"/");
         }
-        while(input.indexOf(replace2) !== -1){
+        while(input.indexOf(replace2) !== -1 && replace0 !== "="){
             input = input.replace(replace2,"=");
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;
@@ -580,13 +594,13 @@ function getInputNoOutput(id){
         if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
             showing(1,"替换字符不能相同")
         }
-        while(input.indexOf(replace0) !== -1){
+        while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
             input = input.replace(replace0,"+");
         }
-        while(input.indexOf(replace1) !== -1){
+        while(input.indexOf(replace1) !== -1 && replace0 !== "/"){
             input = input.replace(replace1,"/");
         }
-        while(input.indexOf(replace2) !== -1){
+        while(input.indexOf(replace2) !== -1 && replace0 !== "="){
             input = input.replace(replace2,"=");
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;
@@ -627,13 +641,13 @@ function getInputAllowEmpty(id){
         if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
             showing(1,"替换字符不能相同")
         }
-        while(input.indexOf(replace0) !== -1){
+        while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
             input = input.replace(replace0,"+");
         }
-        while(input.indexOf(replace1) !== -1){
+        while(input.indexOf(replace1) !== -1 && replace0 !== "/"){
             input = input.replace(replace1,"/");
         }
-        while(input.indexOf(replace2) !== -1){
+        while(input.indexOf(replace2) !== -1 && replace0 !== "="){
             input = input.replace(replace2,"=");
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;
@@ -919,12 +933,12 @@ encrypt_speed_test.addEventListener("click",()=>{
     window.encryptionBridge.test(JSON.stringify(args))
 })
 function updateEncryptionSpeed(result){
+    let encrypt_speed_result = document.getElementById("encrypt_speed_result");
     if(result.code !== 0){
         showing(1,result.msg)
-        hash_resolve_time.textContent = "出错";
+        encrypt_speed_result.textContent = "出错";
         return;
     }
-    let encrypt_speed_result = document.getElementById("encrypt_speed_result");
     encrypt_speed_result.textContent = "耗时:"+fmtTime(result.time);
 }
 let encrypt_button = document.getElementById("encrypt_button");
@@ -1007,12 +1021,12 @@ encrypt_button.addEventListener("click",()=>{
     }
     params.key = key;
     head={};
-    let encrypt_is_config = document.getElementById("encrypt_is_config");
-    let encrypt_is_iv = document.getElementById("encrypt_is_iv");
-    let encrypt_is_check = document.getElementById("encrypt_is_check");
-    head.withConfig = encrypt_is_config.checked;
-    head.withIV = encrypt_is_iv.checked;
-    head.withCheck = encrypt_is_check.checked;
+    let encrypt_with_config = document.getElementById("encrypt_with_config");
+    let encrypt_with_iv = document.getElementById("encrypt_with_iv");
+    let encrypt_with_check = document.getElementById("encrypt_with_check");
+    head.withConfig = encrypt_with_config.checked;
+    head.withIV = encrypt_with_iv.checked;
+    head.withCheck = encrypt_with_check.checked;
     params.head = head;
     //console.log(params)
     window.encryptionBridge.work(JSON.stringify(params))
@@ -1043,4 +1057,221 @@ encrypt_output_text_copy.addEventListener("click",()=>{
         return;
     }
     copyToClipboard(encrypt_text_output.value);
+})
+
+//解密相关操作
+let decrypt_input_type = document.getElementsByName("decrypt_input_type")
+decrypt_input_type.forEach((item)=>{
+    item.addEventListener("click",()=>{
+        let decrypt_output_type = document.getElementsByName("decrypt_output_type")
+        let decrypt_output_type_file = document.getElementById("decrypt_output_type_file");
+        let decrypt_output_type_utf8 = document.getElementById("decrypt_output_type_utf8");
+        let decrypt_file_output_field = document.getElementById("decrypt_file_output_field");
+        let decrypt_text_output_field = document.getElementById("decrypt_text_output_field");
+        if(item.value === "3"){
+            decrypt_output_type_file.checked = true;
+            decrypt_file_output_field.className = "file_output_field_active";
+            decrypt_text_output_field.hidden = true;
+            decrypt_output_type.forEach((item)=>{
+                item.disabled = true;
+            })
+        }else{
+            decrypt_output_type_utf8.checked = true;
+            decrypt_file_output_field.className = "file_output_field";
+            decrypt_text_output_field.hidden = false;
+            decrypt_output_type.forEach((item)=>{
+                item.disabled = false;
+            })
+        }
+    })
+})
+let decrypt_speed_test = document.getElementById("decrypt_speed_test");
+decrypt_speed_test.addEventListener("click",()=>{
+    let decrypt_method = document.getElementById("decrypt_method");
+    let decrypt_block_size = document.getElementById("decrypt_block_size");
+    let decrypt_key_size = document.getElementById("decrypt_key_size");
+    let decrypt_type = decrypt_method.value;
+    let decrypt_block = decrypt_block_size.value;
+    let decrypt_key = decrypt_key_size.value;
+    let args = {
+        "type":decrypt_type,
+        "blockSize":parseInt(decrypt_block),
+        "keySize":parseInt(decrypt_key)
+    }
+    window.decryptionBridge.test(JSON.stringify(args))
+})
+function updateDecryptionSpeed(result){
+    let decrypt_speed_result = document.getElementById("decrypt_speed_result");
+    if(result.code !== 0){
+        showing(1,result.msg)
+        decrypt_speed_result.textContent = "出错";
+        return;
+    }
+    decrypt_speed_result.textContent = "耗时:"+fmtTime(result.time);
+}
+let decrypt_key_input_type = document.getElementsByName("decrypt_key_input_type")
+decrypt_key_input_type.forEach((outputChoice)=>{
+    outputChoice.addEventListener("change",()=>{
+        let args = getInputNoOutput("decrypt_key");
+        if(args === undefined){
+            let decrypt_key_text_input_size = document.getElementById("decrypt_key_text_input_size");
+            decrypt_key_text_input_size.textContent = "输入格式不正确";
+            decrypt_key_text_input_size.dataset.size=0;
+            return;
+        }
+        args.id = "decrypt_key_text_input_size";
+        //console.log(args)
+        window.exchangeBridge.get_data_size(JSON.stringify(args))
+    })
+})
+let decrypt_key_text_input = document.getElementById("decrypt_key_text_input");
+decrypt_key_text_input.addEventListener("input",()=>{
+    let args = getInputNoOutput("decrypt_key");
+    if(args === undefined){
+        let decrypt_key_text_input_size = document.getElementById("decrypt_key_text_input_size");
+        decrypt_key_text_input_size.textContent = "输入格式不正确";
+        decrypt_key_text_input_size.dataset.size=0;
+        return;
+    }
+    args.id = "decrypt_key_text_input_size";
+    //console.log(args)
+    window.exchangeBridge.get_data_size(JSON.stringify(args))
+})
+let decrypt_iv_input_type = document.getElementsByName("decrypt_iv_input_type")
+decrypt_iv_input_type.forEach((outputChoice)=>{
+    outputChoice.addEventListener("change",()=>{
+        let args = getInputNoOutput("decrypt_iv");
+        if(args === undefined){
+            let decrypt_iv_text_input_size = document.getElementById("decrypt_iv_text_input_size");
+            decrypt_iv_text_input_size.textContent = "输入格式不正确";
+            decrypt_iv_text_input_size.dataset.size=0;
+            return;
+        }
+        args.id = "decrypt_iv_text_input_size";
+        //console.log(args)
+        window.exchangeBridge.get_data_size(JSON.stringify(args))
+    })
+})
+let decrypt_iv_text_input = document.getElementById("decrypt_iv_text_input");
+decrypt_iv_text_input.addEventListener("input",()=>{
+    let args = getInputNoOutput("decrypt_iv");
+    if(args === undefined){
+        let decrypt_iv_text_input_size = document.getElementById("decrypt_iv_text_input_size");
+        decrypt_iv_text_input_size.textContent = "输入格式不正确";
+        decrypt_iv_text_input_size.dataset.size=0;
+        return;
+    }
+    args.id = "decrypt_iv_text_input_size";
+    //console.log(args)
+    window.exchangeBridge.get_data_size(JSON.stringify(args))
+})
+let decrypt_button = document.getElementById("decrypt_button");
+decrypt_button.addEventListener("click",()=>{
+    let params = {};
+    let args = getInput("decrypt");
+    if(args === undefined){
+        return;
+    }
+    params.input= args;
+    let config = {};
+    let decrypt_method = document.getElementById("decrypt_method");
+    let decrypt_block_size = document.getElementById("decrypt_block_size");
+    let decrypt_key_size = document.getElementById("decrypt_key_size");
+    let decrypt_type = decrypt_method.value;
+    let decrypt_block = decrypt_block_size.value;
+    let decrypt_key = decrypt_key_size.value;
+    config.type = decrypt_type;
+    config.blockSize = parseInt(decrypt_block);
+    config.keySize = parseInt(decrypt_key);
+
+    let decrypt_mode = document.getElementById("decrypt_mode");
+    let temp_mode = decrypt_mode.value;
+    modeConfigs.forEach((mode)=>{
+        if(parseInt(mode.code) === parseInt(temp_mode)){
+            config.mode = mode.name;
+        }
+    })
+
+    let decrypt_is_padding = document.getElementById("decrypt_is_padding");
+    config.isPadding = decrypt_is_padding.checked;
+
+    let decrypt_padding = document.getElementById("decrypt_padding");
+    let temp_padding = decrypt_padding.value;
+    paddingConfigs.forEach((padding)=>{
+        if(parseInt(padding.code) === parseInt(temp_padding)){
+            config.padding = padding.name;
+        }
+    })
+
+    let decrypt_shift = document.getElementById("decrypt_shift");
+    let temp_shift = parseInt(decrypt_shift.value);
+    if(temp_shift > config.blockSize && temp_mode === "CFBB"){
+        showing(1,"CFBB模式位移量不能大于块大小");
+        return;
+    }else if(temp_shift > config.blockSize*8 && temp_mode === "CFBb"){
+        showing(1,"CFBb模式位移量不能大于块大小*8");
+        return;
+    }
+    config.shift = temp_shift;
+    params.config = config;
+
+    let decrypt_key_text_input_size = document.getElementById("decrypt_key_text_input_size");
+    if(decrypt_key_text_input_size.dataset.size < config.keySize){
+        showing(1,"密钥长度不足,应为"+config.keySize+"位(B),当前为"+decrypt_key_text_input_size.dataset.size+"位(B)");
+        return;
+    }
+    let key = getInputNoOutput("decrypt_key");
+    if(key===undefined){
+        return;
+    }
+    
+    let decrypt_iv_text_input_size = document.getElementById("decrypt_iv_text_input_size");
+    if(decrypt_iv_text_input_size.dataset.size < config.blockSize){
+        showing(1,"iv长度不足,应为"+config.blockSize+"位(B),当前为"+decrypt_iv_text_input_size.dataset.size+"位(B)");
+        return;
+    }
+    let iv = getInputNoOutput("decrypt_iv");
+    if(iv===undefined){
+        return;
+    }
+    params.iv = iv;
+    params.key = key;
+
+    head={};
+    let decrypt_with_config = document.getElementById("decrypt_with_config");
+    let decrypt_with_iv = document.getElementById("decrypt_with_iv");
+    let decrypt_with_check = document.getElementById("decrypt_with_check");
+    head.withConfig = decrypt_with_config.checked;
+    head.withIV = decrypt_with_iv.checked;
+    head.withCheck = decrypt_with_check.checked;
+    params.head = head;
+    //console.log(params)
+    window.decryptionBridge.work(JSON.stringify(params))
+})
+function updateDecryptionResult(result){
+    showing(result.code,result.msg)
+    let decrypt_resolve_time = document.getElementById("decrypt_resolve_time");
+    let decrypt_text_output = document.getElementById("decrypt_text_output");
+    decrypt_text_output.value = result.res;
+    if(result.code !== 0){
+        decrypt_resolve_time.textContent = "出错";
+    }else{
+        decrypt_resolve_time.textContent = "耗时:"+fmtTime(result.time);
+    }
+    if(result.iv !== undefined){
+        let decrypt_iv_text_input = document.getElementById("decrypt_iv_text_input");
+        decrypt_iv_text_input.value = result.iv;
+        let decrypt_iv_input_type_hex = document.getElementById("decrypt_iv_input_type_hex");
+        decrypt_iv_input_type_hex.checked = true;
+        decrypt_iv_text_input.dispatchEvent(new Event("input"));
+    }
+
+}
+let decrypt_output_text_copy = document.getElementById("decrypt_output_text_copy");
+decrypt_output_text_copy.addEventListener("click",()=>{
+    let decrypt_text_output = document.getElementById("decrypt_text_output");
+    if(decrypt_text_output.value === ""){
+        return;
+    }
+    copyToClipboard(decrypt_text_output.value);
 })

@@ -700,7 +700,6 @@ public slots:
 		mode = config_json["mode"].toString().toStdString();
 
 		uint64_t shift = 0;
-
 		if (config_json["shift"].isNull() || config_json["shift"].isUndefined() || !isInt(config_json["shift"]))
 		{
 			result["code"] = 1;
@@ -991,6 +990,410 @@ signals:
 signals:
 	void send_speed(const QString& jsonStr);
 };
+class DecryptionBridge : public QObject
+{
+	Q_OBJECT
+public:
+	explicit DecryptionBridge(QObject* parent = nullptr) : QObject(parent) {}
+public slots:
+	void work(const QString& jsonstr)
+	{
+		QJsonDocument doc = QJsonDocument::fromJson(jsonstr.toUtf8());
+		QJsonObject params = doc.object();
+		QJsonObject result;
+		/*
+{
+    "config": {
+        "blockSize": 16,
+        "isPadding": true,
+        "keySize": 16,
+        "mode": "ECB",
+        "padding": "PKCS7",
+        "shift": 1,
+        "type": "AES"
+    },
+    "head": {
+        "withCheck": true,
+        "withConfig": true,
+        "withIV": true
+    },
+    "input": {
+        "input": "0123456789ABCDEF",
+        "inputType": 2,
+        "outputType": 0
+    },
+    "iv": {
+        "input": "0123456789ABCDEF",
+        "inputType": 0
+    },
+    "key": {
+        "input": "0123456789ABCDEF",
+        "inputType": 0
+    }
+}
+		*/
+		QJsonObject config_json = params["config"].toObject();
+		std::string algorithm = "";
+		if (config_json["type"].isNull() || config_json["type"].isUndefined() || !config_json["type"].isString())
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择加密类型";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		algorithm = config_json["type"].toString().toStdString();
+
+		uint64_t block_size = 0;
+		if (config_json["blockSize"].isNull() || config_json["blockSize"].isUndefined() || !isInt(config_json["blockSize"]))
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择加密分块长度";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		block_size = toInt(config_json["blockSize"]);
+
+		uint64_t key_size = 0;
+		if (config_json["keySize"].isNull() || config_json["keySize"].isUndefined() || !isInt(config_json["keySize"]))
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择加密密钥长度";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		key_size = toInt(config_json["keySize"]);
+
+		bool using_padding = false;
+		if (config_json["isPadding"].isNull() || config_json["isPadding"].isUndefined() || !config_json["isPadding"].isBool())
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择是否使用填充";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		using_padding = config_json["isPadding"].toBool();
+
+		std::string padding = "";
+		if (config_json["padding"].isNull() || config_json["padding"].isUndefined() || !config_json["padding"].isString())
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择填充类型";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		padding = config_json["padding"].toString().toStdString();
+
+		std::string mode = "";
+		if (config_json["mode"].isNull() || config_json["mode"].isUndefined() || !config_json["mode"].isString())
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择加密模式";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		mode = config_json["mode"].toString().toStdString();
+
+		uint64_t shift = 0;
+		if (config_json["shift"].isNull() || config_json["shift"].isUndefined() || !isInt(config_json["shift"]))
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择偏移长度";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		shift = toInt(config_json["shift"]);
+
+		QJsonObject iv_json = params["iv"].toObject();
+		if (iv_json["inputType"].isNull() || iv_json["inputType"].isUndefined() || !isInt(iv_json["inputType"]))
+		{
+			result["code"] = 1;
+			result["msg"] = "iv请正确选择输入类型";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		if (iv_json["input"].isNull() || iv_json["input"].isUndefined() || !iv_json["input"].isString())
+		{
+			result["code"] = 1;
+			result["msg"] = "请输入iv";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		dog_data::Data iv_data = dog_data::Data(iv_json["input"].toString().toStdString(), toInt(iv_json["inputType"]));
+
+		QJsonObject key_json = params["key"].toObject();
+		if (key_json["inputType"].isNull() || key_json["inputType"].isUndefined() || !isInt(key_json["inputType"]))
+		{
+			result["code"] = 1;
+			result["msg"] = "key请正确选择输入类型";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		if (key_json["input"].isNull() || key_json["input"].isUndefined() || !key_json["input"].isString())
+		{
+			result["code"] = 1;
+			result["msg"] = "请输入key";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		dog_data::Data key_data(key_json["input"].toString().toStdString(), toInt(key_json["inputType"]));
+
+		QJsonObject head_json = params["head"].toObject();
+		bool with_check = false;
+		if (head_json["withCheck"].isNull() || head_json["withCheck"].isUndefined() || !head_json["withCheck"].isBool())
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择是否启用密钥校验";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		with_check = head_json["withCheck"].toBool();
+		bool with_iv = false;
+		if (head_json["withIV"].isNull() || head_json["withIV"].isUndefined() || !head_json["withIV"].isBool())
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择是否启用iv";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		with_iv = head_json["withIV"].toBool();
+		bool with_config = false;
+		if (head_json["withConfig"].isNull() || head_json["withConfig"].isUndefined() || !head_json["withConfig"].isBool())
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择是否启用配置";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		with_config = head_json["withConfig"].toBool();
+
+		if (!with_iv && iv_data.size() < block_size)
+		{
+			result["code"] = 1;
+			result["msg"] = "iv长度不足,当前" + QString::number(iv_data.size()) + "位(B)" + "需要" + QString::number(block_size) + "位(B)";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+
+		QJsonObject input_json = params["input"].toObject();
+		if (input_json["inputType"].isNull() || input_json["inputType"].isUndefined() || !isInt(input_json["inputType"]))
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择输入类型";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		if (input_json["input"].isNull() || input_json["input"].isUndefined() || !input_json["input"].isString())
+		{
+			result["code"] = 1;
+			result["msg"] = "请输入内容";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+		uint64_t input_type = toInt(input_json["inputType"]);
+		dog_data::Data input_data;
+		QString input_path = "";
+		if (input_type != 3)
+		{
+			dog_data::Data output_data;
+			try
+			{
+				dog_cryption::CryptionConfig cryption_config(algorithm, block_size, key_size, using_padding, padding, mode, true, shift);
+				dog_cryption::Cryptor cryptor(cryption_config);
+				cryptor.set_key(key_data);
+				input_data = dog_data::Data(input_json["input"].toString().toStdString(), input_type);
+				work::timer t;
+				t.start();
+				output_data = cryptor.decrypt(input_data, with_config, with_iv, iv_data, with_check);
+				t.end();
+				result["time"] = t.get_time();
+			}
+			catch (dog_cryption::WrongKeyException& e)
+			{
+				result["code"] = 1;
+				result["msg"] = "密钥校验失败,请输入正确的密钥";
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			catch (dog_cryption::WrongConfigException& e)
+			{
+				result["code"] = 1;
+				result["msg"] = "前导配置错误,请确保配置字节不被修改";
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			catch (std::exception& e)
+			{
+				result["code"] = 1;
+				result["msg"] = "内部错误,请保留日志并联系开发人员" + QString::fromStdString(e.what());
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+
+			uint64_t output_type = 0;
+			if (input_json["outputType"].isNull() || input_json["outputType"].isUndefined() || !isInt(input_json["outputType"]))
+			{
+				result["code"] = 1;
+				result["msg"] = "请正确选择输出类型";
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			output_type = toInt(input_json["outputType"]);
+
+			switch (output_type)
+			{
+			case 0:
+			{
+				result["res"] = QString::fromStdString(output_data.getUTF8String());
+				break;
+			}
+			case 1:
+			{
+				if (input_json["replace0"].isNull() || input_json["replace0"].isUndefined()
+					|| input_json["replace1"].isNull() || input_json["replace1"].isUndefined()
+					|| input_json["replace2"].isNull() || input_json["replace2"].isUndefined())
+				{
+					result["code"] = 1;
+					result["msg"] = "请输入替换字符";
+					emit send_result(QJsonDocument(result).toJson());
+					return;
+				}
+				else if (input_json["replace0"].toString() == input_json["replace1"].toString()
+					|| input_json["replace0"].toString() == input_json["replace2"].toString()
+					|| input_json["replace1"].toString() == input_json["replace2"].toString())
+				{
+					result["code"] = 1;
+					result["msg"] = "替换字符不能相同";
+					emit send_result(QJsonDocument(result).toJson());
+					return;
+				}
+				char replace0 = input_json["replace0"].toString().toStdString()[0];
+				char replace1 = input_json["replace1"].toString().toStdString()[0];
+				char replace2 = input_json["replace2"].toString().toStdString()[0];
+				result["res"] = QString::fromStdString(output_data.getBase64String(replace0, replace1, replace2));
+				break;
+			}
+			case 2:
+			{
+				if (input_json["upper"].isNull() || input_json["upper"].isUndefined())
+				{
+					result["code"] = 1;
+					result["msg"] = "请指定大小写";
+					emit send_result(QJsonDocument(result).toJson());
+					return;
+				}
+				else if (!input_json["upper"].isBool())
+				{
+					result["code"] = 1;
+					result["msg"] = "请正确指定大小写";
+					emit send_result(QJsonDocument(result).toJson());
+					return;
+				}
+				bool upper = input_json["upper"].toBool();
+				result["res"] = QString::fromStdString(output_data.getHexString(upper));
+				break;
+			}
+			default:
+			{
+				result["code"] = 1;
+				result["msg"] = "输出类型错误,仅能为0-utf8/1-base64/2-hex";
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			};
+			result["code"] = 0;
+			result["msg"] = "解密成功";
+			emit send_result(QJsonDocument(result).toJson());
+		}
+		else
+		{
+			input_path = input_json["input"].toString();
+			qDebug() << input_path;
+			result["code"] = 1;
+			result["msg"] = "文件加密暂未实现";
+			emit send_result(QJsonDocument(result).toJson());
+			return;
+		}
+	}
+public slots:
+	void test(const QString& jsonstr)
+	{
+		QJsonDocument doc = QJsonDocument::fromJson(jsonstr.toUtf8());
+		QJsonObject params = doc.object();
+		QJsonObject result;
+
+		std::unique_ptr<dog_cryption::AlgorithmConfig> algorithm_config = nullptr;
+		if (params["type"].isNull() || params["type"].isUndefined() || params["type"].toString().isEmpty())
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择加密类型";
+			emit send_speed(QJsonDocument(result).toJson());
+			return;
+		}
+		for (auto& item : dog_cryption::Algorithm_list)
+		{
+			if (item.name == params["type"].toString().toStdString())
+			{
+				algorithm_config = std::make_unique<dog_cryption::AlgorithmConfig>(item);
+				break;
+			}
+		}
+		if (!algorithm_config)
+		{
+			result["code"] = 1;
+			result["msg"] = "请选择正确的加密类型";
+			emit send_speed(QJsonDocument(result).toJson());
+			return;
+		}
+
+		if (params["keySize"].isNull() || params["keySize"].isUndefined() || !isInt(params["keySize"]))
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择加密密钥长度";
+			emit send_speed(QJsonDocument(result).toJson());
+			return;
+		}
+		uint64_t key_size = params["keySize"].toDouble();
+		if (!dog_number::region::is_fall(algorithm_config->key_size_region, key_size))
+		{
+			result["code"] = 1;
+			result["msg"] = "请选择正确的加密密钥长度";
+			emit send_speed(QJsonDocument(result).toJson());
+			return;
+		}
+
+		if (params["blockSize"].isNull() || params["blockSize"].isUndefined() || !isInt(params["blockSize"]))
+		{
+			result["code"] = 1;
+			result["msg"] = "请正确选择加密分块长度";
+			emit send_speed(QJsonDocument(result).toJson());
+			return;
+		}
+		uint64_t block_size = params["blockSize"].toDouble();
+		if (!dog_number::region::is_fall(algorithm_config->block_size_region, block_size))
+		{
+			result["code"] = 1;
+			result["msg"] = "请选择正确的加密分块长度";
+			emit send_speed(QJsonDocument(result).toJson());
+			return;
+		}
+
+		dog_cryption::Cryptor cryptor(algorithm_config->name, block_size, key_size, true, "PKCS7", "ECB", false, 0);
+		dog_data::Data block = dog_cryption::utils::randiv(block_size);
+		dog_data::Data key = dog_cryption::utils::randiv(key_size);
+		cryptor.set_key(key);
+		work::timer t;
+		t.start();
+		cryptor.get_block_decryption()(block, block_size, cryptor.get_available_key(), key_size);
+		t.end();
+		result["code"] = 0;
+		result["time"] = t.get_time();
+		emit send_speed(QJsonDocument(result).toJson());
+	}
+signals:
+	void send_result(const QString& jsonStr);
+signals:
+	void send_speed(const QString& jsonStr);
+};
 
 class CryptionWindow : public QMainWindow
 {
@@ -1010,6 +1413,7 @@ class CryptionWindow : public QMainWindow
 	ExchangeBridge* exchangeBridge = new ExchangeBridge(this);
 	HashBridge* hashBridge = new HashBridge(this);
 	EncryptionBridge* encryptionBridge = new EncryptionBridge(this);
+	DecryptionBridge* decryptionBridge = new DecryptionBridge(this);
 
 public:
 	CryptionWindow(QWidget* parent = nullptr) : QMainWindow(parent)
@@ -1116,6 +1520,20 @@ public:
 			encryptionBridge, &EncryptionBridge::send_result, [this](const QString& jsonStr) -> void
 			{
 				this->view->page()->runJavaScript(QString("updateEncryptionResult(%1)").arg(jsonStr));
+			}
+		);
+
+		channel->registerObject("decryptionBridge", this->decryptionBridge);
+		QObject::connect(
+			decryptionBridge, &DecryptionBridge::send_speed, [this](const QString& jsonStr) -> void
+			{
+				this->view->page()->runJavaScript(QString("updateDecryptionSpeed(%1)").arg(jsonStr));
+			}
+		);
+		QObject::connect(
+			decryptionBridge, &DecryptionBridge::send_result, [this](const QString& jsonStr) -> void
+			{
+				this->view->page()->runJavaScript(QString("updateDecryptionResult(%1)").arg(jsonStr));
 			}
 		);
 

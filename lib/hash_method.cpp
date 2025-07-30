@@ -303,7 +303,8 @@ dog_data::Data dog_hash::HashCrypher::streamHash(HashCrypher& crypher, std::istr
 	crypher.init();
 	return res;
 }
-void dog_hash::HashCrypher::streamHashp(HashCrypher& crypher, std::istream& data,std::atomic<double>* progress, dog_data::Data* result)
+void dog_hash::HashCrypher::streamHashp(HashCrypher& crypher, std::istream& data, dog_data::Data* result,
+	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 {
 	uint8_t block_size = crypher.block_size_;
 	data.seekg(0, std::ios::end);
@@ -314,6 +315,13 @@ void dog_hash::HashCrypher::streamHashp(HashCrypher& crypher, std::istream& data
 	{
 		data.read((char*)temp.data(), block_size);
 		crypher.update(temp);
+		std::unique_lock<std::mutex> lock(*mutex_);
+		while (*paused_ && !*stop_)
+		{
+			cond_->wait(lock);
+		}
+		if (stop_) break;
+		lock.unlock();
 		progress->store(progress->load() + block_size * 1.0 / file_size);
 	}
 	data.read((char*)temp.data(), block_size);

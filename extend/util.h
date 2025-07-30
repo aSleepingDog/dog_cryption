@@ -12,7 +12,7 @@
 
 namespace work
 {
-    class timer
+    class Timer
     {
     private:
         std::chrono::steady_clock::time_point start_point_ = std::chrono::steady_clock::now();
@@ -24,7 +24,10 @@ namespace work
 
     };
 
-    class PausableThread {
+    class Task;
+
+    class PausableThread
+    {
     private:
         std::thread thread_;
         std::mutex mutex_;
@@ -44,10 +47,90 @@ namespace work
         bool isRunning() const { return running_; }
         bool isPaused() const { return paused_; }
 
-    private:
-        void run();
-
+        void run(std::string type, Task* task, std::unordered_map<std::string, std::any>* params);
     };
+
+    class Task
+    {
+    private:
+        uint64_t id_;
+        PausableThread* thread_ = nullptr;
+        dog_data::Data result_;
+        std::string type_;
+        std::string msg_;
+
+        std::mutex mutex_;
+        std::unordered_map<std::string, std::any>* params_ = nullptr;
+    public:
+        Timer timer;
+        Task(uint64_t id, std::string input, dog_hash::HashCrypher hash_crypher);
+        Task(uint64_t id, int type, std::string input, std::string output, dog_cryption::Cryptor& cryptor,
+            dog_data::Data iv, bool with_config, bool with_iv, bool with_check);
+        uint64_t get_id();
+
+        void start();
+        void pause();
+        void resume();
+        void stop();
+    };
+
+    template <typename T>
+    class SafeDeque
+    {
+    private:
+        using it = typename std::deque<T>::iterator;
+        using rit = typename std::deque<T>::reverse_iterator;
+        using cit = typename std::deque<T>::const_iterator;
+        using crit = typename std::deque<T>::const_reverse_iterator;
+        std::mutex mutex_;
+        std::deque<T> deque_;
+    public:
+        bool empty() const { return deque_.empty(); }
+        uint64_t size() const { return deque_.size(); }
+
+        T& front() { std::lock_guard<std::mutex> lock(mutex_); return deque_.front(); }
+        T& back() { std::lock_guard<std::mutex> lock(mutex_); return deque_.back(); }
+        T& operator[](uint64_t index) { std::lock_guard<std::mutex> lock(mutex_); return deque_[index]; }
+        T& at(uint64_t index) { std::lock_guard<std::mutex> lock(mutex_); return deque_.at(index); }
+        void pop_front() { std::lock_guard<std::mutex> lock(mutex_); deque_.pop_front(); }
+        void emplace_back(T& t) { std::lock_guard<std::mutex> lock(mutex_); deque_.emplace_back(t); }
+        void emplace_back(T&& t) { std::lock_guard<std::mutex> lock(mutex_); deque_.emplace_back(t); }
+        it begin() { std::lock_guard<std::mutex> lock(mutex_); return deque_.begin(); }
+        it end() { std::lock_guard<std::mutex> lock(mutex_); return deque_.end(); }
+    };
+
+    class TaskPool
+    {
+    private:
+        std::atomic<uint64_t> id_ = 0;
+        std::jthread* manager_;
+        uint64_t max_ = 0;
+        SafeDeque<Task*> waitting_;
+        SafeDeque<Task*> running_;
+        std::atomic<int32_t> flag_ = 0;//0:stop, 1:running, -1:pause
+    public:
+        TaskPool(uint64_t max);
+        ~TaskPool();
+
+        void stop();
+        void pause();
+        void resume();
+
+        int32_t stop_task(uint64_t id);
+        int32_t pause_task(uint64_t id);
+        int32_t resume_task(uint64_t id);
+
+        uint64_t add_hash(std::string path, dog_hash::HashCrypher& hash_crypher);
+        uint64_t add_encrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor, 
+            dog_data::Data iv, bool with_config, bool with_iv, bool with_check);
+        uint64_t add_decrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor,
+            dog_data::Data iv, bool with_config, bool with_iv, bool with_check);
+
+
+        static void manage(TaskPool* task_pool);
+    };
+
+    void add_thread(std::string type, Task* task, std::unordered_map<std::string, std::any>* params);
 
     
 }

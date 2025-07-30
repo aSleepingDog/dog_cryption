@@ -25,38 +25,38 @@ dog_data::Data::Data(std::string str, const int type)
         this->inside_data.reserve(m);
         for (int i = 0; i < str.size(); i += 4)
         {
-            uint32_t b[4] = { 0,0,0,0 };
+            uint8_t b[4] = { 0,0,0,0 };
             for (int i0 = 0; i0 < 4; i0++)
             {
-                if (str[i + i0] >= (uint32_t)'A' && str[i + i0] <= (uint32_t)'Z')
+                if (str[i + i0] >= (uint8_t)'A' && str[i + i0] <= (uint8_t)'Z')
                 {
-                    b[i0] = str[i + i0] - (uint32_t)'A';
+                    b[i0] = str[i + i0] - (uint8_t)'A';
                 }
-                else if (str[i + i0] >= (uint32_t)'a' && str[i + i0] <= (uint32_t)'z')
+                else if (str[i + i0] >= (uint8_t)'a' && str[i + i0] <= (uint8_t)'z')
                 {
-                    b[i0] = str[i + i0] - (uint32_t)'a' + (uint32_t)26;
+                    b[i0] = str[i + i0] - (uint8_t)'a' + (uint8_t)26;
                 }
-                else if (str[i + i0] >= (uint32_t)'0' && str[i + i0] <= (uint32_t)'9')
+                else if (str[i + i0] >= (uint8_t)'0' && str[i + i0] <= (uint8_t)'9')
                 {
-                    b[i0] = str[i + i0] - (uint32_t)'0' + (uint32_t)52;
+                    b[i0] = str[i + i0] - (uint8_t)'0' + (uint8_t)52;
                 }
-                else if (str[i + i0] == (uint32_t)'+')
+                else if (str[i + i0] == (uint8_t)'+')
                 {
-                    b[i0] = (uint32_t)62;
+                    b[i0] = (uint8_t)62;
                 }
-                else if (str[i + i0] == (uint32_t)'/')
+                else if (str[i + i0] == (uint8_t)'/')
                 {
-                    b[i0] = (uint32_t)63;
+                    b[i0] = (uint8_t)63;
                 }
-                else if (str[i + i0] == (uint32_t)'=')
+                else if (str[i + i0] == (uint8_t)'=')
                 {
-                    b[i0] = (uint32_t)64;
+                    b[i0] = (uint8_t)64;
                 }
             }
             this->inside_data.push_back((uint8_t)((b[0] << 2) | (b[1] >> 4)));
-            if (b[2] == (uint32_t)64) { break; }
+            if (b[2] == (uint8_t)64) { continue;/*b[2] = (uint8_t)0;*/ /* break; */ }
             this->inside_data.push_back((uint8_t)((b[1] << 4) | (b[2] >> 2)));
-            if (b[3] == (uint32_t)64) { break; }
+            if (b[3] == (uint8_t)64) { continue;/*b[3] == (uint8_t)0; */ /* break; */ }
             this->inside_data.push_back((uint8_t)((b[2] << 6) | b[3]));
         }
     }
@@ -65,31 +65,31 @@ dog_data::Data::Data(std::string str, const int type)
         this->inside_data.reserve(str.size() / 2);
         for (int i = 0; i < str.size(); i += 2)
         {
-            uint32_t b0 = 0;
-            if (str[i] >= (uint32_t)'A' && str[i] <= (uint32_t)'F')
+            uint8_t b0 = 0;
+            if (str[i] >= (uint8_t)'A' && str[i] <= (uint8_t)'F')
             {
-                b0 = str[i] - (uint32_t)'A' + (uint32_t)10;
+                b0 = str[i] - (uint8_t)'A' + (uint8_t)10;
             }
-            else if (str[i] >= (uint32_t)'a' && str[i] <= (uint32_t)'f')
+            else if (str[i] >= (uint8_t)'a' && str[i] <= (uint8_t)'f')
             {
-                b0 = str[i] - (uint32_t)'a' + (uint32_t)10;
+                b0 = str[i] - (uint8_t)'a' + (uint8_t)10;
             }
             else if (str[i] >= '0' && str[i] <= '9')
             {
-                b0 = str[i] - (uint32_t)'0';
+                b0 = str[i] - (uint8_t)'0';
             }
-            uint32_t b1 = 0;
-            if (str[i + 1] >= (uint32_t)'A' && str[i + 1] <= (uint32_t)'F')
+            uint8_t b1 = 0;
+            if (str[i + 1] >= (uint8_t)'A' && str[i + 1] <= (uint8_t)'F')
             {
-                b1 = str[i + 1] - (uint32_t)'A' + (uint32_t)10;
+                b1 = str[i + 1] - (uint8_t)'A' + (uint8_t)10;
             }
-            else if (str[i + 1] >= (uint32_t)'a' && str[i + 1] <= (uint32_t)'f')
+            else if (str[i + 1] >= (uint8_t)'a' && str[i + 1] <= (uint8_t)'f')
             {
-                b1 = str[i + 1] - (uint32_t)'a' + (uint32_t)10;
+                b1 = str[i + 1] - (uint8_t)'a' + (uint8_t)10;
             }
             else if (str[i + 1] >= '0' && str[i + 1] <= '9')
             {
-                b1 = str[i + 1] - (uint32_t)'0';
+                b1 = str[i + 1] - (uint8_t)'0';
             }
             this->inside_data.push_back((uint8_t)(b0 * 16 + b1));
         }
@@ -253,8 +253,8 @@ std::vector<char> dog_data::Data::getHexVector(bool is_upper)
     res.reserve(this->inside_data.size() * 2);
     for (int i = 0; i < this->inside_data.size(); i++)
     {
-        res.push_back(HexList[(uint32_t)this->inside_data[i] >> 4]);
-        res.push_back(HexList[(uint32_t)this->inside_data[i] & 0x0f]);
+        res.push_back(HexList[(uint8_t)this->inside_data[i] >> 4]);
+        res.push_back(HexList[(uint8_t)this->inside_data[i] & 0x0f]);
     }
     return res;
 }

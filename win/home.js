@@ -471,10 +471,10 @@ function getNormalInputOutput(id){
         while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
             input = input.replace(replace0,"+");
         }
-        while(input.indexOf(replace1) !== -1 && replace0 !== "/"){
+        while(input.indexOf(replace1) !== -1 && replace1 !== "/"){
             input = input.replace(replace1,"/");
         }
-        while(input.indexOf(replace2) !== -1 && replace0 !== "="){
+        while(input.indexOf(replace2) !== -1 && replace2 !== "="){
             input = input.replace(replace2,"=");
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;
@@ -531,10 +531,10 @@ function getInput(id){
         while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
             input = input.replace(replace0,"+");
         }
-        while(input.indexOf(replace1) !== -1 && replace0 !== "/"){
+        while(input.indexOf(replace1) !== -1 && replace1 !== "/"){
             input = input.replace(replace1,"/");
         }
-        while(input.indexOf(replace2) !== -1 && replace0 !== "="){
+        while(input.indexOf(replace2) !== -1 && replace2 !== "="){
             input = input.replace(replace2,"=");
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;
@@ -597,10 +597,10 @@ function getInputNoOutput(id){
         while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
             input = input.replace(replace0,"+");
         }
-        while(input.indexOf(replace1) !== -1 && replace0 !== "/"){
+        while(input.indexOf(replace1) !== -1 && replace1 !== "/"){
             input = input.replace(replace1,"/");
         }
-        while(input.indexOf(replace2) !== -1 && replace0 !== "="){
+        while(input.indexOf(replace2) !== -1 && replace2 !== "="){
             input = input.replace(replace2,"=");
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;
@@ -644,10 +644,10 @@ function getInputAllowEmpty(id){
         while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
             input = input.replace(replace0,"+");
         }
-        while(input.indexOf(replace1) !== -1 && replace0 !== "/"){
+        while(input.indexOf(replace1) !== -1 && replace1 !== "/"){
             input = input.replace(replace1,"/");
         }
-        while(input.indexOf(replace2) !== -1 && replace0 !== "="){
+        while(input.indexOf(replace2) !== -1 && replace2 !== "="){
             input = input.replace(replace2,"=");
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;

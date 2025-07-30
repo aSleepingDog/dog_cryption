@@ -127,7 +127,8 @@ namespace dog_cryption
 
 		std::function<void(std::istream&, dog_data::Data, std::ostream&, dog_cryption::Cryptor&,
 			std::mutex*, std::condition_variable*, std::atomic<double>*, std::atomic<bool>*, std::atomic<bool>*, std::atomic<bool>*)> stream_encryptp_;
-		std::function<void(std::istream&, dog_data::Data, std::ostream&, dog_cryption::Cryptor&, std::atomic<double>*)> stream_decryptp_;
+		std::function<void(std::istream&, dog_data::Data, std::ostream&, dog_cryption::Cryptor&, 
+			std::mutex*, std::condition_variable*, std::atomic<double>*, std::atomic<bool>*, std::atomic<bool>*, std::atomic<bool>*)> stream_decryptp_;
 
 	public:
 		static bool is_config_available(const CryptionConfig& config);
@@ -194,6 +195,8 @@ namespace dog_cryption
 
 		dog_data::Data encrypt(dog_data::Data plain, bool with_config, bool with_iv, dog_data::Data iv, bool with_check);
 		void encrypt(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, dog_data::Data iv, bool with_check);
+		void encryptp(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, dog_data::Data iv, bool with_check,
+			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 		dog_data::Data decrypt(dog_data::Data crypt, bool with_config, bool with_iv, dog_data::Data iv, bool with_check);
 		void decrypt(std::istream& crypt, std::ostream& plain,bool with_config, bool with_iv, dog_data::Data iv, bool with_check);
 	};
@@ -293,9 +296,9 @@ namespace dog_cryption
 			void decrypt_stream(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor);
 			void encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
 				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, 
-				std::atomic<double>* progress);
-		}
+			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor,
+				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		};
 
 		namespace CBC
 		{
@@ -308,8 +311,9 @@ namespace dog_cryption
 			void decrypt_stream(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor);
 			void encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
 				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
-		}
+			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor,
+				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		};
 
 		namespace PCBC
 		{
@@ -322,7 +326,8 @@ namespace dog_cryption
 			void decrypt_stream(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor);
 			void encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
 				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
+			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor,
+				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 		};
 
 		namespace OFB
@@ -336,8 +341,9 @@ namespace dog_cryption
 			void decrypt_stream(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor);
 			void encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
 				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
-		}
+			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor,
+				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		};
 				
 		namespace CTR
 		{
@@ -350,8 +356,9 @@ namespace dog_cryption
 			void decrypt_stream(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor);
 			void encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
 				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
-		}
+			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor,
+				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		};
 		
 		namespace CFBB
 		{
@@ -364,7 +371,8 @@ namespace dog_cryption
 			void decrypt_stream(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor);
 			void encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
 				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
+			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor,
+				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 
 			dog_data::Data encrypt_CFB8(dog_data::Data plain, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			dog_data::Data decrypt_CFB8(dog_data::Data crypt, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
@@ -372,7 +380,8 @@ namespace dog_cryption
 			void decrypt_CFB8_stream(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor);
 			void encrypt_CFB8_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
 				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-			void decrypt_CFB8_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
+			void decrypt_CFB8_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor,
+				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 
 			dog_data::Data encrypt_CFB128(dog_data::Data plain, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			dog_data::Data decrypt_CFB128(dog_data::Data crypt, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
@@ -380,8 +389,9 @@ namespace dog_cryption
 			void decrypt_CFB128_stream(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor);
 			void encrypt_CFB128_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
 				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-			void decrypt_CFB128_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
-		}
+			void decrypt_CFB128_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor,
+				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		};
 
 		namespace CFBb
 		{
@@ -394,17 +404,18 @@ namespace dog_cryption
 			void decrypt_stream(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor);
 			void encrypt_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
 				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
-			
+			void decrypt_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor,
+				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+
 			dog_data::Data encrypt_CFB1(dog_data::Data plain, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			dog_data::Data decrypt_CFB1(dog_data::Data crypt, dog_data::Data iv, dog_cryption::Cryptor& cryptor);
 			void encrypt_CFB1_stream(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor);
 			void decrypt_CFB1_stream(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor);
 			void encrypt_CFB1_streamp(std::istream& plain, dog_data::Data iv, std::ostream& crypt, dog_cryption::Cryptor& cryptor,
 				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-			void decrypt_CFB1_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor, std::atomic<double>* progress);
-
-		}
+			void decrypt_CFB1_streamp(std::istream& crypt, dog_data::Data iv, std::ostream& plain, dog_cryption::Cryptor& cryptor,
+				std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		};
 
 		const std::vector<Config> list = { CBC::CONFIG,ECB::CONFIG,PCBC::CONFIG,OFB::CONFIG,CTR::CONFIG,CFBb::CONFIG,CFBB::CONFIG };
 	}

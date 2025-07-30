@@ -263,7 +263,7 @@ public slots:
 		}
 		try
 		{
-			work::timer t;
+			work::Timer t;
 			t.start();
 			data = dog_data::Data(input, toInt(json["inputType"]));
 			t.end();
@@ -288,7 +288,7 @@ public slots:
 		{
 		case 0:
 		{
-			work::timer t;
+			work::Timer t;
 			t.start();
 			result["res"] = QString::fromStdString(data.getUTF8String());
 			t.end();
@@ -314,7 +314,7 @@ public slots:
 			char replace0 = json["replace0"].toString().toStdString()[0];
 			char replace1 = json["replace1"].toString().toStdString()[0];
 			char replace2 = json["replace2"].toString().toStdString()[0];
-			work::timer t;
+			work::Timer t;
 			t.start();
 			result["res"] = QString::fromStdString(data.getBase64String(replace0, replace1, replace2));
 			t.end();
@@ -338,7 +338,7 @@ public slots:
 				return;
 			}
 			bool upper = json["upper"].toBool();
-			work::timer t;
+			work::Timer t;
 			t.start();
 			result["res"] = QString::fromStdString(data.getHexString(upper));
 			t.end();
@@ -493,7 +493,7 @@ public slots:
 		try
 		{
 			dog_hash::HashCrypher hash_crypher(params["type"].toString().toStdString(), params["effective"].toInt());
-			work::timer t;
+			work::Timer t;
 			t.start();
 			data = hash_crypher.getDataHash(data);
 			t.end();
@@ -586,7 +586,7 @@ public slots:
 		uint64_t effective = params["effective"].toInt();
 		dog_hash::HashCrypher hash(type, effective);
 		dog_data::Data data = "";
-		work::timer t;
+		work::Timer t;
 		t.start();
 		hash.getDataHash(data);
 		t.end();
@@ -809,7 +809,7 @@ public slots:
 				dog_cryption::Cryptor cryptor(cryption_config);
 				cryptor.set_key(key_data);
 				input_data = dog_data::Data(input_json["input"].toString().toStdString(), input_type);
-				work::timer t;
+				work::Timer t;
 				t.start();
 				output_data = cryptor.encrypt(input_data, with_config, with_iv, iv_data, with_check);
 				t.end();
@@ -976,7 +976,7 @@ public slots:
 		dog_data::Data block = dog_cryption::utils::randiv(block_size);
 		dog_data::Data key = dog_cryption::utils::randiv(key_size);
 		cryptor.set_key(key);
-		work::timer t;
+		work::Timer t;
 		t.start();
 		cryptor.get_block_encryption()(block, block_size, cryptor.get_available_key(), key_size);
 		t.end();
@@ -1201,7 +1201,7 @@ public slots:
 				dog_cryption::Cryptor cryptor(cryption_config);
 				cryptor.set_key(key_data);
 				input_data = dog_data::Data(input_json["input"].toString().toStdString(), input_type);
-				work::timer t;
+				work::Timer t;
 				t.start();
 				output_data = cryptor.decrypt(input_data, with_config, with_iv, iv_data, with_check);
 				t.end();
@@ -1381,7 +1381,7 @@ public slots:
 		dog_data::Data block = dog_cryption::utils::randiv(block_size);
 		dog_data::Data key = dog_cryption::utils::randiv(key_size);
 		cryptor.set_key(key);
-		work::timer t;
+		work::Timer t;
 		t.start();
 		cryptor.get_block_decryption()(block, block_size, cryptor.get_available_key(), key_size);
 		t.end();

@@ -1,6 +1,10 @@
 #pragma once
 #include <iostream>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
+
 #include "big_number.h"
 #include "data_bytes.h"
 namespace dog_hash
@@ -57,7 +61,8 @@ namespace dog_hash
 		dog_data::Data getStringHash(std::string data);
 		
 		static dog_data::Data streamHash(HashCrypher& crypher, std::istream& data);
-		static void streamHashp(HashCrypher& crypher, std::istream& data, std::atomic<double>* progress, dog_data::Data* result);
+		static void streamHashp(HashCrypher& crypher, std::istream& data, dog_data::Data* result,
+			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 	};
 
 	namespace SHA2

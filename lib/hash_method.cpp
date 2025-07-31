@@ -15,6 +15,7 @@ dog_hash::HashCrypher::HashCrypher(std::string type, uint64_t effective)
 	if (type == SHA2::name)
 	{
 		this->effective_ = effective;
+		this->config_fmt_ = SHA2::get_config;
 		if (effective == 28)
 		{
 			using namespace SHA2::b224;
@@ -76,6 +77,7 @@ dog_hash::HashCrypher::HashCrypher(std::string type, uint64_t effective)
 	else if (type == SM3::name)
 	{
 		this->effective_ = effective;
+		this->config_fmt_ = SM3::get_config;
 		if (effective == 32)
 		{
 			using namespace SM3::b256;
@@ -260,6 +262,14 @@ std::string dog_hash::HashCrypher::get_type() const
 {
 	return this->type_;
 }
+uint64_t dog_hash::HashCrypher::get_effective() const
+{
+	return this->effective_;
+}
+std::string dog_hash::HashCrypher::get_config() const
+{
+	return this->config_fmt_(this->type_, this->effective_);
+}
 std::function<void(dog_data::Data, dog_data::Data&)> dog_hash::HashCrypher::get_update() const
 {
 	return this->hash_function_;
@@ -320,7 +330,10 @@ void dog_hash::HashCrypher::streamHashp(HashCrypher& crypher, std::istream& data
 		{
 			cond_->wait(lock);
 		}
-		if (stop_) break;
+		if (*stop_)
+		{
+			break;
+		}
 		lock.unlock();
 		progress->store(progress->load() + block_size * 1.0 / file_size);
 	}
@@ -333,6 +346,11 @@ void dog_hash::HashCrypher::streamHashp(HashCrypher& crypher, std::istream& data
 	progress->store(1.0);
 	data.seekg(0, std::ios::end);
 	crypher.init();
+}
+
+std::string dog_hash::SHA2::get_config(std::string name, uint64_t effective)
+{
+	return name + "-" + std::to_string(effective * 8);
 }
 
 //SHA2
@@ -646,6 +664,11 @@ void dog_hash::SHA2::b384::single_update(dog_data::Data plain, dog_data::Data& c
 			change_value[i * 8 + i0] = (uint8_t)((tempH[i] >> (56 - i0 * 8)) & 0xFF);
 		}
 	}
+}
+
+std::string dog_hash::SM3::get_config(std::string name, uint64_t effective)
+{
+	return name + "-" + std::to_string(effective);
 }
 
 //SM3

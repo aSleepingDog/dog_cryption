@@ -45,6 +45,7 @@ namespace dog_hash
 		uint64_t number_size_ = 0;
 
 		std::function<void(dog_data::Data, dog_data::Data&)> hash_function_;
+		std::function<std::string(std::string, uint64_t)> config_fmt_;
 
 	public:
 		HashCrypher(std::string type, uint64_t effective);
@@ -54,6 +55,8 @@ namespace dog_hash
 		dog_data::Data get_hash();	
 
 		std::string get_type() const;
+		uint64_t get_effective() const;
+		std::string get_config() const;
 
 		std::function<void(dog_data::Data, dog_data::Data&)> get_update() const;
 
@@ -70,6 +73,8 @@ namespace dog_hash
 		const std::string name = "SHA2";
 		const std::string effective_region = "32,28|64,48";
 		const HashConfig config = HashConfig(name, effective_region);
+
+		std::string get_config(std::string name, uint64_t effective);
 
 		const uint32_t k_256[64] = { 
 				0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -166,6 +171,8 @@ namespace dog_hash
 		const std::string name = "SM3";
 		const std::string effective_region = "32";
 		const HashConfig config = HashConfig(name, effective_region);
+
+		std::string get_config(std::string name, uint64_t effective);
 
 		//circleLeftMoveBit
 		uint32_t CLMB(uint32_t i, uint64_t n);

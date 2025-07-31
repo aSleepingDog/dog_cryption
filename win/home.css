@@ -664,7 +664,7 @@
 #task_frame{
     display: flex;
     flex-direction: row;
-    height: 80%;
+    height: 90%;
 }
 
 .task_simple_frame{
@@ -674,7 +674,9 @@
 
 .task_list{
     display: flex;
+    height: 90%;
     flex-direction: column;
+    overflow: auto;
 }
 
 #msg_dialog{
@@ -770,4 +772,87 @@ dialog:focus {
 
 .resolve_time{
     margin: 0 0 0 1%;
+}
+
+.single_task_area{
+    background-color: #66CCFF;
+    border-radius: 10px;
+    border: 2px solid #336699;
+    margin: 0 0 1% 0;
+}
+
+.task_title{
+    font-size: 20px;
+}
+
+.single_task_title{
+    font-size: 15px;
+    margin: 0 5% 0 5%;
+}
+
+.single_task_status{
+    margin: 0 5% 0 5%;
+    color: #808080;
+}
+
+.single_task_info{
+    margin: 0 5% 0 5%;
+    overflow: hidden;
+}
+
+.single_task_progress_field{
+    display: flex;
+    flex-direction: column;
+    margin: 0 5% 0 5%;
+    width: 90%;
+    position: relative;
+}
+
+.single_task_progress{
+    position: relative;
+    height: 20px;
+    border-radius: 15px;
+    background-color: #5A9BD5;
+}
+
+.single_task_progress_label{
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+}
+
+.single_task_cost{
+    margin: 0 5% 0 5%;
+}
+
+.single_task_test{
+    margin: 0 5% 0 5%;
+}
+
+.single_task_operation{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    margin: 0 5% 0 5%;
+}
+
+#task_info{
+    background-color: #66CCFF80;
+    border-radius: 10px;
+    height: 90%;
+    padding: 2% 0 0 0;
+}
+
+.task_info_title{
+    font-size: 17.5px;
+    margin: 0 5% 0 5%;
+}
+
+.task_info_item{
+    margin: 0 5% 0 5%;
+    white-space: pre-wrap;
+    word-break: break-all;
 }

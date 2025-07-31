@@ -8,10 +8,14 @@
 #include <thread>
 #include <iostream>
 #include <filesystem>
+
 #include "../lib/dog_cryption.h"
 
 namespace work
 {
+    class Task;
+    class TaskPool;
+
     class Timer
     {
     private:
@@ -24,20 +28,20 @@ namespace work
 
     };
 
-    class Task;
-
     class PausableThread
     {
     private:
         std::thread thread_;
+
         std::mutex mutex_;
         std::condition_variable cond_;
+
         std::atomic<double> progress_;
         std::atomic<bool> running_;
         std::atomic<bool> paused_;
         std::atomic<bool> stop_;
     public:
-        PausableThread() : running_(false), paused_(false), stop_(false) {}
+        PausableThread() : running_(false), paused_(false), stop_(false), progress_(0) {}
         ~PausableThread();
         void start();
         void pause();
@@ -47,6 +51,8 @@ namespace work
         bool isRunning() const { return running_; }
         bool isPaused() const { return paused_; }
 
+        int get_status();//0-running, 1-paused, 2-stopped
+
         void run(std::string type, Task* task, std::unordered_map<std::string, std::any>* params);
     };
 
@@ -55,6 +61,7 @@ namespace work
     private:
         uint64_t id_;
         PausableThread* thread_ = nullptr;
+        std::string output;
         dog_data::Data result_;
         std::string type_;
         std::string msg_;
@@ -63,15 +70,22 @@ namespace work
         std::unordered_map<std::string, std::any>* params_ = nullptr;
     public:
         Timer timer;
-        Task(uint64_t id, std::string input, dog_hash::HashCrypher hash_crypher);
+        Task(uint64_t id, std::string input, dog_hash::HashCrypher hash_crypher, std::unordered_map<std::string, std::any> output_params);
         Task(uint64_t id, int type, std::string input, std::string output, dog_cryption::Cryptor& cryptor,
             dog_data::Data iv, bool with_config, bool with_iv, bool with_check);
         uint64_t get_id();
+
+        ~Task();
+
+        int get_status();
 
         void start();
         void pause();
         void resume();
         void stop();
+
+        std::unordered_map<std::string, std::any> get_info();
+        void set_msg(std::string msg) { msg_ = msg; }
     };
 
     template <typename T>
@@ -97,11 +111,14 @@ namespace work
         void emplace_back(T&& t) { std::lock_guard<std::mutex> lock(mutex_); deque_.emplace_back(t); }
         it begin() { std::lock_guard<std::mutex> lock(mutex_); return deque_.begin(); }
         it end() { std::lock_guard<std::mutex> lock(mutex_); return deque_.end(); }
+
+        void erase(it it) { std::lock_guard<std::mutex> lock(mutex_); deque_.erase(it); }
     };
 
     class TaskPool
     {
     private:
+        std::mutex mutex_;
         std::atomic<uint64_t> id_ = 0;
         std::jthread* manager_;
         uint64_t max_ = 0;
@@ -111,16 +128,22 @@ namespace work
     public:
         TaskPool(uint64_t max);
         ~TaskPool();
-
+        
         void stop();
         void pause();
         void resume();
+
+        std::vector<std::unordered_map<std::string, std::any>> get_all_running_task_info();
+        std::vector<std::unordered_map<std::string, std::any>> get_all_waitting_task_info();
+
+        std::unordered_map<std::string, std::any> get_waitting_task_info(uint64_t id);
+        std::unordered_map<std::string, std::any> get_running_task_info(uint64_t id);
 
         int32_t stop_task(uint64_t id);
         int32_t pause_task(uint64_t id);
         int32_t resume_task(uint64_t id);
 
-        uint64_t add_hash(std::string path, dog_hash::HashCrypher& hash_crypher);
+        uint64_t add_hash(std::string path, dog_hash::HashCrypher& hash_crypher, std::unordered_map<std::string,std::any> output_params);
         uint64_t add_encrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor, 
             dog_data::Data iv, bool with_config, bool with_iv, bool with_check);
         uint64_t add_decrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor,
@@ -129,8 +152,6 @@ namespace work
 
         static void manage(TaskPool* task_pool);
     };
-
-    void add_thread(std::string type, Task* task, std::unordered_map<std::string, std::any>* params);
 
     
 }

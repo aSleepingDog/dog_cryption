@@ -1774,16 +1774,39 @@
             <div class="single_title">当前任务管理</div>
             <div id="task_frame" class="simple_frame">
                 <div class="task_simple_frame">
-                    <div>等待队列</div>
-                    <div class="task_list"></div>
+                    <div class="task_title">等待队列</div>
+                    <div id="waitting_task_list" class="task_list">
+                        <!-- <div class="single_task_area">
+                            <div class="single_task_title">文件散列计算</div>
+                            <div class="single_task_info">SHA2-256</div>
+                            <div class="single_task_status">等待</div>
+                        </div> -->
+                    </div>
                 </div>
                 <div class="task_simple_frame">
-                    <div>任务进度</div>
-                    <div class="task_list"></div>
+                    <div class="task_title">任务进度</div>
+                    <!-- <div id="running_button">获取</div> -->
+                    <div id="running_task_list" class="task_list">
+                        <!-- <div class="single_task_area">
+                            <div class="single_task_title">文件散列计算</div>
+                            <div class="single_task_info">SHA2-256</div>
+                            <div class="single_task_status">运行</div>
+                            <div class="single_task_progress_field">
+                                <div class="single_task_progress"></div>
+                                <div class="single_task_progress_label">0%</div>
+                            </div>
+                            <div class="single_task_cost">耗时:</div>
+                            <div class="single_task_test">预计:</div>
+                            <div class="single_task_operation">
+                                <div class="single_task_pause_btn">暂停</div>
+                                <div class="single_task_stop_btn">停止</div>
+                            </div>
+                        </div> -->
+                    </div>
                 </div>
                 <div class="task_simple_frame">
-                    <div>任务信息</div>
-                    <div class="task_list"></div>
+                    <div class="task_title">任务信息</div>
+                    <div id="task_info"></div>
                 </div>
             </div>
         </div>

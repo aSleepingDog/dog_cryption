@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>带文字的进度条</title>
+    <style>
+        .progress-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background-color: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            width: 65%; /* 进度百分比 */
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            border-radius: 15px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #333;
+            font-weight: bold;
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.7);
+            z-index: 2;
+        }
+        
+        /* 当进度超过50%时，文字颜色变为白色以提高可读性 */
+        .progress-fill[style*="width: 50%"] ~ .progress-text,
+        .progress-fill[style*="width: 5"] ~ .progress-text,
+        .progress-fill[style*="width: 6"] ~ .progress-text,
+        .progress-fill[style*="width: 7"] ~ .progress-text,
+        .progress-fill[style*="width: 8"] ~ .progress-text,
+        .progress-fill[style*="width: 9"] ~ .progress-text,
+        .progress-fill[style*="width: 100%"] ~ .progress-text {
+            color: white;
+            text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 65%;"></div>
+            <span class="progress-text">65% 已完成</span>
+        </div>
+    </div>
+</body>
+</html>

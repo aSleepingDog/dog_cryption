@@ -199,6 +199,8 @@ namespace dog_cryption
 			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 		dog_data::Data decrypt(dog_data::Data crypt, bool with_config, bool with_iv, dog_data::Data iv, bool with_check);
 		void decrypt(std::istream& crypt, std::ostream& plain,bool with_config, bool with_iv, dog_data::Data iv, bool with_check);
+		void decryptp(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, dog_data::Data iv, bool with_check,
+			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 	};
 
 	namespace padding

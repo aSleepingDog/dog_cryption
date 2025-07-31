@@ -39,6 +39,8 @@ signals:
 };
 */
 
+work::TaskPool* task_pool = nullptr;
+
 bool isInt(QJsonValue n)
 {
 	if (!n.isDouble())
@@ -423,21 +425,6 @@ public slots:
 		{
 			data = dog_data::Data(input, inputType);
 		}
-		else
-		{
-			if (input.empty())
-			{
-				result["code"] = 1;
-				result["msg"] = "请输入文件路径";
-				emit send_result(QJsonDocument(result).toJson());
-			}
-			path = QString::fromStdString(input);
-			//qDebug() << path;
-			result["code"] = 1;
-			result["msg"] = "文件暂不支持";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
 
 		if (params["type"].isNull() || params["type"].isUndefined() || !params["type"].isString())
 		{
@@ -490,22 +477,108 @@ public slots:
 			}
 		}
 
-		try
+		if (inputType == 3)
 		{
+			if (input.empty())
+			{
+				result["code"] = 1;
+				result["msg"] = "请输入文件路径";
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			path = QString::fromStdString(input);
+			std::unordered_map<std::string, std::any> output_params;
+			if (params["outputType"].isNull() || params["outputType"].isUndefined() || !isInt(params["outputType"]))
+			{
+				result["code"] = 1;
+				result["msg"] = "请选择输出类型";
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			output_params["output_type"] = toInt(params["outputType"]);
+			switch (std::any_cast<uint64_t>(output_params["output_type"]))
+			{
+			case 0:
+			{
+				break;
+			}
+			case 1:
+			{
+				if (params["replace0"].isNull() || params["replace0"].isUndefined()
+					|| params["replace1"].isNull() || params["replace1"].isUndefined()
+					|| params["replace2"].isNull() || params["replace2"].isUndefined())
+				{
+					result["code"] = 1;
+					result["msg"] = "请输入替换字符";
+					emit send_result(QJsonDocument(result).toJson());
+					return;
+				}
+				else if (params["replace0"].toString() == params["replace1"].toString()
+					|| params["replace0"].toString() == params["replace2"].toString()
+					|| params["replace1"].toString() == params["replace2"].toString())
+				{
+					result["code"] = 1;
+					result["msg"] = "替换字符不能相同";
+					emit send_result(QJsonDocument(result).toJson());
+					return;
+				}
+				output_params["replace0"] = params["replace0"].toString().toStdString()[0];
+				output_params["replace1"] = params["replace1"].toString().toStdString()[0];
+				output_params["replace2"] = params["replace2"].toString().toStdString()[0];
+				break;
+			}
+			case 2:
+			{
+				if (params["upper"].isNull() || params["upper"].isUndefined())
+				{
+					result["code"] = 1;
+					result["msg"] = "请指定大小写";
+					emit send_result(QJsonDocument(result).toJson());
+					return;
+				}
+				else if (!params["upper"].isBool())
+				{
+					result["code"] = 1;
+					result["msg"] = "请正确指定大小写";
+					emit send_result(QJsonDocument(result).toJson());
+					return;
+				}
+				output_params["upper"] = params["upper"].toBool();
+				break;
+			}
+			default:
+			{
+				result["code"] = 1;
+				result["msg"] = "输出类型错误,仅能为0-utf8/1-base64/2-hex";
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			}
 			dog_hash::HashCrypher hash_crypher(params["type"].toString().toStdString(), params["effective"].toInt());
-			work::Timer t;
-			t.start();
-			data = hash_crypher.getDataHash(data);
-			t.end();
-			result["time"] = t.get_time();
+			uint64_t id = task_pool->add_hash(path.toStdString(), hash_crypher, output_params);
+			result["code"] = 0;
+			result["file"] = true;
+			result["msg"] = QString::fromStdString("任务已添加至队列,任务编号" + std::to_string(id));
+			emit send_result(QJsonDocument(result).toJson());
+			return;
 		}
-		catch (std::exception& e)
+		else
 		{
-			result["code"] = 1;
-			result["msg"] = QString::fromStdString(e.what());
+			try
+			{
+				dog_hash::HashCrypher hash_crypher(params["type"].toString().toStdString(), params["effective"].toInt());
+				work::Timer t;
+				t.start();
+				data = hash_crypher.getDataHash(data);
+				t.end();
+				result["time"] = t.get_time();
+			}
+			catch (std::exception& e)
+			{
+				result["code"] = 1;
+				result["msg"] = QString::fromStdString(e.what());
+			}
 		}
-		
-
 		if (params["outputType"].isNull() || params["outputType"].isUndefined() || !isInt(params["outputType"]))
 		{
 			result["code"] = 1;
@@ -799,7 +872,6 @@ public slots:
 		}
 		uint64_t input_type = toInt(input_json["inputType"]);
 		dog_data::Data input_data;
-		QString input_path = "";
 		if (input_type != 3)
 		{
 			dog_data::Data output_data;
@@ -900,10 +972,42 @@ public slots:
 		}
 		else
 		{
-			input_path = input_json["input"].toString();
-			qDebug() << input_path;
-			result["code"] = 1;
-			result["msg"] = "文件加密暂未实现";
+			std::string input_path = input_json["input"].toString().toStdString();
+			std::string output_path = input_json["output"].toString().toStdString();
+			std::filesystem::path temp_input_path = std::filesystem::path(input_path);
+			if (!std::filesystem::exists(temp_input_path))
+			{
+				result["code"] = 1;
+				result["msg"] = "文件不存在";
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			if (std::filesystem::file_size(temp_input_path) == 0)
+			{
+				result["code"] = 1;
+				result["msg"] = "文件为空";
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			std::unique_ptr<dog_cryption::Cryptor> cryptor;
+			try
+			{
+				dog_cryption::CryptionConfig cryption_config(algorithm, block_size, key_size, using_padding, padding, mode, true, shift);
+				cryptor = std::make_unique<dog_cryption::Cryptor>(cryption_config);
+				cryptor->set_key(key_data);
+			}
+			catch (std::exception& e)
+			{
+				result["code"] = 1;
+				result["msg"] = "内部错误,请保留日志并联系开发人员" + QString::fromStdString(e.what());
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			uint64_t id = task_pool->add_encrypt(input_path, output_path, *cryptor,
+				iv_data, with_config, with_iv, with_check);
+			result["code"] = 0;
+			result["file"] = true;
+			result["msg"] = QString::fromStdString("任务已添加至队列,任务编号" + std::to_string(id));
 			emit send_result(QJsonDocument(result).toJson());
 			return;
 		}
@@ -1306,10 +1410,42 @@ public slots:
 		}
 		else
 		{
-			input_path = input_json["input"].toString();
-			qDebug() << input_path;
-			result["code"] = 1;
-			result["msg"] = "文件加密暂未实现";
+			std::string input_path = input_json["input"].toString().toStdString();
+			std::string output_path = input_json["output"].toString().toStdString();
+			std::filesystem::path temp_input_path = input_path;
+			if (!std::filesystem::exists(temp_input_path))
+			{
+				result["code"] = 1;
+				result["msg"] = "文件不存在";
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			if (std::filesystem::file_size(temp_input_path) == 0)
+			{
+				result["code"] = 1;
+				result["msg"] = "文件为空";
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			std::unique_ptr<dog_cryption::Cryptor> cryptor;
+			try
+			{
+				dog_cryption::CryptionConfig cryption_config(algorithm, block_size, key_size, using_padding, padding, mode, true, shift);
+				cryptor = std::make_unique<dog_cryption::Cryptor>(cryption_config);
+				cryptor->set_key(key_data);
+			}
+			catch (std::exception& e)
+			{
+				result["code"] = 1;
+				result["msg"] = "内部错误,请保留日志并联系开发人员" + QString::fromStdString(e.what());
+				emit send_result(QJsonDocument(result).toJson());
+				return;
+			}
+			uint64_t id = task_pool->add_decrypt(input_path, output_path, *cryptor,
+				iv_data, with_config, with_iv, with_check);
+			result["code"] = 0;
+			result["file"] = true;
+			result["msg"] = QString::fromStdString("任务已添加至队列,任务编号" + std::to_string(id));
 			emit send_result(QJsonDocument(result).toJson());
 			return;
 		}
@@ -1395,6 +1531,129 @@ signals:
 	void send_speed(const QString& jsonStr);
 };
 
+class TaskBridge : public QObject
+{
+	Q_OBJECT
+public:
+	explicit TaskBridge(QObject* parent = nullptr) : QObject(parent) {}
+
+public slots:
+	void get_all_running()
+	{
+		QJsonArray results;
+		std::vector<std::unordered_map<std::string, std::any>> tasks = task_pool->get_all_running_task_info();
+		for (auto& task : tasks)
+		{
+			QJsonObject row;
+			for (auto& item : task)
+			{
+				QString key = QString::fromStdString(item.first);
+				if (item.second.type() == typeid(uint64_t))
+				{
+					row[key] = QJsonValue((int32_t)std::any_cast<uint64_t>(item.second));
+				}
+				else if (item.second.type() == typeid(int))
+				{
+					row[key] = QJsonValue((int32_t)std::any_cast<int>(item.second));
+				}
+				else if (item.second.type() == typeid(std::string))
+				{
+					row[key] = QString::fromStdString(std::any_cast<std::string>(item.second));
+				}
+				else if (item.second.type() == typeid(double))
+				{
+					row[key] = QJsonValue(std::any_cast<double>(item.second));
+				}
+				else if (item.second.type() == typeid(bool))
+				{
+					row[key] = QJsonValue(std::any_cast<bool>(item.second));
+				}
+			}
+			results.append(row);
+		}
+        emit send_all_running(QJsonDocument(results).toJson());
+		return;
+	}
+public slots:
+	void get_all_waitting()
+	{
+		QJsonArray results;
+		std::vector<std::unordered_map<std::string, std::any>> tasks = task_pool->get_all_waitting_task_info();
+		for (auto& task : tasks)
+		{
+			QJsonObject row;
+			for (auto& item : task)
+			{
+				QString key = QString::fromStdString(item.first);
+				if (item.second.type() == typeid(uint64_t))
+				{
+					row[key] = QJsonValue((int32_t)std::any_cast<uint64_t>(item.second));
+				}
+				else if (item.second.type() == typeid(int))
+				{
+					row[key] = QJsonValue((int32_t)std::any_cast<int>(item.second));
+				}
+				else if (item.second.type() == typeid(std::string))
+				{
+					row[key] = QString::fromStdString(std::any_cast<std::string>(item.second));
+				}
+				else if (item.second.type() == typeid(double))
+				{
+					row[key] = QJsonValue(std::any_cast<double>(item.second));
+				}
+				else if (item.second.type() == typeid(bool))
+				{
+					row[key] = QJsonValue(std::any_cast<bool>(item.second));
+				}
+			}
+			results.append(row);
+		}
+		emit send_all_waitting(QJsonDocument(results).toJson());
+		return;
+	}
+public slots:
+	void pause_task(const QString& jsonStr)
+	{
+		QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8());
+		QJsonObject json = doc.object();
+		if (json["id"].isNull() || json["id"].isUndefined() || !isInt(json["id"]))
+		{
+			return;
+		}
+		uint64_t id = toInt(json["id"]);
+		task_pool->pause_task(id);
+	}
+public slots:
+	void resume_task(const QString& jsonStr)
+	{
+		QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8());
+		QJsonObject json = doc.object();
+		if (json["id"].isNull() || json["id"].isUndefined() || !isInt(json["id"]))
+		{
+			return;
+		}
+		uint64_t id = toInt(json["id"]);
+		task_pool->resume_task(id);
+	}
+public slots:
+	void stop_task(const QString& jsonStr)
+	{
+		QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8());
+		QJsonObject json = doc.object();
+		if (json["id"].isNull() || json["id"].isUndefined() || !isInt(json["id"]))
+		{
+			return;
+		}
+		uint64_t id = toInt(json["id"]);
+		task_pool->stop_task(id);
+	}
+
+signals:
+	void send_all_running(const QString& jsonStr);
+signals:
+	void send_all_waitting(const QString& jsonStr);
+};
+
 class CryptionWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -1414,6 +1673,8 @@ class CryptionWindow : public QMainWindow
 	HashBridge* hashBridge = new HashBridge(this);
 	EncryptionBridge* encryptionBridge = new EncryptionBridge(this);
 	DecryptionBridge* decryptionBridge = new DecryptionBridge(this);
+
+	TaskBridge* taskBridge = new TaskBridge(this);
 
 public:
 	CryptionWindow(QWidget* parent = nullptr) : QMainWindow(parent)
@@ -1537,6 +1798,20 @@ public:
 			}
 		);
 
+		channel->registerObject("taskBridge", this->taskBridge);
+		QObject::connect(
+			taskBridge, &TaskBridge::send_all_running, [this](const QString& jsonStr) -> void
+			{
+				this->view->page()->runJavaScript(QString("updateRunning(%1)").arg(jsonStr));
+			}
+		);
+		QObject::connect(
+			taskBridge, &TaskBridge::send_all_waitting, [this](const QString& jsonStr) -> void
+			{
+				this->view->page()->runJavaScript(QString("updateWaitting(%1)").arg(jsonStr));
+			}
+		);
+
 		view->setAcceptDrops(false);
 		view->page()->setWebChannel(channel);
 		view->page()->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
@@ -1597,9 +1872,11 @@ protected:
 
 int main(int argc, char* argv[])
 {
+	task_pool = new work::TaskPool(8);
+
 	QApplication app(argc, argv);
-	
-	CryptionWindow *window = new CryptionWindow();
+
+	CryptionWindow* window = new CryptionWindow();
 	window->show();
 
 	return app.exec();

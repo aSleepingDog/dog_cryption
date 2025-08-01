@@ -23,13 +23,6 @@ int main()
 	//std::cout << typeid(work::decrypt_running).name() << std::endl;
 	//std::cout << (typeid(work::encrypt_running) == typeid(work::decrypt_running)) << std::endl;
 
-	work::TaskPool task_pool = work::TaskPool(4);
-	std::string path = "E:/project/1.29/x64/Debug/1.29.exe";
-	dog_hash::HashCrypher hash_crypher("SHA2", 32);
-	task_pool.add_hash(path, hash_crypher);
-	std::this_thread::sleep_for(std::chrono::seconds(30));
-	task_pool.get_running_task_info();
-
 	return 0;
 }
 

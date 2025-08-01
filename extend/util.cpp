@@ -8,10 +8,33 @@ void work::Timer::end()
 {
     end_point_ = std::chrono::steady_clock::now();
 }
+void work::Timer::pause()
+{
+    if (!this->paused_)
+    {
+        end_point_ = std::chrono::steady_clock::now();
+        this->times.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end_point_ - start_point_).count());
+        this->paused_ = true;
+    }
+}
+void work::Timer::resume()
+{
+    start_point_ = std::chrono::steady_clock::now();
+    this->paused_ = false;
+}
 double work::Timer::get_time()
 {
-    end_point_ = std::chrono::steady_clock::now();
-    return std::chrono::duration_cast<std::chrono::microseconds>(end_point_ - start_point_).count();
+    double now = 0;
+    if (!this->paused_)
+    {
+        end_point_ = std::chrono::steady_clock::now();
+        now = std::chrono::duration_cast<std::chrono::microseconds>(end_point_ - start_point_).count();
+    }
+    for (double time : this->times)
+    {
+        now += time;
+    }
+    return now;
 }
 
 work::PausableThread::~PausableThread()
@@ -71,7 +94,6 @@ void work::PausableThread::run(std::string type, Task* task, std::unordered_map<
                 dog_hash::HashCrypher::streamHashp(hash_crypher, input, std::any_cast<dog_data::Data*>((*params)["result"]),
                     &this->mutex_, &this->cond_, &this->progress_, &this->running_, &this->paused_, &this->stop_);
                 task->timer.end();
-                this->progress_.store(1.0);
                 this->stop();
             };
         std::thread thread(work);
@@ -102,7 +124,6 @@ void work::PausableThread::run(std::string type, Task* task, std::unordered_map<
                     task->set_msg(temp);
                 }
                 task->timer.end();
-                this->progress_.store(1.0);
                 this->stop();
             };
         std::thread thread(work);
@@ -140,7 +161,6 @@ void work::PausableThread::run(std::string type, Task* task, std::unordered_map<
                     task->set_msg(msg);
                 }
                 task->timer.end();
-                this->progress_.store(1.0);
                 this->stop();
             };
         std::thread thread(work);
@@ -221,10 +241,12 @@ void work::Task::start()
 void work::Task::pause()
 {
     this->thread_->pause();
+    this->timer.pause();
 }
 void work::Task::resume()
 {
     this->thread_->resume();
+    this->timer.resume();
 }
 void work::Task::stop()
 {
@@ -243,6 +265,7 @@ std::unordered_map<std::string, std::any> work::Task::get_info()
         res["hash"] = std::any_cast<dog_hash::HashCrypher>(this->params_->at("hash_crypher")).get_config();
         res["input"] = this->params_->at("input");
         res["time"] = this->timer.get_time();
+        res["output_type"] = this->output;
         if (std::any_cast<int>(res["status"]) == 2)
         {
             switch (std::any_cast<uint64_t>(this->params_->at("output_type")))
@@ -267,7 +290,6 @@ std::unordered_map<std::string, std::any> work::Task::get_info()
                 break;
             }
             }
-            res["output_type"] = this->output;
             res["msg"] = "完成";
         }
         else

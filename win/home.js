@@ -212,6 +212,9 @@ function dropUpdateFile(filePath){
     target.appendChild(file);
     target.dataset.path=filePath;
     let fileOutputInput = document.getElementById(target.id.split("_")[0]+"_file_output_input");
+    if(fileOutputInput === null){
+        return;
+    }
     if(target.id.split("_")[0] === "encrypt"){
         fileOutputInput.value = target.dataset.path+".crypt";
     }else if(target.id.split("_")[0] === "decrypt"){
@@ -237,6 +240,12 @@ Array.from(fileOutputSaveBtn).forEach(node=>{
         )
     })
 })
+//文件删除反馈
+function deleteFile(result){
+    showing(result.code,result.msg);
+    let target = document.getElementById(result.id);
+    target.remove();
+}
 
 //文件输出输入框展示
 let encryptOutputType = document.getElementsByName("encrypt_output_type");
@@ -1037,15 +1046,12 @@ encrypt_button.addEventListener("click",()=>{
 })
 function updateEncryptionResult(result){
     showing(result.code,result.msg)
-    if(result.file === true){
-        return;
-    }
     let encrypt_resolve_time = document.getElementById("encrypt_resolve_time");
     let encrypt_text_output = document.getElementById("encrypt_text_output");
     encrypt_text_output.value = result.res;
     if(result.code !== 0){
         encrypt_resolve_time.textContent = "出错";
-    }else{
+    }else if(result.file !== true){
         encrypt_resolve_time.textContent = "耗时:"+fmtTime(result.time);
     }
     if(result.iv !== undefined){
@@ -1337,6 +1343,7 @@ function showInfo(task){
     if(task === ""){return;}
     task = JSON.parse(task);
     let task_info = document.getElementById("task_info");
+    task_info.dataset.id = task.id;
     while(task_info.firstChild){
         task_info.removeChild(task_info.firstChild);
     }
@@ -1358,17 +1365,25 @@ function showInfo(task){
         resultType.textContent = "输出类型\n" + task.output_type;
         task_info.appendChild(resultType);
         if(task.status === 2){
-            let result = document.createElement("div");
-            result.className = "task_info_item";
-            result.textContent = "计算结果\n"+task.result;
-            task_info.appendChild(result);
-            let copy_btn = document.createElement("button");
-            copy_btn.className = "task_info_item";
-            copy_btn.textContent = "复制";
-            copy_btn.addEventListener("click",()=>{
-                copyToClipboard(task.result);
-            })
-            task_info.appendChild(copy_btn);
+            if(task.progress === 1.0){            
+                let result = document.createElement("div");
+                result.className = "task_info_item";
+                result.textContent = "计算结果\n"+task.result;
+                task_info.appendChild(result);
+                let copy_btn = document.createElement("button");
+                copy_btn.className = "task_info_item";
+                copy_btn.textContent = "复制";
+                copy_btn.addEventListener("click",()=>{
+                    copyToClipboard(task.result);
+                })
+                task_info.appendChild(copy_btn);
+            }else{
+                let result = document.createElement("div");
+                result.className = "task_info_item";
+                result.textContent = "计算结果\n异常退出,结果无效";
+                task_info.appendChild(result);
+            }
+
         }
     }else{
         if(task.type === "encrypt"){
@@ -1389,6 +1404,16 @@ function showInfo(task){
             msg.className = "task_info_item";
             msg.textContent = "过程消息\n"+task.msg;
             task_info.appendChild(msg);
+        }
+        if(task.status === 2 && task.progress !== 1.0){
+            let remove = document.createElement("button");
+            remove.className = "task_info_item";
+            remove.id = "remove_file_task_info_item";
+            remove.textContent = "删除未完成文件";
+            remove.addEventListener("click",(event)=>{
+                window.fileBridge.remove(JSON.stringify({path:task.output,id:event.target.id}));
+            })
+            task_info.appendChild(remove);
         }
     }
 }
@@ -1467,7 +1492,7 @@ function addRunningTask(task){
    single_task_area.appendChild(single_task_progress_field);
    let single_task_test = document.createElement("div");
    single_task_test.className = "single_task_test";
-   single_task_test.textContent = "剩余:"+fmtTime(Math.floor(task.time/task.progress-task.time));
+   single_task_test.textContent = "剩余:"+((task.progress === 0)?("无法判断"):(fmtTime(Math.floor(task.time/task.progress-task.time))));
    single_task_area.appendChild(single_task_test);
    let single_task_cost = document.createElement("div");
    single_task_cost.className = "single_task_cost";
@@ -1534,7 +1559,11 @@ function updateRunningTask(task){
     single_task_progress.style.width = (task.progress*100+"").substring(0,5)+"%";
     single_task_progress_label.textContent = (task.progress*100+"").substring(0,5)+"%";
     single_task_cost.textContent = "耗时:"+fmtTime(task.time);
-    single_task_test.textContent = "剩余:"+fmtTime(Math.floor(task.time/task.progress-task.time));
+    single_task_test.textContent = "剩余:"+((task.progress === "0")?("无法判断"):(fmtTime(Math.floor(task.time/task.progress-task.time))));
+    let task_info = document.getElementById("task_info");
+    if(parseInt(task_info.dataset.id) === task.id && task.status===2){
+        showInfo(JSON.stringify(task));
+    }
 }
 
 function updateRunning(result){

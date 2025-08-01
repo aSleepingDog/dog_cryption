@@ -227,6 +227,7 @@ void dog_hash::HashCrypher::init()
 	{
 		throw dog_hash::HashException("Unknown hash type", __FILE__, __FUNCTION__, __LINE__);
 	}
+	this->total_ = 0;
 }
 void dog_hash::HashCrypher::finish()
 {
@@ -332,7 +333,7 @@ void dog_hash::HashCrypher::streamHashp(HashCrypher& crypher, std::istream& data
 		}
 		if (*stop_)
 		{
-			break;
+			return;
 		}
 		lock.unlock();
 		progress->store(progress->load() + block_size * 1.0 / file_size);

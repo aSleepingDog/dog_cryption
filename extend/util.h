@@ -21,9 +21,13 @@ namespace work
     private:
         std::chrono::steady_clock::time_point start_point_ = std::chrono::steady_clock::now();
         std::chrono::steady_clock::time_point end_point_ = std::chrono::steady_clock::now();;
+        std::vector<double> times;
+        bool paused_ = false;
     public:
         void start();
         void end();
+        void pause();
+        void resume();
         double get_time();
 
     };
@@ -64,7 +68,7 @@ namespace work
         std::string output;
         dog_data::Data result_;
         std::string type_;
-        std::string msg_;
+        std::string msg_ = "运行正常";
 
         std::mutex mutex_;
         std::unordered_map<std::string, std::any>* params_ = nullptr;

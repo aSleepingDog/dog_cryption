@@ -3,6 +3,8 @@
 #include <QUrl>
 #include <QPoint>
 #include <QStyle>
+#include <QLabel>
+#include <QWidget>
 #include <QObject>
 #include <QMimeData>
 #include <QKeyEvent>
@@ -12,6 +14,8 @@
 #include <QJsonObject>
 #include <QFileDialog>
 #include <QMainWindow>
+#include <QVBoxLayout>
+#include <QMessageBox>
 #include <QWebChannel>
 #include <Qapplication>
 #include <QJsonDocument>
@@ -111,11 +115,44 @@ public slots:
 			send_save(QJsonDocument(result).toJson());
 		}
 	}
+public slots:
+	void remove(const QString& jsonstr)
+	{
+		QJsonDocument doc = QJsonDocument::fromJson(jsonstr.toUtf8());
+		QJsonObject json = doc.object();
+		QJsonObject result;
+		std::string input = json["path"].toString().toStdString();
+		result["id"] = json["id"];
+		std::filesystem::path path(input);
+		if (!std::filesystem::exists(path))
+		{
+			result["code"] = 1;
+			result["msg"] = "文件不存在";
+			emit(send_remove(QJsonDocument(result).toJson()));
+			return;
+		}
+		if (!std::filesystem::remove(path))
+		{
+			result["code"] = 1;
+			result["msg"] = "文件不存在";
+			emit(send_remove(QJsonDocument(result).toJson()));
+			return;
+		}
+		else
+		{
+			result["code"] = 0;
+			result["msg"] = "删除成功";
+			emit(send_remove(QJsonDocument(result).toJson()));
+			return;
+		}
+	}
 
 signals:
 	void send(const QString& jsonStr);
 signals:
 	void send_save(const QString& jsonStr);
+signals:
+	void send_remove(const QString& jsonStr);
 };
 class CopyBridge : public QObject
 {
@@ -1654,9 +1691,50 @@ signals:
 	void send_all_waitting(const QString& jsonStr);
 };
 
+class InfoWindow : public QMainWindow
+{
+	Q_OBJECT
+private:
+	QLabel* 文本 = nullptr;
+public:
+	InfoWindow(QWidget* parent = nullptr) : QMainWindow(parent)
+	{
+		setWindowTitle("正在启动...");
+		resize(300, 200);
+		QWidget* centralWidget = new QWidget(this);
+		QVBoxLayout* layout = new QVBoxLayout(centralWidget);
+
+		// 创建标签并设置文本
+		文本 = new QLabel("正在校验文件完整性,这可能需要一点时间......", centralWidget);
+		文本->setAlignment(Qt::AlignCenter);
+
+		layout->addWidget(文本);
+
+		// 设置中央部件
+		setCentralWidget(centralWidget);
+		if (auto screen = QGuiApplication::primaryScreen()) {
+			QRect screenGeometry = screen->geometry();
+			move(screenGeometry.center() - rect().center() - QPoint(0, 30));
+		}
+	};
+
+	~InfoWindow()
+	{
+		this->close();
+		delete 文本;
+	}
+	
+	void changeText(const QString& text)
+	{
+		this->文本->setText(text);
+	}
+};
+
 class CryptionWindow : public QMainWindow
 {
 	Q_OBJECT
+	InfoWindow* infoWindow = new InfoWindow(this);
+
 	QWebEngineView *view = new QWebEngineView(this);
 	QWebEngineView *devTools = new QWebEngineView(this);
 
@@ -1675,16 +1753,28 @@ class CryptionWindow : public QMainWindow
 	DecryptionBridge* decryptionBridge = new DecryptionBridge(this);
 
 	TaskBridge* taskBridge = new TaskBridge(this);
+	
+	bool is_effective_ = true;
 
 public:
 	CryptionWindow(QWidget* parent = nullptr) : QMainWindow(parent)
 	{
+		infoWindow->show();
+		check();
+		if (!is_effective_)
+		{
+			infoWindow->changeText("文件校验失败,请重新下载程序!");
+			this->infoWindow->setVisible(false);
+			delete this->infoWindow;
+			return;
+		}
+		infoWindow->changeText("程序初始化");
 		/*
 		qDebug() << QCoreApplication::applicationDirPath() + "/page/home.html";
-		QUrl url = QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/page/home.html");
 		*/
 		this->setAcceptDrops(true);
-		QUrl url = QUrl::fromLocalFile("E:/project/crypher_cpp/src/win/home.html");
+		/*QUrl url = QUrl::fromLocalFile("E:/project/crypher_cpp/src/win/home.html");*/
+		QUrl url = QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/page/home.html");
 
 		QWebChannel* channel = new QWebChannel(this);
 
@@ -1731,6 +1821,12 @@ public:
 			fileBridge, &FileBridge::send_save, [this](const QString& jsonstr) -> void
 			{
 				this->view->page()->runJavaScript(QString("updateDir(%1)").arg(jsonstr));
+			}
+		);
+		QObject::connect(
+			fileBridge, &FileBridge::send_remove, [this](const QString& jsonStr) -> void
+			{
+				this->view->page()->runJavaScript(QString("deleteFile(%1)").arg(jsonStr));
 			}
 		);
 
@@ -1827,21 +1923,27 @@ public:
 			QRect screenGeometry = screen->geometry();
 			move(screenGeometry.center() - rect().center() - QPoint(0, 30));
 		}
+		this->infoWindow->setVisible(false);
+		delete this->infoWindow;
 		
+	}
+	bool get_is_effective() const
+	{
+		return this->is_effective_;
 	}
 protected:
 	void keyPressEvent(QKeyEvent* event) override 
 	{
-		if ((event->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier)) == (Qt::ControlModifier | Qt::ShiftModifier)
-			&& event->key() == Qt::Key_I)
-		{
-			devTools->show();
-			devTools->move(0, 350);
-		}
-		else if (event->key() == Qt::Key_Delete)
-		{
-			devTools->hide();
-		}
+		//if ((event->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier)) == (Qt::ControlModifier | Qt::ShiftModifier)
+		//	&& event->key() == Qt::Key_I)
+		//{
+		//	devTools->show();
+		//	devTools->move(0, 350);
+		//}
+		//else if (event->key() == Qt::Key_Delete)
+		//{
+		//	devTools->hide();
+		//}
 	}
 
 	void closeEvent(QCloseEvent* event) override
@@ -1868,16 +1970,72 @@ protected:
 			}
 		}
 	}
+
+	void check()
+	{
+		std::string now_path = QCoreApplication::applicationDirPath().toStdString() + "/page";
+		std::vector<std::pair<std::string, std::string>> files_hash = {
+			{"/home.html",                    "4B23CBB0457FF5942651909242D115930C587024FE3D28A6438A3AD160CC0DBC"},
+			{"/home.css",                     "7FC9FE472A1862EEF198929EFE1258A9B8942EF7F0D243C115F60848113F041E"},
+			{"/home.js",                      "92D3D16BB4B969D369491C95FE6EA9BB11E10A505511B677B72A3619433CDC9F"},
+			{"/qwebchannel.js",               "11A729305F8DECA8F8F6C8B3A2218F613AAA47816B67B6141498FAB3752E15A3"},
+			{"/resource/ArrowsRightLeft.svg", "DBDBD131CD8721ED7B8318EAECA69ED8BB262D4642B093DB423D2BAC3D47DE16"},
+			{"/resource/cplusplus.svg",       "7FF8253551235E3A6B002A7C2BD6E3190D85113A64FCB40F2254473CAEB025D4"},
+			{"/resource/css3.svg",            "36B7D94B657D571D3F94042ACBF6A4C86A5301A222F83F4B4583AD2ACF6E297D"},
+			{"/resource/Hashtag.svg",         "D60624778FBF20721A47253EC9F043AC8AD90A0464A21ABFDAB8025ECA816F55"},
+			{"/resource/hashTag0.svg",        "1FCA1C41FCA3363D08DDA2AA07E1E1CA4763315D607A44F62AC9FFD6D27C0C98"},
+			{"/resource/html5.svg",           "34826E5B3315DAADF4FA15F723A3C1D5BA4A89277BFD94E22AC4D7D3D54338C5"},
+			{"/resource/javascript.svg",      "0656FF65FC8EEACDA5C78D7F9FFE91EC1EB919DB64F56E0B7DCD460AF4BBD36C"},
+			{"/resource/LockClosed.svg",      "49FEB6E288C0425EBB72A4E279DCF8B6613C9B30050408D1A7E6FA6D9AF7B9CC"},
+			{"/resource/LockOpen.svg",        "A922A5A31702C9E711EFFBDF3281E3DBC077771938D983D3A32728EAAA6AD6B2"},
+			{"/resource/msyh.ttc",            "D79C55E68B1131EEA0CC1C47BE4F572D964F28C682E143DB2AD09C1E4CB07A3F"},
+			{"/resource/msyhbd.ttc",          "4508821B3DFFE01F0EF5E5326A3E60DF705A44633858811F67B6982DCE3F6EE6"},
+			{"/resource/msyhl.ttc",           "7E9BDF90BB5D3FE1B5975FC8AE31944B8FA674122261F92C28D4EC0B9C482FA1"},
+			{"/resource/NotoColorEmoji.ttf",  "3ED77810C203E1A67735DC19D395F32C23F2D7C0C3696690F4F78E15E57AB816"},
+			{"/resource/NotoSansSC-VF.ttf",   "763146584CF0710223441356B4395E279021B0806C196614377A7A0174AE074A"},
+			{"/resource/qt.svg",              "03B72B7D8C57FCEDFAAAC7052E8B2B0ABFB65FE11910A8A14B1D7FBBD69E1332"},
+			{"/resource/task.svg",            "25E15697A20BFFF64440850AAB2B7FDA6FA29B2A895C1421418C9E9187A67786"},
+			{"/resource/联想小新黑体_常规.ttf", "077F13D68FD1832564E2A1B0678F0D36EC339D068F3608C6EF95A6BC8D74835E"},
+		};
+		dog_hash::HashCrypher crypher("SHA2", 32);
+		for (auto& file : files_hash)
+		{
+			std::string file_path = now_path + file.first;
+			std::ifstream file_stream(file_path, std::ios::binary);
+			if (!file_stream.is_open())
+			{
+				this->is_effective_ = false;
+				return;
+			}
+			std::string hash_str = dog_hash::HashCrypher::streamHash(crypher, file_stream).getHexString();
+			crypher.init();
+			if (hash_str != file.second)
+			{
+				this->is_effective_ = false;
+				return;
+			}
+		}
+	}
+
+	
 };
 
 int main(int argc, char* argv[])
 {
-	task_pool = new work::TaskPool(8);
-
 	QApplication app(argc, argv);
 
 	CryptionWindow* window = new CryptionWindow();
-	window->show();
+	task_pool = new work::TaskPool(8);
+	if (window->get_is_effective())
+	{
+		window->show();
+	}
+	else
+	{
+		QMessageBox::information(nullptr, "提示", "程序文件被修改,请重新下载安装");
+		app.exit(0);
+		return 0;
+	}
 
 	return app.exec();
 }

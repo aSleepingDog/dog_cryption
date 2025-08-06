@@ -25,8 +25,8 @@
 #include <QWebEngineSettings>
 #include <QWebEngineFileSystemAccessRequest>
 
-#include "../lib/dog_cryption.h"
-#include "../extend/util.h"
+#include "../../libcryption/include/cryption/dog_cryption.h"
+#include "../../libtask/include/task/task.h"
 
 /*
 class ~Bridge : public QObject

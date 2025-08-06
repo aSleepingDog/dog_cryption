@@ -96,7 +96,7 @@ namespace dog_hash
 		{
 			//                         ________--------________--------________--------________--------
 			const dog_data::Data IV = "6A09E667BB67AE853C6EF372A54FF53A510E527F9B05688C1F83D9AB5BE0CD19";
-			const dog_number::BigInteger MAX = dog_number::BIG_INT64_MAX;
+			const dog_number::BigInteger MAX = dog_number::BIG_UINT64_MAX;
 			const uint64_t EFFECTIVE_SIZE = 32;
 			const uint64_t BLOCK_SIZE = 64;
 			const uint64_t NUMBER_SIZE = 8;
@@ -107,7 +107,7 @@ namespace dog_hash
 		{
 			//                         ________--------________--------________--------________--------
 			const dog_data::Data IV = "C1059ED8367CD5073070DD17F70E5939FFC00B316858151164F98FA7BEFA4FA4";
-			const dog_number::BigInteger MAX = dog_number::BIG_INT64_MAX;
+			const dog_number::BigInteger MAX = dog_number::BIG_UINT64_MAX;
 			const uint64_t EFFECTIVE_SIZE = 28;
 			const uint64_t BLOCK_SIZE = 64;
 			const uint64_t NUMBER_SIZE = 8;
@@ -147,7 +147,7 @@ namespace dog_hash
 		{
 			//                         ________________----------------________________----------------________________----------------________________----------------
 			const dog_data::Data IV = "CBBB9D5DC1059ED8629A292A367CD5079159015A3070DD17152FECD8F70E593967332667FFC00B318EB44A8768581511DB0C2E0D64F98FA747B5481DBEFA4FA4";
-			const dog_number::BigInteger MAX = dog_number::BIG_INT128_MAX;;
+			const dog_number::BigInteger MAX = dog_number::BIG_UINT128_MAX;;
 			const uint64_t EFFECTIVE_SIZE = 48;
 			const uint64_t BLOCK_SIZE = 128;
 			const uint64_t NUMBER_SIZE = 16;
@@ -158,7 +158,7 @@ namespace dog_hash
 		{
 			//                         ________________----------------________________----------------________________----------------________________----------------
 			const dog_data::Data IV = "6A09E667F3BCC908BB67AE8584CAA73B3C6EF372FE94F82BA54FF53A5F1D36F1510E527FADE682D19B05688C2B3E6C1F1F83D9ABFB41BD6B5BE0CD19137E2179";
-			const dog_number::BigInteger MAX = dog_number::BIG_INT128_MAX;
+			const dog_number::BigInteger MAX = dog_number::BIG_UINT128_MAX;
 			const uint64_t EFFECTIVE_SIZE = 64;
 			const uint64_t BLOCK_SIZE = 128;
 			const uint64_t NUMBER_SIZE = 16;
@@ -184,7 +184,7 @@ namespace dog_hash
 		namespace b256
 		{
 			const dog_data::Data IV = "7380166F4914B2B9172442D7DA8A0600A96F30BC163138AAE38DEE4DB0FB0E4E";
-			const dog_number::BigInteger MAX = dog_number::BIG_INT64_MAX;
+			const dog_number::BigInteger MAX = dog_number::BIG_UINT64_MAX;
 			const uint64_t EFFECTIVE_SIZE = 32;
 			const uint64_t BLOCK_SIZE = 64;
 			const uint64_t NUMBER_SIZE = 8;

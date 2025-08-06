@@ -9,7 +9,7 @@
 #include <iostream>
 #include <filesystem>
 
-#include "../lib/dog_cryption.h"
+#include "../../../libcryption/include/cryption/dog_cryption.h"
 
 namespace work
 {

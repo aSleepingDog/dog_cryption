@@ -1,0 +1,20 @@
+cmake_minimum_required(VERSION 3.10)
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+project("dog_cryption_core" VERSION 1.0)
+
+add_library(dog_cryption_core STATIC)
+target_sources(dog_cryption_core
+PRIVATE
+    include/cryption/big_number.h
+    include/cryption/data_bytes.h
+    include/cryption/hash.h
+    include/cryption/symmetric_encryption.h
+    include/cryption/dog_cryption.h
+    src/big_number.cpp
+    src/data_bytes.cpp
+    src/hash.cpp
+    src/symmetric_encryption.cpp
+)

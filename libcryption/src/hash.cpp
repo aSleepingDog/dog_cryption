@@ -1,4 +1,4 @@
-#include "hash_method.h"
+#include "../include/cryption/hash.h"
 
 dog_hash::HashException::HashException(const char* msg, const char* file, const char* function, uint64_t line)
 {

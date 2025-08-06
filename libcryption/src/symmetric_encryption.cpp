@@ -1,4 +1,4 @@
-#include "symmetric_encryption.h"
+#include "../include/cryption/symmetric_encryption.h"
 
 dog_cryption::CryptionException::CryptionException(const char* msg, const char* file, const char* function, uint64_t line)
 {

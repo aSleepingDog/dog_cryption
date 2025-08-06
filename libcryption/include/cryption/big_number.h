@@ -12,11 +12,8 @@
 #include <array>
 #include <regex>
 
-#include "data_bytes.h"
-
 namespace dog_number
 {
-
 	class NumberException : public std::exception
 	{
 	private:
@@ -374,7 +371,7 @@ namespace dog_number
 	};
 
 	const BigInteger ZERO = "0";
-	const BigInteger BIG_INT32_MAX = "4294967295";
-	const BigInteger BIG_INT64_MAX = "18446744073709551615";
-	const BigInteger BIG_INT128_MAX = "340282366920938463463374607431768211455";
+	const BigInteger BIG_UINT32_MAX = "4294967295";
+	const BigInteger BIG_UINT64_MAX = "18446744073709551615";
+	const BigInteger BIG_UINT128_MAX = "340282366920938463463374607431768211455";
 }

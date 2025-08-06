@@ -3,6 +3,7 @@
 #include <vector>
 #include <any>
 #include <map>
+#include <unordered_map>
 #include <array>
 
 #include "big_number.h"
@@ -19,7 +20,6 @@ public:
 
 namespace dog_data
 {
-
 	class Data
 	{
 	private:

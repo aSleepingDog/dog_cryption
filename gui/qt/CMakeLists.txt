@@ -23,10 +23,19 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-add_executable(qtWeb)
-set_target_properties(qtWeb PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/main")
-target_sources(qtWeb
+add_executable(qtWebStatic)
+set_target_properties(qtWebStatic PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qtWebStatic")
+target_sources(qtWebStatic
     PRIVATE
         qtwin.cpp
 )
-target_link_libraries(qtWeb PRIVATE dog_cryption_core dog_cryption_task Qt6::Core Qt6::Widgets Qt6::Gui Qt6::WebEngineWidgets)
+target_link_libraries(qtWebStatic PRIVATE libdog_cryption_core libdog_cryption_task Qt6::Core Qt6::Widgets Qt6::Gui Qt6::WebEngineWidgets)
+
+add_executable(qtWebShared)
+target_compile_definitions(qtWebShared PRIVATE SHARED)
+set_target_properties(qtWebShared PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qtWebShared")
+target_sources(qtWebShared
+    PRIVATE
+        qtwin.cpp
+)
+target_link_libraries(qtWebShared PRIVATE dlldog_cryption_core dlldog_cryption_task Qt6::Core Qt6::Widgets Qt6::Gui Qt6::WebEngineWidgets)

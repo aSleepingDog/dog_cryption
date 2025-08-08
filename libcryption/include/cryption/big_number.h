@@ -1,20 +1,26 @@
 #pragma once
-#include <iostream>
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <memory>
-#include <exception>
-#include <complex>
+#ifdef SHARED
+	#include "export.h"
+#else
+	#define DOG_CRYPTION_API
+#endif
+
 #include <queue>
-#include <functional>
-#include <utility>
 #include <array>
 #include <regex>
+#include <string>
+#include <vector>
+#include <memory>
+#include <utility>
+#include <complex>
+#include <iostream>
+#include <algorithm>
+#include <exception>
+#include <functional>
 
 namespace dog_number
 {
-	class NumberException : public std::exception
+	class DOG_CRYPTION_API NumberException : public std::exception
 	{
 	private:
 		std::string msg;
@@ -33,58 +39,58 @@ namespace dog_number
 		*  0x0024 -> 1
 		*  0x0000 -> 1
 		*/
-		uint8_t available_size(uint64_t n);
-		uint8_t available_size(uint32_t n);
-		uint8_t available_size(uint16_t n);
+		DOG_CRYPTION_API uint8_t available_size(uint64_t n);
+		DOG_CRYPTION_API uint8_t available_size(uint32_t n);
+		DOG_CRYPTION_API uint8_t available_size(uint16_t n);
 
 		/*
 		* 返回n的第i位
 		*  0x01 23 45 67 89 AB CD EF 取 7 位 -> 0x23
 		*/
-		uint8_t pick_byte(uint64_t n, uint8_t i);
-		uint8_t pick_byte(uint32_t n, uint8_t i);
-		uint8_t pick_byte(uint16_t n, uint8_t i);
+		DOG_CRYPTION_API uint8_t pick_byte(uint64_t n, uint8_t i);
+		DOG_CRYPTION_API uint8_t pick_byte(uint32_t n, uint8_t i);
+		DOG_CRYPTION_API uint8_t pick_byte(uint16_t n, uint8_t i);
 
 		/*
 		* 循环移动
 		*/
-		uint64_t CRMB(uint64_t n, uint32_t i);
-		uint32_t CRMB(uint32_t n, uint32_t i);
-		uint16_t CRMB(uint16_t n, uint32_t i);
-		uint8_t CRMB(uint8_t n, uint32_t i);
-		uint64_t CLMB(uint64_t n, uint32_t i);
-		uint32_t CLMB(uint32_t n, uint32_t i);
-		uint16_t CLMB(uint16_t n, uint32_t i);
-		uint8_t CLMB(uint8_t n, uint32_t i);
+		DOG_CRYPTION_API uint64_t CRMB(uint64_t n, uint32_t i);
+		DOG_CRYPTION_API uint32_t CRMB(uint32_t n, uint32_t i);
+		DOG_CRYPTION_API uint16_t CRMB(uint16_t n, uint32_t i);
+		DOG_CRYPTION_API uint8_t CRMB(uint8_t n, uint32_t i);
+		DOG_CRYPTION_API uint64_t CLMB(uint64_t n, uint32_t i);
+		DOG_CRYPTION_API uint32_t CLMB(uint32_t n, uint32_t i);
+		DOG_CRYPTION_API uint16_t CLMB(uint16_t n, uint32_t i);
+		DOG_CRYPTION_API uint8_t CLMB(uint8_t n, uint32_t i);
 	}
 
 	namespace region
 	{
-		bool is_effective(std::string region_str);
-		bool is_fall(std::string region_str, uint64_t n);
+		DOG_CRYPTION_API bool is_effective(std::string region_str);
+		DOG_CRYPTION_API bool is_fall(std::string region_str, uint64_t n);
 
 		namespace array
 		{
 			/* XX,XX,XX|XX*/
-			bool is_effective(std::string region_str);
-			std::vector<uint64_t> get_list(std::string region_str);
-			bool is_fall(std::string region_str, uint64_t n);
+			DOG_CRYPTION_API bool is_effective(std::string region_str);
+			DOG_CRYPTION_API std::vector<uint64_t> get_list(std::string region_str);
+			DOG_CRYPTION_API bool is_fall(std::string region_str, uint64_t n);
 		}
 		namespace gap
 		{
 			/*
 			* [a,b]c -> a    ,a+c  ,a+2c , ...  ,b-2c ,b-1c ,b
 			*/
-			bool is_effective(std::string region_str);
-			std::array<uint64_t, 3> get_list(std::string region_str);
-			bool is_fall(std::string region_str, uint64_t n);
+			DOG_CRYPTION_API bool is_effective(std::string region_str);
+			DOG_CRYPTION_API std::array<uint64_t, 3> get_list(std::string region_str);
+			DOG_CRYPTION_API bool is_fall(std::string region_str, uint64_t n);
 		}
 	}
 
 	/*
 	* 大数类，内部为256进制的原码数组
 	*/
-	class BigInteger
+	class DOG_CRYPTION_API BigInteger
 	{
 	private:
 		/*
@@ -370,8 +376,13 @@ namespace dog_number
 
 	};
 
-	const BigInteger ZERO = "0";
-	const BigInteger BIG_UINT32_MAX = "4294967295";
-	const BigInteger BIG_UINT64_MAX = "18446744073709551615";
-	const BigInteger BIG_UINT128_MAX = "340282366920938463463374607431768211455";
+	DOG_CRYPTION_API extern const BigInteger ZERO;
+	DOG_CRYPTION_API extern const BigInteger BIG_UINT32_MAX;
+	DOG_CRYPTION_API extern const BigInteger BIG_UINT64_MAX;
+	DOG_CRYPTION_API extern const BigInteger BIG_UINT128_MAX;
+
+	//DOG_CRYPTION_API extern const BigInteger ZERO = "0";
+	//DOG_CRYPTION_API extern const BigInteger BIG_UINT32_MAX = "4294967295";
+	//DOG_CRYPTION_API extern const BigInteger BIG_UINT64_MAX = "18446744073709551615";
+	//DOG_CRYPTION_API extern const BigInteger BIG_UINT128_MAX = "340282366920938463463374607431768211455";
 }

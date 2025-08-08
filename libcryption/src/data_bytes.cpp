@@ -897,6 +897,9 @@ dog_data::Data dog_data::operator+(const Data& a, const Data b)
     }
     return res;
 }
+
+const dog_data::Data EMPTY_DATA = "";
+
 void dog_data::print::block(dog_data::Data data, uint64_t column)
 {
     printf("XX");

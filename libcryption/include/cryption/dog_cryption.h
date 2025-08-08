@@ -1,4 +1,3 @@
-#include "big_number.h"
-#include "data_bytes.h"
+#pragma once
 #include "hash.h"
 #include "symmetric_encryption.h"

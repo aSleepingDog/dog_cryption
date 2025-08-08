@@ -1,14 +1,19 @@
 #pragma once
-#include <iostream>
-#include <vector>
+#ifdef SHARED
+#include "export.h"
+#else
+#define DOG_CRYPTION_API
+#endif
 #include <any>
 #include <map>
-#include <unordered_map>
 #include <array>
+#include <vector>
+#include <iostream>
+#include <unordered_map>
 
 #include "big_number.h"
 
-class DogException : public std::exception
+class DOG_CRYPTION_API DogException : public std::exception
 {
 private:
 	std::string msg;
@@ -20,7 +25,7 @@ public:
 
 namespace dog_data
 {
-	class Data
+	class DOG_CRYPTION_API Data
 	{
 	private:
 		std::vector<uint8_t> inside_data;
@@ -144,9 +149,9 @@ namespace dog_data
 		Data concat(const Data& b) const;
 	};
 
-	const Data EMPTY_DATA = "";
+	extern DOG_CRYPTION_API const Data EMPTY_DATA;
 
-	class DataStream
+	class DOG_CRYPTION_API DataStream
 	{
 	private:
 		dog_data::Data data_;
@@ -162,7 +167,7 @@ namespace dog_data
 
 	namespace buffer
 	{
-		uint64_t get_buffer_size(uint64_t file_size);
+		DOG_CRYPTION_API uint64_t get_buffer_size(uint64_t file_size);
 	}
 
 	namespace serialize
@@ -179,38 +184,38 @@ namespace dog_data
 		  array  -> 110X 0000-1000(0-8):length length + int(length) + other
 		 object(hash table)  -> 111X 0000-1000(0-8):length length + int(length) + string:other
 		*/
-		dog_data::Data boolean(bool b);
+		DOG_CRYPTION_API dog_data::Data boolean(bool b);
 
-		dog_data::Data integer_num(uint64_t num);
-		dog_data::Data integer_num(int64_t num);
+		DOG_CRYPTION_API dog_data::Data integer_num(uint64_t num);
+		DOG_CRYPTION_API dog_data::Data integer_num(int64_t num);
 
-		dog_data::Data float_num(float num);
-		dog_data::Data float_num(double num);
+		DOG_CRYPTION_API dog_data::Data float_num(float num);
+		DOG_CRYPTION_API dog_data::Data float_num(double num);
 
-		dog_data::Data bytes(const std::vector<uint8_t>& bytes);
-		dog_data::Data bytes(const uint8_t* bytes, uint64_t size);
-		dog_data::Data bytes(std::istream& stream);
+		DOG_CRYPTION_API dog_data::Data bytes(const std::vector<uint8_t>& bytes);
+		DOG_CRYPTION_API dog_data::Data bytes(const uint8_t* bytes, uint64_t size);
+		DOG_CRYPTION_API dog_data::Data bytes(std::istream& stream);
 
-		dog_data::Data string(const char* str);
-		dog_data::Data string(std::string str);
+		DOG_CRYPTION_API dog_data::Data string(const char* str);
+		DOG_CRYPTION_API dog_data::Data string(std::string str);
 
-		dog_data::Data array(const std::vector<std::any>& arr);
+		DOG_CRYPTION_API dog_data::Data array(const std::vector<std::any>& arr);
 
-		dog_data::Data object(const std::unordered_map<std::string, std::any>& obj);
-		dog_data::Data object(const std::map<std::string, std::any>& obj);
+		DOG_CRYPTION_API dog_data::Data object(const std::unordered_map<std::string, std::any>& obj);
+		DOG_CRYPTION_API dog_data::Data object(const std::map<std::string, std::any>& obj);
 
-		std::any read(std::istream& data);
-		std::any read(dog_data::DataStream& data);
-		std::any read(dog_data::Data data);
+		DOG_CRYPTION_API std::any read(std::istream& data);
+		DOG_CRYPTION_API std::any read(dog_data::DataStream& data);
+		DOG_CRYPTION_API std::any read(dog_data::Data data);
 
 	}
 
 	namespace print
 	{
-		void block(dog_data::Data data, uint64_t column = 16);
-		void block(const char* data, uint64_t size, uint64_t column = 16);
+		DOG_CRYPTION_API void block(dog_data::Data data, uint64_t column = 16);
+		DOG_CRYPTION_API void block(const char* data, uint64_t size, uint64_t column = 16);
 
-		void space(dog_data::Data data, uint64_t column = 16);
-		void space(const char* data, uint64_t size, uint64_t column = 16);
+		DOG_CRYPTION_API void space(dog_data::Data data, uint64_t column = 16);
+		DOG_CRYPTION_API void space(const char* data, uint64_t size, uint64_t column = 16);
 	}
 }

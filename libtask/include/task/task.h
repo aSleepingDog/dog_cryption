@@ -1,3 +1,9 @@
+#pragma once
+#ifdef SHARED
+    #include "export.h"
+#else
+    #define DOG_TASK_API
+#endif
 #include <chrono>
 #include <atomic>
 #include <mutex>
@@ -16,7 +22,7 @@ namespace work
     class Task;
     class TaskPool;
 
-    class Timer
+    class DOG_TASK_API Timer
     {
     private:
         std::chrono::steady_clock::time_point start_point_ = std::chrono::steady_clock::now();
@@ -32,7 +38,7 @@ namespace work
 
     };
 
-    class PausableThread
+    class DOG_TASK_API PausableThread
     {
     private:
         std::thread thread_;
@@ -60,7 +66,7 @@ namespace work
         void run(std::string type, Task* task, std::unordered_map<std::string, std::any>* params);
     };
 
-    class Task
+    class DOG_TASK_API Task
     {
     private:
         uint64_t id_;
@@ -93,7 +99,7 @@ namespace work
     };
 
     template <typename T>
-    class SafeDeque
+    class DOG_TASK_API SafeDeque
     {
     private:
         using it = typename std::deque<T>::iterator;
@@ -119,7 +125,7 @@ namespace work
         void erase(it it) { std::lock_guard<std::mutex> lock(mutex_); deque_.erase(it); }
     };
 
-    class TaskPool
+    class DOG_TASK_API TaskPool
     {
     private:
         std::mutex mutex_;
@@ -152,7 +158,6 @@ namespace work
             dog_data::Data iv, bool with_config, bool with_iv, bool with_check);
         uint64_t add_decrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor,
             dog_data::Data iv, bool with_config, bool with_iv, bool with_check);
-
 
         static void manage(TaskPool* task_pool);
     };

@@ -3410,7 +3410,7 @@ std::array<uint64_t, 3> dog_number::region::gap::get_list(std::string region_str
 	{
 		throw dog_number::NumberException("invalid region string", __FILE__, __FUNCTION__, __LINE__);
 	}
-	std::array<uint64_t, 3> list;
+	std::array<uint64_t, 3> list = {0,0,0};
 	uint64_t i = 0;
 	std::unique_ptr<uint64_t> n = nullptr;
 	for (auto& c : region_str)
@@ -3550,3 +3550,8 @@ bool dog_number::region::is_fall(std::string region_str, uint64_t n)
 		throw dog_number::NumberException("invalid region string", __FILE__, __FUNCTION__, __LINE__);
 	}
 }
+
+const dog_number::BigInteger ZERO = "0";
+const dog_number::BigInteger BIG_UINT32_MAX = "4294967295";
+const dog_number::BigInteger BIG_UINT64_MAX = "18446744073709551615";
+const dog_number::BigInteger BIG_UINT128_MAX = "340282366920938463463374607431768211455";

@@ -46,6 +46,7 @@ namespace dog_number
 		/*
 		* 返回n的第i位
 		*  0x01 23 45 67 89 AB CD EF 取 7 位 -> 0x23
+		*     8  7  6  5  4  3  2  1
 		*/
 		DOG_CRYPTION_API uint8_t pick_byte(uint64_t n, uint8_t i);
 		DOG_CRYPTION_API uint8_t pick_byte(uint32_t n, uint8_t i);
@@ -62,6 +63,12 @@ namespace dog_number
 		DOG_CRYPTION_API uint32_t CLMB(uint32_t n, uint32_t i);
 		DOG_CRYPTION_API uint16_t CLMB(uint16_t n, uint32_t i);
 		DOG_CRYPTION_API uint8_t CLMB(uint8_t n, uint32_t i);
+
+	}
+
+	namespace galois_field
+	{
+		uint8_t GF2_mult(uint8_t a, uint8_t b, uint16_t n);
 	}
 
 	namespace region

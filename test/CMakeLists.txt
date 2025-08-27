@@ -3,13 +3,12 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 23)
 
 add_executable(cmd_test)
-target_compile_definitions(cmd_test PRIVATE SHARED)
 set_target_properties(cmd_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cmd_test")
 target_sources(cmd_test
     PRIVATE
         cmd_test.cpp
 )
-target_link_libraries(cmd_test PRIVATE dlldog_cryption_core)
+target_link_libraries(cmd_test PRIVATE libdog_cryption_core)
 
 # add_executable(crypt_file_test)
 # set_target_properties(crypt_file_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/crypt_file_test")

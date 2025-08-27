@@ -439,7 +439,7 @@ namespace dog_cryption
 		-->
 
 		//密钥加工
-		const dog_data::Data extend_key(dog_data::Data& key, uint64_t key_size);
+		dog_data::Data extend_key(dog_data::Data& key, uint64_t key_size);
 		//加密有返回
 		dog_data::Data encoding(dog_data::Data& plain, uint8_t block_size, const dog_data::Data& key, uint8_t key_size);
 		dog_data::Data decoding(dog_data::Data& crypt, uint8_t block_size, const dog_data::Data& key, uint8_t key_size);
@@ -575,6 +575,29 @@ namespace dog_cryption
 
 	namespace Twofish
 	{
+		//unit单位:uint8_t字节
+		extern const DOG_CRYPTION_API std::string name;
+		extern const DOG_CRYPTION_API std::string BLOCK_REGION;
+		extern const DOG_CRYPTION_API std::string KEY_REGION;
+		extern const DOG_CRYPTION_API AlgorithmConfig CONFIG;
+
+		extern const DOG_CRYPTION_API uint8_t P8x8[2][256];
+
+		extern const DOG_CRYPTION_API uint8_t GF14D[255];
+		extern const DOG_CRYPTION_API uint8_t GFi14D[255];
+		DOG_CRYPTION_API uint8_t mult14D(uint8_t a, uint8_t b);
+
+		extern const DOG_CRYPTION_API uint8_t GF169[255];
+		extern const DOG_CRYPTION_API uint8_t GFi169[255];
+		DOG_CRYPTION_API uint8_t mult169(uint8_t a, uint8_t b);
+
+		extern const DOG_CRYPTION_API uint8_t MDS[16];
+		extern const DOG_CRYPTION_API uint8_t RS[32];
+
+		DOG_CRYPTION_API uint32_t multMDS(uint32_t n);
+		DOG_CRYPTION_API uint32_t function_g(uint32_t x);
+		DOG_CRYPTION_API uint32_t function_h(uint32_t x, std::vector<uint32_t> l);
+		DOG_CRYPTION_API dog_data::Data extend_key(dog_data::Data& key, uint64_t key_size);
 
 	}
 

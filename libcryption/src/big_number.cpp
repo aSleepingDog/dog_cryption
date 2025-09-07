@@ -3577,3 +3577,71 @@ const dog_number::BigInteger ZERO = "0";
 const dog_number::BigInteger BIG_UINT32_MAX = "4294967295";
 const dog_number::BigInteger BIG_UINT64_MAX = "18446744073709551615";
 const dog_number::BigInteger BIG_UINT128_MAX = "340282366920938463463374607431768211455";
+
+dog_number::region::NumberIterator::NumberIterator(std::string region_str)
+{
+	if (dog_number::region::array::is_effective(region_str))
+	{
+		this->list_ = dog_number::region::array::get_list(region_str);
+		this->is_normal_ = true;
+		if (this->list_.size() == 0)
+		{
+			this->is_end_ = true;
+		}
+		else
+		{
+			this->now_ = this->list_[0];
+		}
+	}
+	else if (dog_number::region::gap::is_effective(region_str))
+	{
+		auto list = dog_number::region::gap::get_list(region_str);
+		for (auto n : list)
+		{
+			this->list_.push_back(n);
+		}
+		this->is_normal_ = false;
+		now_ = this->list_[0];
+	}
+	else
+	{
+		throw dog_number::NumberException("invalid region string", __FILE__, __FUNCTION__, __LINE__);
+	}
+}
+bool dog_number::region::NumberIterator::have_next()
+{
+	return !this->is_end_;
+}
+uint64_t dog_number::region::NumberIterator::next()
+{
+	if (!have_next())
+	{
+		throw dog_number::NumberException("no next", __FILE__, __FUNCTION__, __LINE__);
+	}
+	uint64_t result = 0;
+	if (this->is_normal_)
+	{
+		result = this->now_;
+		this->offset_++;
+		if (this->offset_ == this->list_.size())
+		{
+			this->is_end_ = true;
+		}
+		else
+		{
+			this->now_ = this->list_[this->offset_];
+		}
+
+	}
+	else
+	{
+		result = this->now_;
+		this->offset_++;
+		this->now_ += this->list_[2];
+		if (this->now_ > this->list_[1])
+		{
+			this->is_end_ = true;
+		}
+	}
+	return result;
+}

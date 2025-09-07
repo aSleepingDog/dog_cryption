@@ -4631,6 +4631,7 @@ dog_data::Data dog_cryption::Twofish::extend_key(dog_data::Data& key, uint64_t k
 	return "";
 }
 
+//常量表
 namespace dog_cryption
 {
 	namespace padding
@@ -4666,9 +4667,9 @@ namespace dog_cryption
 	{
 		namespace ECB
 		{
-			inline const std::string name = "ECB";
-			inline const uint8_t CODE = 0;
-			inline const Config CONFIG = Config(name, CODE, false, true, false);
+			const std::string name = "ECB";
+			const uint8_t CODE = 0;
+			const Config CONFIG = Config(name, CODE, false, true, false);
 		};
 
 		namespace CBC

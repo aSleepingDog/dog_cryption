@@ -73,9 +73,24 @@ namespace dog_number
 
 	namespace region
 	{
+		class DOG_CRYPTION_API NumberIterator
+		{
+		private:
+			uint64_t now_ = -1;
+			uint64_t offset_ = 0;
+			bool is_end_ = false;
+			bool is_normal_;
+			std::vector<uint64_t> list_;
+		public:
+			NumberIterator(std::string region_str);
+			bool have_next();
+			uint64_t next();
+		};
+
+
 		DOG_CRYPTION_API bool is_effective(std::string region_str);
 		DOG_CRYPTION_API bool is_fall(std::string region_str, uint64_t n);
-
+		
 		namespace array
 		{
 			/* XX,XX,XX|XX*/

@@ -80,6 +80,20 @@ namespace work
         std::unordered_map<std::string, std::any>* params_ = nullptr;
     public:
         Timer timer;
+        /*
+        * id: 任务id
+        * input: 输入数据
+        * hash_crypher: 散列生成器
+        * output_params: 输出参数
+        *  output_type uint64_t : 输出类型 0-utf8 1-base64 2-hex
+        *   当output_type == 0时 无需额外参数
+        *   当output_type == 1时
+        *     replace0 char(int8_t) 用于替换+
+        *     replace1 char(int8_t) 用于替换/
+        *     replace2 char(int8_t) 用于替换=
+        *   当output_type == 2时
+        *     upper bool 输出是否大写
+        */
         Task(uint64_t id, std::string input, dog_hash::HashCrypher hash_crypher, std::unordered_map<std::string, std::any> output_params);
         Task(uint64_t id, int type, std::string input, std::string output, dog_cryption::Cryptor& cryptor,
             dog_data::Data iv, bool with_config, bool with_iv, bool with_check);
@@ -93,7 +107,24 @@ namespace work
         void pause();
         void resume();
         void stop();
-
+        /*
+        * get_info: 获取任务信息
+        *  id        uint64_t    : 任务id
+        *  status    int32_t     : 任务状态 -1未开始 0运行 1暂停 2结束
+        *  progress  double      : 任务进度 -1.0未开始 0.0-1.0运行 1.0结束
+        *  msg       std::string : 任务信息
+        *  type      std::string : 任务类型 "hash" "encrypt" "decrypt"
+        *  当type == "hash"时
+        *   hash         std::string  : 散列类型
+        *   input        std::string  : 输入数据(文本或路径)
+        *   time         double       : 运行时间(ms)
+        *   output_type  std::string  : 输出类型 "utf8" "base64" "hex"
+        *   当status == 2时
+        *    result std::string : 输出结果
+        * 
+        *        
+        *      
+        */
         std::unordered_map<std::string, std::any> get_info();
         void set_msg(std::string msg) { msg_ = msg; }
     };

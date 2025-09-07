@@ -9,9 +9,8 @@
 
 int main()
 {
-	dog_data::Data key = "0123456789ABCDEFFEDCBA987654321000112233445566778899AABBCCDDEEFF";
-	dog_cryption::Twofish::extend_key(key, 32);
 
-	double a = pow(1, 1);
-	return 0;
+	std::any a = "ste";
+	auto b = a;
+	//b类型还是any
 }

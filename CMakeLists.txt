@@ -20,4 +20,5 @@ add_subdirectory(libcryption)
 add_subdirectory(libtask)
 
 add_subdirectory(test)
-add_subdirectory(gui/qt)
+add_subdirectory(gui/cmd)
+add_subdirectory(gui/qtweb)

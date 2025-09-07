@@ -14,6 +14,7 @@ dog_hash::HashCrypher::HashCrypher(std::string type, uint64_t effective)
 {
 	if (type == SHA2::name)
 	{
+		this->type_ = SHA2::name;
 		this->effective_ = effective;
 		this->config_fmt_ = SHA2::get_config;
 		if (effective == 28)
@@ -81,7 +82,7 @@ dog_hash::HashCrypher::HashCrypher(std::string type, uint64_t effective)
 		if (effective == 32)
 		{
 			using namespace SM3::b256;
-			this->type_ = SHA2::name;
+			this->type_ = SM3::name;
 			this->max_ = MAX;
 
 			this->initial_value_ = IV;
@@ -667,12 +668,11 @@ void dog_hash::SHA2::b384::single_update(dog_data::Data plain, dog_data::Data& c
 	}
 }
 
+//SM3
 std::string dog_hash::SM3::get_config(std::string name, uint64_t effective)
 {
 	return name + "-" + std::to_string(effective);
 }
-
-//SM3
 uint32_t dog_hash::SM3::CLMB(uint32_t i, uint64_t n)
 {
 	int temp = n % 32;

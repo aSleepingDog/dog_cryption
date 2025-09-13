@@ -27,6 +27,8 @@
 
 #include "../../libcryption/include/cryption/dog_cryption.h"
 #include "../../libtask/include/task/task.h"
+#include "file_check_hash.h"
+
 
 /*
 class ~Bridge : public QObject
@@ -43,7 +45,9 @@ signals:
 };
 */
 
-work::TaskPool* task_pool = nullptr;
+dog_work::TaskPool* task_pool = nullptr;
+std::unordered_map<std::string, std::any> turn_std_map(QJsonObject json);
+std::vector<std::any> turn_std_list(QJsonArray json);
 
 bool isInt(QJsonValue n)
 {
@@ -61,6 +65,71 @@ uint64_t toInt(QJsonValue n)
 		throw std::runtime_error("not int");
 	}
 	return n.toDouble();
+}
+
+std::vector<std::any> turn_std_list(QJsonArray json)
+{
+	std::vector<std::any> result(json.size());
+	for (uint64_t i = 0; i < json.size(); ++i)
+	{
+		if (json[i].isBool())
+		{
+			result[i] = std::make_any<bool>(json[i].toBool());
+		}
+		else if (isInt(json[i]))
+		{
+			result[i] = toInt(json[i]);
+		}
+		else if (json[i].isDouble())
+		{
+			result[i] = json[i].toDouble();
+		}
+		else if (json[i].isString())
+		{
+			result[i] = json[i].toString().toStdString();
+		}
+		else if (json[i].isArray())
+		{
+			result[i] = turn_std_list(json[i].toArray());
+		}
+		else if (json[i].isObject())
+		{
+			result[i] = turn_std_map(json[i].toObject());
+		}
+	}
+	return result;
+}
+std::unordered_map<std::string, std::any> turn_std_map(QJsonObject json)
+{
+	std::unordered_map<std::string, std::any> result;
+	for (auto it = json.begin(); it != json.end(); ++it)
+	{
+		if (it.value().isBool())
+		{
+			result[it.key().toStdString()] = it.value().toBool();
+		}
+		else if (isInt(it.value()))
+		{
+			result[it.key().toStdString()] = toInt(it.value());
+		}
+		else if (it.value().isDouble())
+		{
+			result[it.key().toStdString()] = it.value().toDouble();
+		}
+		else if (it.value().isString())
+		{
+			result[it.key().toStdString()] = it.value().toString().toStdString();
+		}
+		else if (it.value().isArray())
+		{
+			result[it.key().toStdString()] = turn_std_list(it.value().toArray());
+		}
+		else if (it.value().isObject())
+		{
+			result[it.key().toStdString()] = turn_std_map(it.value().toObject());
+		}
+	}
+	return result;
 }
 
 class FileBridge : public QObject
@@ -302,7 +371,7 @@ public slots:
 		}
 		try
 		{
-			work::Timer t;
+			dog_work::Timer t;
 			t.start();
 			data = dog_data::Data(input, toInt(json["inputType"]));
 			t.end();
@@ -327,7 +396,7 @@ public slots:
 		{
 		case 0:
 		{
-			work::Timer t;
+			dog_work::Timer t;
 			t.start();
 			result["res"] = QString::fromStdString(data.getUTF8String());
 			t.end();
@@ -353,7 +422,7 @@ public slots:
 			char replace0 = json["replace0"].toString().toStdString()[0];
 			char replace1 = json["replace1"].toString().toStdString()[0];
 			char replace2 = json["replace2"].toString().toStdString()[0];
-			work::Timer t;
+			dog_work::Timer t;
 			t.start();
 			result["res"] = QString::fromStdString(data.getBase64String(replace0, replace1, replace2));
 			t.end();
@@ -377,7 +446,7 @@ public slots:
 				return;
 			}
 			bool upper = json["upper"].toBool();
-			work::Timer t;
+			dog_work::Timer t;
 			t.start();
 			result["res"] = QString::fromStdString(data.getHexString(upper));
 			t.end();
@@ -433,7 +502,7 @@ public:
 	explicit HashBridge(QObject* parent = nullptr) : QObject(parent) {}
 
 public slots:
-	void work(const QString& jsonStr)
+	void dog_work(const QString& jsonStr)
 	{
 		QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8());
 		QJsonObject params = doc.object();
@@ -604,7 +673,7 @@ public slots:
 			try
 			{
 				dog_hash::HashCrypher hash_crypher(params["type"].toString().toStdString(), params["effective"].toInt());
-				work::Timer t;
+				dog_work::Timer t;
 				t.start();
 				data = hash_crypher.getDataHash(data);
 				t.end();
@@ -696,7 +765,7 @@ public slots:
 		uint64_t effective = params["effective"].toInt();
 		dog_hash::HashCrypher hash(type, effective);
 		dog_data::Data data = "";
-		work::Timer t;
+		dog_work::Timer t;
 		t.start();
 		hash.getDataHash(data);
 		t.end();
@@ -717,7 +786,7 @@ public:
 	explicit EncryptionBridge(QObject* parent = nullptr) : QObject(parent) {}
 
 public slots:
-	void work(const QString& jsonstr)
+	void dog_work(const QString& jsonstr)
 	{
 		QJsonDocument doc = QJsonDocument::fromJson(jsonstr.toUtf8());
 		QJsonObject params = doc.object();
@@ -918,7 +987,7 @@ public slots:
 				dog_cryption::Cryptor cryptor(cryption_config);
 				cryptor.set_key(key_data);
 				input_data = dog_data::Data(input_json["input"].toString().toStdString(), input_type);
-				work::Timer t;
+				dog_work::Timer t;
 				t.start();
 				output_data = cryptor.encrypt(input_data, with_config, with_iv, iv_data, with_check);
 				t.end();
@@ -1117,7 +1186,7 @@ public slots:
 		dog_data::Data block = dog_cryption::utils::randiv(block_size);
 		dog_data::Data key = dog_cryption::utils::randiv(key_size);
 		cryptor.set_key(key);
-		work::Timer t;
+		dog_work::Timer t;
 		t.start();
 		cryptor.get_block_encryption()(block, block_size, cryptor.get_available_key(), key_size);
 		t.end();
@@ -1137,7 +1206,7 @@ class DecryptionBridge : public QObject
 public:
 	explicit DecryptionBridge(QObject* parent = nullptr) : QObject(parent) {}
 public slots:
-	void work(const QString& jsonstr)
+	void dog_work(const QString& jsonstr)
 	{
 		QJsonDocument doc = QJsonDocument::fromJson(jsonstr.toUtf8());
 		QJsonObject params = doc.object();
@@ -1342,7 +1411,7 @@ public slots:
 				dog_cryption::Cryptor cryptor(cryption_config);
 				cryptor.set_key(key_data);
 				input_data = dog_data::Data(input_json["input"].toString().toStdString(), input_type);
-				work::Timer t;
+				dog_work::Timer t;
 				t.start();
 				output_data = cryptor.decrypt(input_data, with_config, with_iv, iv_data, with_check);
 				t.end();
@@ -1554,7 +1623,7 @@ public slots:
 		dog_data::Data block = dog_cryption::utils::randiv(block_size);
 		dog_data::Data key = dog_cryption::utils::randiv(key_size);
 		cryptor.set_key(key);
-		work::Timer t;
+		dog_work::Timer t;
 		t.start();
 		cryptor.get_block_decryption()(block, block_size, cryptor.get_available_key(), key_size);
 		t.end();
@@ -1973,34 +2042,12 @@ protected:
 
 	void check()
 	{
-		std::string now_path = QCoreApplication::applicationDirPath().toStdString() + "/page";
-		std::vector<std::pair<std::string, std::string>> files_hash = {
-			{"/home.html",                    "4B23CBB0457FF5942651909242D115930C587024FE3D28A6438A3AD160CC0DBC"},
-			{"/home.css",                     "7FC9FE472A1862EEF198929EFE1258A9B8942EF7F0D243C115F60848113F041E"},
-			{"/home.js",                      "92D3D16BB4B969D369491C95FE6EA9BB11E10A505511B677B72A3619433CDC9F"},
-			{"/qwebchannel.js",               "11A729305F8DECA8F8F6C8B3A2218F613AAA47816B67B6141498FAB3752E15A3"},
-			{"/resource/ArrowsRightLeft.svg", "DBDBD131CD8721ED7B8318EAECA69ED8BB262D4642B093DB423D2BAC3D47DE16"},
-			{"/resource/cplusplus.svg",       "7FF8253551235E3A6B002A7C2BD6E3190D85113A64FCB40F2254473CAEB025D4"},
-			{"/resource/css3.svg",            "36B7D94B657D571D3F94042ACBF6A4C86A5301A222F83F4B4583AD2ACF6E297D"},
-			{"/resource/Hashtag.svg",         "D60624778FBF20721A47253EC9F043AC8AD90A0464A21ABFDAB8025ECA816F55"},
-			{"/resource/hashTag0.svg",        "1FCA1C41FCA3363D08DDA2AA07E1E1CA4763315D607A44F62AC9FFD6D27C0C98"},
-			{"/resource/html5.svg",           "34826E5B3315DAADF4FA15F723A3C1D5BA4A89277BFD94E22AC4D7D3D54338C5"},
-			{"/resource/javascript.svg",      "0656FF65FC8EEACDA5C78D7F9FFE91EC1EB919DB64F56E0B7DCD460AF4BBD36C"},
-			{"/resource/LockClosed.svg",      "49FEB6E288C0425EBB72A4E279DCF8B6613C9B30050408D1A7E6FA6D9AF7B9CC"},
-			{"/resource/LockOpen.svg",        "A922A5A31702C9E711EFFBDF3281E3DBC077771938D983D3A32728EAAA6AD6B2"},
-			{"/resource/msyh.ttc",            "D79C55E68B1131EEA0CC1C47BE4F572D964F28C682E143DB2AD09C1E4CB07A3F"},
-			{"/resource/msyhbd.ttc",          "4508821B3DFFE01F0EF5E5326A3E60DF705A44633858811F67B6982DCE3F6EE6"},
-			{"/resource/msyhl.ttc",           "7E9BDF90BB5D3FE1B5975FC8AE31944B8FA674122261F92C28D4EC0B9C482FA1"},
-			{"/resource/NotoColorEmoji.ttf",  "3ED77810C203E1A67735DC19D395F32C23F2D7C0C3696690F4F78E15E57AB816"},
-			{"/resource/NotoSansSC-VF.ttf",   "763146584CF0710223441356B4395E279021B0806C196614377A7A0174AE074A"},
-			{"/resource/qt.svg",              "03B72B7D8C57FCEDFAAAC7052E8B2B0ABFB65FE11910A8A14B1D7FBBD69E1332"},
-			{"/resource/task.svg",            "25E15697A20BFFF64440850AAB2B7FDA6FA29B2A895C1421418C9E9187A67786"},
-			{"/resource/联想小新黑体_常规.ttf", "077F13D68FD1832564E2A1B0678F0D36EC339D068F3608C6EF95A6BC8D74835E"},
-		};
+		std::string now_path = QCoreApplication::applicationDirPath().toStdString();
+		std::vector<std::pair<std::string, std::string>> files_hash = HASH_TABEL;
 		dog_hash::HashCrypher crypher("SHA2", 32);
 		for (auto& file : files_hash)
 		{
-			std::string file_path = now_path + file.first;
+			std::string file_path = now_path + file.first.substr(1, -1);
 			std::ifstream file_stream(file_path, std::ios::binary);
 			if (!file_stream.is_open())
 			{
@@ -2025,7 +2072,7 @@ int main(int argc, char* argv[])
 	QApplication app(argc, argv);
 
 	CryptionWindow* window = new CryptionWindow();
-	task_pool = new work::TaskPool(8);
+	task_pool = new dog_work::TaskPool(8);
 	if (window->get_is_effective())
 	{
 		window->show();

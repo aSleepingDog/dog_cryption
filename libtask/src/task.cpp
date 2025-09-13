@@ -1,14 +1,14 @@
 #include "../include/task/task.h"
 
-void work::Timer::start()
+void dog_work::Timer::start()
 {
     start_point_ = std::chrono::steady_clock::now();
 }
-void work::Timer::end()
+void dog_work::Timer::end()
 {
     end_point_ = std::chrono::steady_clock::now();
 }
-void work::Timer::pause()
+void dog_work::Timer::pause()
 {
     if (!this->paused_)
     {
@@ -17,12 +17,12 @@ void work::Timer::pause()
         this->paused_ = true;
     }
 }
-void work::Timer::resume()
+void dog_work::Timer::resume()
 {
     start_point_ = std::chrono::steady_clock::now();
     this->paused_ = false;
 }
-double work::Timer::get_time()
+double dog_work::Timer::get_time()
 {
     double now = 0;
     if (!this->paused_)
@@ -37,28 +37,28 @@ double work::Timer::get_time()
     return now;
 }
 
-work::PausableThread::~PausableThread()
+dog_work::PausableThread::~PausableThread()
 {
     this->stop();
     this->thread_.join();
 }
-void work::PausableThread::start()
+void dog_work::PausableThread::start()
 {
     if (running_) return;
     running_ = true;
 }
-void work::PausableThread::pause()
+void dog_work::PausableThread::pause()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     paused_ = true;
 }
-void work::PausableThread::resume()
+void dog_work::PausableThread::resume()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     paused_ = false;
     cond_.notify_one();
 }
-void work::PausableThread::stop()
+void dog_work::PausableThread::stop()
 {
     {
         std::unique_lock<std::mutex> lock(mutex_);
@@ -69,11 +69,11 @@ void work::PausableThread::stop()
 
     running_ = false;
 }
-double work::PausableThread::get_progress()
+double dog_work::PausableThread::get_progress()
 {
     return this->progress_.load();
 }
-int work::PausableThread::get_status()
+int dog_work::PausableThread::get_status()
 {
     //0-running, 1-paused, 2-stopped
     if (running_ && !paused_) return 0;
@@ -81,11 +81,11 @@ int work::PausableThread::get_status()
     else if (!running_) return 2;
 }
 
-void work::PausableThread::run(std::string type, Task* task, std::unordered_map<std::string, std::any>* params)
+void dog_work::PausableThread::run(std::string type, Task* task, std::unordered_map<std::string, std::any>* params)
 {
     if (type == "hash")
     {
-        auto work = [this, params, task]()->void
+        auto dog_work = [this, params, task]()->void
             {
                 dog_hash::HashCrypher hash_crypher = std::any_cast<dog_hash::HashCrypher>((*params)["hash_crypher"]);
                 //std::cout << std::any_cast<std::string>((*params)["input"]) << std::endl;
@@ -96,13 +96,13 @@ void work::PausableThread::run(std::string type, Task* task, std::unordered_map<
                 task->timer.end();
                 this->stop();
             };
-        std::thread thread(work);
+        std::thread thread(dog_work);
         this->thread_ = std::move(thread);
         
     }
     else if (type == "encrypt")
     {
-        auto work = [this, params, task]()->void
+        auto dog_work = [this, params, task]()->void
             {
                 try
                 {
@@ -126,12 +126,12 @@ void work::PausableThread::run(std::string type, Task* task, std::unordered_map<
                 task->timer.end();
                 this->stop();
             };
-        std::thread thread(work);
+        std::thread thread(dog_work);
         this->thread_ = std::move(thread);
     }
     else if (type == "decrypt")
     {
-        auto work = [this, params, task]()->void
+        auto dog_work = [this, params, task]()->void
             {
                 try
                 {
@@ -163,12 +163,12 @@ void work::PausableThread::run(std::string type, Task* task, std::unordered_map<
                 task->timer.end();
                 this->stop();
             };
-        std::thread thread(work);
+        std::thread thread(dog_work);
         this->thread_ = std::move(thread);
     }
 }
 
-work::Task::Task(uint64_t id, std::string input, dog_hash::HashCrypher hash_crypher, std::unordered_map<std::string, std::any> output_params)
+dog_work::Task::Task(uint64_t id, std::string input, dog_hash::HashCrypher hash_crypher, std::unordered_map<std::string, std::any> output_params)
 {
     this->id_ = id;
     this->params_ = new std::unordered_map<std::string, std::any>();
@@ -194,7 +194,7 @@ work::Task::Task(uint64_t id, std::string input, dog_hash::HashCrypher hash_cryp
         this->output = temp;
     }
 }
-work::Task::Task(uint64_t id, int type, std::string input, std::string output, dog_cryption::Cryptor& cryptor, 
+dog_work::Task::Task(uint64_t id, int type, std::string input, std::string output, dog_cryption::Cryptor& cryptor, 
     dog_data::Data iv, bool with_config, bool with_iv, bool with_check)
 {
     this->id_ = id;
@@ -216,43 +216,43 @@ work::Task::Task(uint64_t id, int type, std::string input, std::string output, d
     (*this->params_)["with_check"] = with_check;
 }
 
-uint64_t work::Task::get_id()
+uint64_t dog_work::Task::get_id()
 {
     std::lock_guard<std::mutex> lock(this->mutex_);
     return this->id_;
 }
-work::Task::~Task()
+dog_work::Task::~Task()
 {
     this->stop();
     delete this->params_;
     delete this->thread_;
 }
-int work::Task::get_status()
+int dog_work::Task::get_status()
 {
     return this->thread_ == nullptr ? -1 : this->thread_->get_status();
 }
-void work::Task::start()
+void dog_work::Task::start()
 {
     auto thread = new PausableThread();
     this->thread_ = thread;
     thread->run(this->type_, this, this->params_);
     thread->start();
 }
-void work::Task::pause()
+void dog_work::Task::pause()
 {
     this->thread_->pause();
     this->timer.pause();
 }
-void work::Task::resume()
+void dog_work::Task::resume()
 {
     this->thread_->resume();
     this->timer.resume();
 }
-void work::Task::stop()
+void dog_work::Task::stop()
 {
     this->thread_->stop();
 }
-std::unordered_map<std::string, std::any> work::Task::get_info()
+std::unordered_map<std::string, std::any> dog_work::Task::get_info()
 {
     std::lock_guard<std::mutex> lock(this->mutex_);
     std::unordered_map<std::string, std::any> res;
@@ -311,7 +311,7 @@ std::unordered_map<std::string, std::any> work::Task::get_info()
     return res;
 }
 
-void work::TaskPool::manage(TaskPool* task_pool)
+void dog_work::TaskPool::manage(TaskPool* task_pool)
 {
     try
     {
@@ -335,13 +335,13 @@ void work::TaskPool::manage(TaskPool* task_pool)
     }
     
 }
-work::TaskPool::TaskPool(uint64_t max)
+dog_work::TaskPool::TaskPool(uint64_t max)
 {
     this->max_ = max;
     this->flag_.store(1);
     this->manager_ = new std::jthread(&TaskPool::manage, this);
 }
-work::TaskPool::~TaskPool()
+dog_work::TaskPool::~TaskPool()
 {
     this->stop();
     for (auto& task : this->running_)
@@ -355,23 +355,23 @@ work::TaskPool::~TaskPool()
     delete this->manager_;
 }
 
-void work::TaskPool::stop()
+void dog_work::TaskPool::stop()
 {
     this->flag_.store(0);
 }
-void work::TaskPool::pause()
+void dog_work::TaskPool::pause()
 {
     this->flag_.store(-1);
 }
-void work::TaskPool::resume()
+void dog_work::TaskPool::resume()
 {
     this->flag_.store(1);
 }
-std::vector<std::unordered_map<std::string, std::any>> work::TaskPool::get_all_running_task_info()
+std::vector<std::unordered_map<std::string, std::any>> dog_work::TaskPool::get_all_running_task_info()
 {
     std::lock_guard<std::mutex> lock(this->mutex_);
     std::vector<std::unordered_map<std::string, std::any>> res;
-    std::vector<std::deque<work::Task*>::iterator> to_delete;
+    std::vector<std::deque<dog_work::Task*>::iterator> to_delete;
     for (auto it = this->running_.begin(); it != this->running_.end(); it++)
     {
         res.emplace_back((*it)->get_info());
@@ -388,7 +388,7 @@ std::vector<std::unordered_map<std::string, std::any>> work::TaskPool::get_all_r
     }
     return res;
 }
-std::vector<std::unordered_map<std::string, std::any>> work::TaskPool::get_all_waitting_task_info()
+std::vector<std::unordered_map<std::string, std::any>> dog_work::TaskPool::get_all_waitting_task_info()
 {
     std::lock_guard<std::mutex> lock(this->mutex_);
     std::vector<std::unordered_map<std::string, std::any>> res;
@@ -398,11 +398,11 @@ std::vector<std::unordered_map<std::string, std::any>> work::TaskPool::get_all_w
     }
     return res;
 }
-std::unordered_map<std::string, std::any> work::TaskPool::get_waitting_task_info(uint64_t id)
+std::unordered_map<std::string, std::any> dog_work::TaskPool::get_waitting_task_info(uint64_t id)
 {
     std::lock_guard<std::mutex> lock(this->mutex_);
     std::unordered_map<std::string, std::any> res;
-    std::deque<work::Task*>::iterator to_delete = this->waitting_.end();
+    std::deque<dog_work::Task*>::iterator to_delete = this->waitting_.end();
     for (auto it = this->waitting_.begin(); it != this->waitting_.end(); it++)
     {
         res = (*it)->get_info();
@@ -419,11 +419,11 @@ std::unordered_map<std::string, std::any> work::TaskPool::get_waitting_task_info
     }
     return res;
 }
-std::unordered_map<std::string, std::any> work::TaskPool::get_running_task_info(uint64_t id)
+std::unordered_map<std::string, std::any> dog_work::TaskPool::get_running_task_info(uint64_t id)
 {
     std::lock_guard<std::mutex> lock(this->mutex_);
     std::unordered_map<std::string, std::any> res;
-    std::deque<work::Task*>::iterator to_delete = this->running_.end();
+    std::deque<dog_work::Task*>::iterator to_delete = this->running_.end();
     for (auto it = this->running_.begin(); it != this->running_.end(); it++)
     {
         res = (*it)->get_info();
@@ -440,7 +440,7 @@ std::unordered_map<std::string, std::any> work::TaskPool::get_running_task_info(
     }
     return res;
 }
-int32_t work::TaskPool::stop_task(uint64_t id)
+int32_t dog_work::TaskPool::stop_task(uint64_t id)
 {
     for (auto& task : this->running_)
     {
@@ -452,7 +452,7 @@ int32_t work::TaskPool::stop_task(uint64_t id)
     }
     return -1;
 }
-int32_t work::TaskPool::pause_task(uint64_t id)
+int32_t dog_work::TaskPool::pause_task(uint64_t id)
 {
     for (auto& task : this->running_)
     {
@@ -464,7 +464,7 @@ int32_t work::TaskPool::pause_task(uint64_t id)
     }
     return -1;
 }
-int32_t work::TaskPool::resume_task(uint64_t id)
+int32_t dog_work::TaskPool::resume_task(uint64_t id)
 {
     for (auto& task : this->running_)
     {
@@ -477,7 +477,7 @@ int32_t work::TaskPool::resume_task(uint64_t id)
     return -1;
 }
 
-uint64_t work::TaskPool::add_hash(std::string path, dog_hash::HashCrypher& hash_crypher, std::unordered_map<std::string, std::any> output_params)
+uint64_t dog_work::TaskPool::add_hash(std::string path, dog_hash::HashCrypher& hash_crypher, std::unordered_map<std::string, std::any> output_params)
 {
     uint64_t id = this->id_.load();
     this->id_.fetch_add(1);
@@ -489,7 +489,7 @@ uint64_t work::TaskPool::add_hash(std::string path, dog_hash::HashCrypher& hash_
     this->waitting_.emplace_back(task);
     return id;
 }
-uint64_t work::TaskPool::add_encrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor, 
+uint64_t dog_work::TaskPool::add_encrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor, 
     dog_data::Data iv, bool with_config, bool with_iv, bool with_check)
 {
     uint64_t id = this->id_.load();
@@ -498,7 +498,7 @@ uint64_t work::TaskPool::add_encrypt(std::string input_path, std::string output_
     this->waitting_.emplace_back(task);
     return id;
 }
-uint64_t work::TaskPool::add_decrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor, 
+uint64_t dog_work::TaskPool::add_decrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor, 
     dog_data::Data iv, bool with_config, bool with_iv, bool with_check)
 {
     uint64_t id = this->id_.load();

@@ -17,7 +17,7 @@
 
 #include "../../../libcryption/include/cryption/dog_cryption.h"
 
-namespace work
+namespace dog_work
 {
     class Task;
     class TaskPool;

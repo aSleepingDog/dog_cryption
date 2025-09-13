@@ -5,36 +5,33 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project("dog_cryption_core" VERSION 1.0)
 
-add_library(libdog_cryption_core STATIC)
-
-target_sources(libdog_cryption_core
-PRIVATE
+set(resource_code_file
+    include/cryption/dog_exception.h
     include/cryption/big_number.h
     include/cryption/data_bytes.h
     include/cryption/hash.h
     include/cryption/symmetric_encryption.h
     include/cryption/dog_cryption.h
+    src/dog_exception.cpp
     src/big_number.cpp
     src/data_bytes.cpp
     src/hash.cpp
     src/symmetric_encryption.cpp
 )
 
-add_library(dlldog_cryption_core SHARED)
-set_target_properties(dlldog_cryption_core PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dlldog_cryption_core")
-target_compile_definitions(dlldog_cryption_core PRIVATE SHARED DOG_CRYPTION_CORE_EXPORT)
-target_sources(dlldog_cryption_core
+add_library(static_dog_cryption_core STATIC)
+target_sources(static_dog_cryption_core
+PRIVATE
+    ${resource_code_file}
+)
+
+add_library(shared_dog_cryption_core SHARED)
+set_target_properties(shared_dog_cryption_core PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shared_dog_cryption_core")
+target_compile_definitions(shared_dog_cryption_core PRIVATE SHARED DOG_CRYPTION_CORE_EXPORT)
+target_sources(shared_dog_cryption_core
 PRIVATE
     include/cryption/export.h
-    include/cryption/big_number.h
-    src/big_number.cpp
-    include/cryption/data_bytes.h
-    src/data_bytes.cpp
-    include/cryption/hash.h
-    src/hash.cpp
-    include/cryption/symmetric_encryption.h
-    src/symmetric_encryption.cpp
-    include/cryption/dog_cryption.h
+    ${resource_code_file}
 )
 
 

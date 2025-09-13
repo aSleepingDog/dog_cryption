@@ -1,0 +1,24 @@
+#define HASH_TABEL {\
+    { "./page/home.css",                                  "7FC9FE472A1862EEF198929EFE1258A9B8942EF7F0D243C115F60848113F041E" },\
+    { "./page/home.html",                                 "4B23CBB0457FF5942651909242D115930C587024FE3D28A6438A3AD160CC0DBC" },\
+    { "./page/home.js",                                   "92D3D16BB4B969D369491C95FE6EA9BB11E10A505511B677B72A3619433CDC9F" },\
+    { "./page/qwebchannel.js",                            "11A729305F8DECA8F8F6C8B3A2218F613AAA47816B67B6141498FAB3752E15A3" },\
+    { "./page/resource/ArrowsRightLeft.svg",              "DBDBD131CD8721ED7B8318EAECA69ED8BB262D4642B093DB423D2BAC3D47DE16" },\
+    { "./page/resource/cplusplus.svg",                    "7FF8253551235E3A6B002A7C2BD6E3190D85113A64FCB40F2254473CAEB025D4" },\
+    { "./page/resource/css3.svg",                         "36B7D94B657D571D3F94042ACBF6A4C86A5301A222F83F4B4583AD2ACF6E297D" },\
+    { "./page/resource/Hashtag.svg",                      "D60624778FBF20721A47253EC9F043AC8AD90A0464A21ABFDAB8025ECA816F55" },\
+    { "./page/resource/hashTag0.svg",                     "1FCA1C41FCA3363D08DDA2AA07E1E1CA4763315D607A44F62AC9FFD6D27C0C98" },\
+    { "./page/resource/html5.svg",                        "34826E5B3315DAADF4FA15F723A3C1D5BA4A89277BFD94E22AC4D7D3D54338C5" },\
+    { "./page/resource/javascript.svg",                   "0656FF65FC8EEACDA5C78D7F9FFE91EC1EB919DB64F56E0B7DCD460AF4BBD36C" },\
+    { "./page/resource/LockClosed.svg",                   "49FEB6E288C0425EBB72A4E279DCF8B6613C9B30050408D1A7E6FA6D9AF7B9CC" },\
+    { "./page/resource/LockOpen.svg",                     "A922A5A31702C9E711EFFBDF3281E3DBC077771938D983D3A32728EAAA6AD6B2" },\
+    { "./page/resource/msyh.ttc",                         "D79C55E68B1131EEA0CC1C47BE4F572D964F28C682E143DB2AD09C1E4CB07A3F" },\
+    { "./page/resource/msyhbd.ttc",                       "4508821B3DFFE01F0EF5E5326A3E60DF705A44633858811F67B6982DCE3F6EE6" },\
+    { "./page/resource/msyhl.ttc",                        "7E9BDF90BB5D3FE1B5975FC8AE31944B8FA674122261F92C28D4EC0B9C482FA1" },\
+    { "./page/resource/NotoColorEmoji.ttf",               "3ED77810C203E1A67735DC19D395F32C23F2D7C0C3696690F4F78E15E57AB816" },\
+    { "./page/resource/NotoSansSC-VF.ttf",                "763146584CF0710223441356B4395E279021B0806C196614377A7A0174AE074A" },\
+    { "./page/resource/qt.svg",                           "03B72B7D8C57FCEDFAAAC7052E8B2B0ABFB65FE11910A8A14B1D7FBBD69E1332" },\
+    { "./page/resource/task.svg",                         "25E15697A20BFFF64440850AAB2B7FDA6FA29B2A895C1421418C9E9187A67786" },\
+    { "./page/resource/联想小新黑体_常规.ttf",            "077F13D68FD1832564E2A1B0678F0D36EC339D068F3608C6EF95A6BC8D74835E" },\
+}
+//此文件由程序生成,请勿手动修改

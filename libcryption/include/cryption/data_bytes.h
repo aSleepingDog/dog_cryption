@@ -1,8 +1,8 @@
 #pragma once
 #ifdef SHARED
-#include "export.h"
+	#include "export.h"
 #else
-#define DOG_CRYPTION_API
+	#define DOG_CRYPTION_API
 #endif
 #include <any>
 #include <map>
@@ -13,23 +13,12 @@
 
 #include "big_number.h"
 
-class DOG_CRYPTION_API DogException : public std::exception
-{
-private:
-	std::string msg;
-public:
-	DogException(const char* msg, const char* file, const char* function, uint64_t line);
-	~DogException() = default;
-	virtual const char* what() const throw();
-};
-
 namespace dog_data
 {
 	class DOG_CRYPTION_API Data
 	{
 	private:
 		std::vector<uint8_t> inside_data;
-
 	public:
 		const static int UTF8 = 0;
 		const static int BASE64 = 1;
@@ -40,7 +29,7 @@ namespace dog_data
 		Data(const char* str, const int type = 2) : Data(std::string(str), type) {};
 		Data(uint64_t size);
 
-        Data(const Data& other);
+		Data(const Data& other);
 		void operator=(const Data& other);
 		Data(Data&& other) noexcept;
 		~Data();
@@ -68,13 +57,13 @@ namespace dog_data
 		std::vector<char> getBase64Vector(char a, char b);
 		std::vector<char> getBase64Vector(char a, char b, char c);
 		std::vector<char> getHexVector(bool is_upper = true);
-		
+
 		std::string getUTF8String();
 		std::string getBase64String();
 		std::string getBase64String(char a, char b);
 		std::string getBase64String(char a, char b, char c);
 		std::string getHexString(bool is_upper = true);
-		
+
 		dog_data::Data sub_by_pos(uint64_t start, uint64_t end) const;
 		dog_data::Data sub_by_len(uint64_t start, uint64_t len) const;
 
@@ -148,8 +137,6 @@ namespace dog_data
 		friend Data operator+(const Data& a, const Data b);
 		Data concat(const Data& b) const;
 	};
-
-	extern DOG_CRYPTION_API const Data EMPTY_DATA;
 
 	class DOG_CRYPTION_API DataStream
 	{

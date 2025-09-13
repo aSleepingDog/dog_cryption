@@ -227,7 +227,7 @@ void clear_print()
     }
 }
 
-work::TaskPool* task_pool = new work::TaskPool(std::thread::hardware_concurrency());
+dog_work::TaskPool* task_pool = new dog_work::TaskPool(std::thread::hardware_concurrency());
 std::unordered_map<uint64_t, std::unordered_map<std::string, std::any>> task_info;
 
 void update_task()
@@ -310,7 +310,7 @@ int main()
             
             auto output_args = get_data_type("(输出)");
             
-            work::Timer timer;
+            dog_work::Timer timer;
             timer.start();
             dog_data::Data data(text, std::any_cast<int>(input_args["type"]));
             if (std::any_cast<int>(output_args["type"]) == -1)
@@ -395,7 +395,7 @@ int main()
             auto output_args = get_data_type("(输出)");
             if (std::any_cast<int>(input_args["type"]) != 3)
             {
-                work::Timer timer;
+                dog_work::Timer timer;
                 timer.start();
                 if (std::any_cast<int>(output_args["type"]) == -1)
                 {

@@ -23,19 +23,30 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+add_executable(qtWebFileCheck)
+set_target_properties(qtWebFileCheck PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qtWebFileCheck")
+target_sources(qtWebFileCheck
+    PRIVATE
+        file_check.cpp
+)
+target_link_libraries(qtWebFileCheck PRIVATE static_dog_cryption_core)
+
+#出现Cannot find source file: file_check_hash. 请将qtWebFileCheck拖到gui/qtweb/目录下运行
 add_executable(qtWebStatic)
 set_target_properties(qtWebStatic PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qtWebStatic")
 target_sources(qtWebStatic
     PRIVATE
+        file_check_hash.h
         qtwin.cpp
 )
-target_link_libraries(qtWebStatic PRIVATE libdog_cryption_core libdog_cryption_task Qt6::Core Qt6::Widgets Qt6::Gui Qt6::WebEngineWidgets)
+target_link_libraries(qtWebStatic PRIVATE static_dog_cryption_core static_dog_cryption_task Qt6::Core Qt6::Widgets Qt6::Gui Qt6::WebEngineWidgets)
 
 add_executable(qtWebShared)
 target_compile_definitions(qtWebShared PRIVATE SHARED)
 set_target_properties(qtWebShared PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qtWebShared")
 target_sources(qtWebShared
     PRIVATE
+        file_check_hash.h
         qtwin.cpp
 )
-target_link_libraries(qtWebShared PRIVATE dlldog_cryption_core dlldog_cryption_task Qt6::Core Qt6::Widgets Qt6::Gui Qt6::WebEngineWidgets)
+target_link_libraries(qtWebShared PRIVATE shared_dog_cryption_core shared_dog_cryption_task Qt6::Core Qt6::Widgets Qt6::Gui Qt6::WebEngineWidgets)

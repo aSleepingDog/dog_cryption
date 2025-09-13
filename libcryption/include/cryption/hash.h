@@ -11,17 +11,10 @@
 #include <condition_variable>
 
 #include "data_bytes.h"
+#include "dog_exception.h"
 namespace dog_hash
 {
-	class DOG_CRYPTION_API HashException : public std::exception
-	{
-	private:
-		std::string msg;
-	public:
-		HashException(const char* msg, const char* file, const char* function, uint64_t line);
-		~HashException() = default;
-		virtual const char* what() const throw();
-	};
+	using HashException = dog_exception::Exception;
 
 	class DOG_CRYPTION_API HashConfig
 	{

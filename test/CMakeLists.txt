@@ -8,7 +8,7 @@ target_sources(cmd_test
     PRIVATE
         cmd_test.cpp
 )
-target_link_libraries(cmd_test PRIVATE libdog_cryption_core)
+target_link_libraries(cmd_test PRIVATE static_dog_cryption_core)
 
 # add_executable(crypt_file_test)
 # set_target_properties(crypt_file_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/crypt_file_test")

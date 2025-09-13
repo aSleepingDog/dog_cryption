@@ -1,19 +1,39 @@
 v1.0.0-2025.08.02
-new
-添加前端文件校验
-fix
-修改散列器重置计数器不置0
+新增
+ 添加前端文件校验
+bug修复
+ 修改散列器重置计数器不置0
+
 v1.1.0-2025.08.08
-new
-新增动态库支持
+新增
+ 新增动态库支持
+
 v1.1.0-2025.08.28
-new
-添加README.md
+新增
+ 添加README.md
+
 v1.2.0-2025.09.07
-new
-新增命令行版本
-修改qt版本为qtweb
-添加数字迭代器-为范围表示字符串提供输出
-fix
-散列函数选择SM3时名称显示错误
-去掉ECB的无用inline修饰
+新增
+ 新增命令行版本
+ 修改qt版本为qtweb
+ 添加数字迭代器-为范围表示字符串提供输出
+bug修复
+ 散列函数选择SM3时名称显示错误
+ 去掉ECB的无用inline修饰
+
+v1.2.1-2025.09.14
+新增
+ work模块新增param命名空间IOConfig用于数据输入参数检测
+ 新增可以展示调用栈的自定义异常类dog_exception::Exception
+ 将dog_number,dog_data,dog_hash中的异常替换成dog_exception::Exception
+ qtWeb中加入子项目用于生成页面文件的散列值
+ 新增一个暂时不可用的命令行版本(用于跨平台测试,后续会完善)
+修改
+ 将work命名空间统一替换成dog_work
+ 将qtWeb中的页面统一收入page文件夹
+ updateList.txt的样式修改
+
+未来
+ 加入twofish算法
+ qtWeb加入多文件选择支持
+ 添加Linux,MacOS,hmOS适配

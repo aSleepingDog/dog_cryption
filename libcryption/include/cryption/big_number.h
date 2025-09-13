@@ -18,17 +18,11 @@
 #include <exception>
 #include <functional>
 
+#include "dog_exception.h"
+
 namespace dog_number
 {
-	class DOG_CRYPTION_API NumberException : public std::exception
-	{
-	private:
-		std::string msg;
-	public:
-		NumberException(const char* msg, const char* file, const char* function, uint64_t line);
-		~NumberException() = default;
-		virtual const char* what() const throw();
-	};
+	using NumberException = dog_exception::Exception;
 
 	namespace integer
 	{

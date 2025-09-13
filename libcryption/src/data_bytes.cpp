@@ -1,14 +1,5 @@
 #include "../include/cryption/data_bytes.h"
 
-DogException::DogException(const char* msg, const char* file, const char* function, uint64_t line)
-{
-    this->msg = std::format("{}:{}\n at {}({}:{})", typeid(*this).name(), msg, function, file, line);
-}
-const char* DogException::what() const throw()
-{
-    return this->msg.c_str();
-}
-
 dog_data::Data::Data(std::string str, const int type)
 {
     if (type == 0)//常规字符串
@@ -705,7 +696,7 @@ dog_data::Data dog_data::operator&(const Data d1, const Data d2)
 {
     if (d1.size() != d2.size())
     {
-        throw DogException("the size must be equal when AND", __FILE__, __FUNCTION__, __LINE__);
+        throw dog_exception::Exception(DOG_EXCEPTION_OPINION("the size must be equal when AND"));
     }
     dog_data::Data res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -719,7 +710,7 @@ dog_data::Data dog_data::operator|(const Data d1, const Data d2)
 {
     if (d1.size() != d2.size())
     {
-        throw DogException("the size must be equal when OR", __FILE__, __FUNCTION__, __LINE__);
+        throw dog_exception::Exception(DOG_EXCEPTION_OPINION("the size must be equal when OR"));
     }
     dog_data::Data res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -733,7 +724,7 @@ dog_data::Data dog_data::operator^(const Data d1, const Data d2)
 {
     if (d1.size() != d2.size())
     {
-        throw DogException("the size must be equal when OR", __FILE__, __FUNCTION__, __LINE__);
+        throw dog_exception::Exception(DOG_EXCEPTION_OPINION("the size must be equal when XOR"));
     }
     dog_data::Data res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -897,8 +888,6 @@ dog_data::Data dog_data::operator+(const Data& a, const Data b)
     }
     return res;
 }
-
-const dog_data::Data EMPTY_DATA = "";
 
 void dog_data::print::block(dog_data::Data data, uint64_t column)
 {
@@ -1443,7 +1432,6 @@ dog_data::Data dog_data::serialize::object(const std::map<std::string, std::any>
     return res;
 }
 
-
 std::any dog_data::serialize::read(dog_data::Data data)
 {
     dog_data::DataStream stream(data);
@@ -1744,7 +1732,8 @@ std::any dog_data::serialize::read(dog_data::DataStream& data)
         }
         return res;
     }
+    else
+    {
+        throw dog_exception::Exception(DOG_EXCEPTION_OPINION("bad data"));
+    }
 }
-
-
-

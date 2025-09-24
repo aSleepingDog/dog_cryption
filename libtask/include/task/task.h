@@ -16,6 +16,7 @@
 #include <filesystem>
 
 #include "../../../libcryption/include/cryption/dog_cryption.h"
+#include "param.h"
 
 namespace dog_work
 {
@@ -185,6 +186,7 @@ namespace dog_work
         int32_t resume_task(uint64_t id);
 
         uint64_t add_hash(std::string path, dog_hash::HashCrypher& hash_crypher, std::unordered_map<std::string,std::any> output_params);
+        uint64_t add_hash(dog_param::IOConfig input_config, dog_hash::HashCrypher& hash_crypher, dog_param::IOConfig output_config);
         uint64_t add_encrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor, 
             dog_data::Data iv, bool with_config, bool with_iv, bool with_check);
         uint64_t add_decrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor,

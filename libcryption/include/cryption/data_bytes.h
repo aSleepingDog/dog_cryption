@@ -8,6 +8,10 @@
 #include <map>
 #include <array>
 #include <vector>
+#include <cstring>
+#include <sstream>
+#include <iomanip>
+#include <variant>
 #include <iostream>
 #include <unordered_map>
 
@@ -152,10 +156,19 @@ namespace dog_data
 		uint64_t tellg() const;
 	};
 
+	namespace print
+	{
+		DOG_CRYPTION_API void block(dog_data::Data data, uint64_t column = 16);
+		DOG_CRYPTION_API void block(const char* data, uint64_t size, uint64_t column = 16);
+
+		DOG_CRYPTION_API void space(dog_data::Data data, uint64_t column = 16);
+		DOG_CRYPTION_API void space(const char* data, uint64_t size, uint64_t column = 16);
+	};
+
 	namespace buffer
 	{
 		DOG_CRYPTION_API uint64_t get_buffer_size(uint64_t file_size);
-	}
+	};
 
 	namespace serialize
 	{
@@ -195,14 +208,74 @@ namespace dog_data
 		DOG_CRYPTION_API std::any read(dog_data::DataStream& data);
 		DOG_CRYPTION_API std::any read(dog_data::Data data);
 
-	}
-
-	namespace print
+	};
+	
+	namespace utf8
 	{
-		DOG_CRYPTION_API void block(dog_data::Data data, uint64_t column = 16);
-		DOG_CRYPTION_API void block(const char* data, uint64_t size, uint64_t column = 16);
+		DOG_CRYPTION_API std::string to_utf8(uint64_t code);
+		DOG_CRYPTION_API uint64_t utf8_size(std::string str);
+		DOG_CRYPTION_API uint64_t utf8_size(const char* str);
+		DOG_CRYPTION_API std::string get_utf8_char(std::string str, uint64_t offset);
+		DOG_CRYPTION_API std::string get_utf8_char(const char* str, uint64_t offset);
 
-		DOG_CRYPTION_API void space(dog_data::Data data, uint64_t column = 16);
-		DOG_CRYPTION_API void space(const char* data, uint64_t size, uint64_t column = 16);
+	};
+
+	namespace json_any
+	{
+		DOG_CRYPTION_API std::string to_json_str();
+		DOG_CRYPTION_API std::string to_json_str(bool value);
+		DOG_CRYPTION_API std::string to_json_str(double number);
+		DOG_CRYPTION_API std::string to_json_str(const char* param);
+		DOG_CRYPTION_API std::string to_json_str(std::string param);
+		DOG_CRYPTION_API std::string to_json_str(std::vector<std::any> list, bool is_fmt, uint64_t depth);
+		DOG_CRYPTION_API std::string to_json_str(std::unordered_map<std::string, std::any> object, bool is_fmt, uint64_t depth);
+		DOG_CRYPTION_API std::string to_json_str(std::unordered_map<std::string, std::any> object, bool is_fmt);
+
+		DOG_CRYPTION_API void skip_space_char(std::string::const_iterator& now);
+		DOG_CRYPTION_API bool is_type_start(std::string::const_iterator& now);
+
+		DOG_CRYPTION_API void null_from_json_str(std::string& str, std::string::const_iterator& now);
+		DOG_CRYPTION_API bool bool_from_json_str(std::string& str, std::string::const_iterator& now);
+		DOG_CRYPTION_API double number_from_json_str(std::string& str, std::string::const_iterator& now);
+		DOG_CRYPTION_API std::string string_from_json_str(std::string& str, std::string::const_iterator& now);
+
+		DOG_CRYPTION_API std::vector<std::any> array_from_json_str(std::string& str, std::string::const_iterator& now);
+		DOG_CRYPTION_API std::unordered_map<std::string, std::any> object_from_json_str(std::string& str, std::string::const_iterator& now);
 	}
+
+	class JsonValue
+	{
+	private:
+		std::variant<
+			std::nullptr_t,bool,double,std::string,std::vector<JsonValue>,std::unordered_map<std::string, JsonValue>
+		> value_;
+	public:
+		JsonValue();
+		JsonValue(bool value);
+		JsonValue(double value);
+		JsonValue(std::string value);
+		JsonValue(std::vector<JsonValue> value);
+		JsonValue(std::unordered_map<std::string, JsonValue> value);
+		std::string to_string(bool is_fmt, uint64_t depth);
+	};
+
+	class JsonObject
+	{
+	private:
+		std::unordered_map<std::string, JsonValue> value_;
+	public:
+		JsonObject();
+		JsonObject(std::unordered_map<std::string, JsonValue> value);
+		std::string to_string(bool is_fmt, uint64_t depth);
+	};
+
+	class JsonArray
+	{
+	private:
+		std::vector<JsonValue> value_;
+	public:
+		JsonArray();
+		JsonArray(std::vector<JsonValue> value);
+		std::string to_string(bool is_fmt, uint64_t depth);
+	};
 }

@@ -28,8 +28,9 @@ namespace dog_param
 		*/
 	private:
 		std::unordered_map<std::string, std::any> params_;
+		bool is_input_;
 	public:
-		IOConfig(std::unordered_map<std::string, std::any> params);
+		IOConfig(std::unordered_map<std::string, std::any> params, bool is_input);
 		bool is_file();
 		bool is_data();
 		uint64_t get_data_type();
@@ -40,5 +41,7 @@ namespace dog_param
 		bool get_is_upper();
 		dog_data::Data get_data();
 		std::string get_file_path();
+		std::string fmt_data(dog_data::Data data);
+		std::string get_ori_str();
 	};
 }

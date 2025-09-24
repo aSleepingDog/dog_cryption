@@ -3390,7 +3390,7 @@ bool dog_number::region::gap::is_effective(std::string region_str)
 		}
 		else if (c == '$')
 		{
-			list[i] = 0xffffffffffffffffui64;
+			list[i] = 0xffffffffffffffff;
 			i++;
 			n = nullptr;
 		}
@@ -3438,7 +3438,7 @@ std::array<uint64_t, 3> dog_number::region::gap::get_list(std::string region_str
 		}
 		else if (c == '$')
 		{
-			list[i] = 0xffffffffffffffffui64;
+			list[i] = 0xffffffffffffffff;
 			i++;
 			n = nullptr;
 		}

@@ -11,9 +11,15 @@ throw DOG_WRONG_TYPE_EXCEPTION(key, params[key].type(), typeid(type_name));\
 }\
 this->params_[key] = params[key];
 
-dog_param::IOConfig::IOConfig(std::unordered_map<std::string, std::any> params)
+dog_param::IOConfig::IOConfig(std::unordered_map<std::string, std::any> params, bool is_input)
 {
-	IOConfig_CHECK_TYPE_AND_FILL("ori_str", std::string);
+	this->is_input_ = is_input;
+	std::string ori_str = "";
+	if (is_input)
+	{
+		IOConfig_CHECK_TYPE_AND_FILL("ori_str", std::string);
+		ori_str = std::any_cast<std::string>(this->params_["ori_str"]);
+	}
 	IOConfig_CHECK_TYPE_AND_FILL("is_file", bool);
 	/*
 	if (std::any_cast<bool>(this->params_["is_file"]))
@@ -26,7 +32,6 @@ dog_param::IOConfig::IOConfig(std::unordered_map<std::string, std::any> params)
 	}
 	*/
 	IOConfig_CHECK_TYPE_AND_FILL("type", uint64_t);
-	std::string ori_str = std::any_cast<std::string>(this->params_["ori_str"]);
 	if (std::any_cast<uint64_t>(this->params_["type"]) > 2)
 	{
 		throw DOG_EXCEPTION(std::format("type必须是0,1,2 当前{}",std::any_cast<uint64_t>(this->params_["type"])));
@@ -34,14 +39,17 @@ dog_param::IOConfig::IOConfig(std::unordered_map<std::string, std::any> params)
 	else if (std::any_cast<uint64_t>(this->params_["type"]) == 2)
 	{
 		IOConfig_CHECK_TYPE_AND_FILL("is_upper", bool);
-		for (uint64_t i = 0; i < ori_str.size();++i)
+		if (is_input)
 		{
-			char c = ori_str[i];
-			if ((c < '0' || c > '9') && (c < 'A' || c>'F') && (c < 'a' || c>'f'))
+			for (uint64_t i = 0; i < ori_str.size(); ++i)
 			{
-				throw DOG_EXCEPTION(std::format("Hex16进制字符串中只能包含0123456789ABCDEFabcdef 错误出现在{}", 
-					ori_str.substr(i-2,5)
-				));
+				char c = ori_str[i];
+				if ((c < '0' || c > '9') && (c < 'A' || c>'F') && (c < 'a' || c>'f'))
+				{
+					throw DOG_EXCEPTION(std::format("Hex16进制字符串中只能包含0123456789ABCDEFabcdef 错误出现在{}",
+						ori_str.substr(i - 2, 5)
+					));
+				}
 			}
 		}
 	}
@@ -51,8 +59,8 @@ dog_param::IOConfig::IOConfig(std::unordered_map<std::string, std::any> params)
 		IOConfig_CHECK_TYPE_AND_FILL("replace1", char);
 		IOConfig_CHECK_TYPE_AND_FILL("replace2", char);
 		char replace0 = std::any_cast<char>(this->params_["replace0"]);
-		char replace1 = std::any_cast<char>(this->params_["replace0"]);
-		char replace2 = std::any_cast<char>(this->params_["replace0"]);
+		char replace1 = std::any_cast<char>(this->params_["replace1"]);
+		char replace2 = std::any_cast<char>(this->params_["replace2"]);
 		char allow_list[34] = " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 		bool is_replace0_in = false;
 		bool is_replace1_in = false;
@@ -94,6 +102,22 @@ dog_param::IOConfig::IOConfig(std::unordered_map<std::string, std::any> params)
 		{
 			throw DOG_EXCEPTION("base64的替换字符两两不能相同");
 		}
+		if (is_input)
+		{
+			for (uint64_t i = 0; i < ori_str.size(); ++i)
+			{
+				if ((ori_str[i] < '0' || ori_str[i] > '9') &&
+					(ori_str[i] < 'A' || ori_str[i] > 'Z') &&
+					(ori_str[i] < 'a' || ori_str[i] > 'z') &&
+					(ori_str[i] != replace0) && (ori_str[i] != replace1) && (ori_str[i] != replace2)
+					)
+				{
+					throw DOG_EXCEPTION(std::format("base64{}{}{}进制字符串中只能包含0123456789ABCDEFabcdef 错误出现在{}",
+						replace0, replace1, replace2, ori_str.substr(i - 2, 5)
+					));
+				}
+			}
+		}
 	}
 }
 bool dog_param::IOConfig::is_file()
@@ -114,7 +138,7 @@ bool dog_param::IOConfig::is_data()
 }
 uint64_t dog_param::IOConfig::get_data_type()
 {
-	if (this->params_.find("is_file") != this->params_.end())
+	if (std::any_cast<bool>(this->params_["is_file"]))
 	{
 		throw DOG_EXCEPTION("该IOConfig是文件类型，没有data_type");
 	}
@@ -122,7 +146,7 @@ uint64_t dog_param::IOConfig::get_data_type()
 }
 std::string dog_param::IOConfig::get_IO_string()
 {
-	if (this->params_.find("is_file") != this->params_.end())
+	if (std::any_cast<bool>(this->params_["is_file"]))
 	{
 		return std::string("文件");
 	}
@@ -214,5 +238,36 @@ std::string dog_param::IOConfig::get_file_path()
 	}
 	return std::any_cast<std::string>(this->params_["ori_str"]);
 }
+std::string dog_param::IOConfig::fmt_data(dog_data::Data data)
+{
+	if (this->is_file())
+	{
+		throw DOG_EXCEPTION("该IOConfig是文件类型，无法格式化data");
+	}
+	switch (this->get_data_type())
+	{
+	case 0:
+	{
+		return data.getUTF8String();
+	}
+	case 1:
+	{
+		return data.getBase64String(this->get_replace0(), this->get_replace1(), this->get_replace2());
+	}
+	case 2:
+	{
+		return data.getHexString(this->get_is_upper());
+	}
+	}
+}
+std::string dog_param::IOConfig::get_ori_str()
+{
+	if (!this->is_input_)
+	{
+		throw DOG_EXCEPTION("该IOConfig是输出类型，没有ori_str");
+	}
+	return std::any_cast<std::string>(this->params_["ori_str"]);
+}
+
 #undef IOConfig_CHECK_TYPE_AND_FILL
 #undef DOG_WRONG_TYPE_EXCEPTION

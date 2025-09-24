@@ -18,6 +18,7 @@
 #include <exception>
 #include <functional>
 #include <unordered_map>
+#include <condition_variable>
 
 #include "data_bytes.h"
 

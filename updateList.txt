@@ -33,6 +33,12 @@ v1.2.1-2025.09.14
  将qtWeb中的页面统一收入page文件夹
  updateList.txt的样式修改
 
+v1.2.2-2025.0925
+新增
+ bytes新增utf8字符串处理和Json类型处理函数和对象（支持std::any和std::variant版本）
+修改
+ 对param内的IOConfig的output模式添加输出
+
 未来
  加入twofish算法
  qtWeb加入多文件选择支持

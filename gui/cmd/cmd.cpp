@@ -2,6 +2,8 @@
 #include<cstdint>
 #include<thread>
 
+#include <cstdint>
+
 #include "../../libcryption/include/cryption/dog_cryption.h"
 #include "../../libtask/include/task/task.h"
 
@@ -35,6 +37,217 @@ uint32_t OScode()
 #endif
     return -1;
 }
+std::vector<std::string> get_args()
+{
+    auto get_utf8_str = [](uint64_t number)
+        {
+            std::string result = "";
+            if (number <= 0x7F)
+            {
+                result += (char)number;
+            }
+            else if (number <= 0x7FF)
+            {
+                result += (char)(0b11000000 | ((number >> 06) & 0x1F));
+                result += (char)(0b10000000 | ((number >> 00) & 0x3F));
+            }
+            else if (number <= 0xFFFF)
+            {
+                result += (char)(0b11100000 | ((number >> 12) & 0x0F));
+                result += (char)(0b10000000 | ((number >> 06) & 0x3F));
+                result += (char)(0b10000000 | ((number >> 00) & 0x3F));
+            }
+            else if (number <= 0x1FFFFF)
+            {
+                result += (char)(0b11110000 | ((number >> 18) & 0x07));
+                result += (char)(0b10000000 | ((number >> 12) & 0x3F));
+                result += (char)(0b10000000 | ((number >> 06) & 0x3F));
+                result += (char)(0b10000000 | ((number >> 00) & 0x3F));
+            }
+            else if (number <= 0x3FFFFFF)
+            {
+                result += (char)(0b11111000 | ((number >> 24) & 0x03));
+                result += (char)(0b10000000 | ((number >> 18) & 0x3F));
+                result += (char)(0b10000000 | ((number >> 12) & 0x3F));
+                result += (char)(0b10000000 | ((number >> 06) & 0x3F));
+                result += (char)(0b10000000 | ((number >> 00) & 0x3F));
+            }
+            else if (number <= 0x7FFFFFFF)
+            {
+                result += (char)(0b11111100 | ((number >> 30) & 0x01));
+                result += (char)(0b10000000 | ((number >> 24) & 0x3F));
+                result += (char)(0b10000000 | ((number >> 18) & 0x3F));
+                result += (char)(0b10000000 | ((number >> 12) & 0x3F));
+                result += (char)(0b10000000 | ((number >> 06) & 0x3F));
+                result += (char)(0b10000000 | ((number >> 00) & 0x3F));
+            }
+            return result;
+        };
+    std::vector<std::string> args;
+    std::string input = "";
+    std::string param = "";
+    uint64_t number = 0;
+    uint64_t number_size = 0;
+    std::getline(std::cin, input);
+    bool is_string = false;
+    uint64_t is_trun = 0;//0常规 1单转义 2/x十六进制转义 3/u\U unicode字符转义 4八进制转移
+    for (auto& c : input)
+    {
+        if (c == ' ' && !is_string && param != "")
+        {
+            args.emplace_back(param);
+            param = "";
+        }
+        else if (c == '"' && is_trun == 0)
+        {
+            is_string = !is_string;
+        }
+        else if (c == '\\' && is_trun == 0)
+        {
+            is_trun = 1;
+            number_size = 3;
+        }
+        else if (c == '\\' && is_trun == 1)
+        {
+            param.push_back(0x92);
+            is_trun = 0;
+        }
+        else if (c == '\\' && is_trun > 1)
+        {
+            number_size = 0;
+            if (is_trun == 4 || is_trun == 2)
+            {
+                param.push_back((char)(number & 0xFF));
+            }
+            else if (is_trun == 3)
+            {
+                param += get_utf8_str(number);
+            }
+            number = 0;
+            is_trun = 1;
+        }
+        else if (c == 'a' && is_trun == 1)
+        {
+            param.push_back(0x07);
+            is_trun = 0;
+        }
+        else if (c == 'b' && is_trun == 1)
+        {
+            param.push_back(0x08);
+            is_trun = 0;
+        }
+        else if (c == 'f' && is_trun == 1)
+        {
+            param.push_back(0x0C);
+            is_trun = 0;
+        }
+        else if (c == 'n' && is_trun == 1)
+        {
+            param.push_back(0x0A);
+            is_trun = 0;
+        }
+        else if (c == 'r' && is_trun == 1)
+        {
+            param.push_back(0x0D);
+            is_trun = 0;
+        }
+        else if (c == 't' && is_trun == 1)
+        {
+            param.push_back(0x09);
+            is_trun = 0;
+        }
+        else if (c == 'v' && is_trun == 1)
+        {
+            param.push_back(0x0B);
+            is_trun = 0;
+        }
+        else if (c == '\'' && is_trun == 1)
+        {
+            param.push_back('\'');
+            is_trun = 0;
+        }
+        else if (c == '"' && is_trun == 1)
+        {
+            param.push_back('"');
+            is_trun = 0;
+        }
+        else if (c == '?' && is_trun == 1)
+        {
+            param.push_back('?');
+            is_trun = 0;
+        }
+        else if (c == '\0' && is_trun == 1)
+        {
+            param.push_back(0x00);
+            is_trun = 0;
+        }
+        else if ((c >= '0' && c <= '7') && is_trun == 1)
+        {
+            is_trun = 4;
+            number = number * 8 + (c - '0');
+            number_size = 2;
+        }
+        else if ((c >= '0' && c <= '7') && number_size != 0 && is_trun == 4)
+        {
+            number = number * 8 + (c - '0');
+            number_size--;
+        }
+        else if (c == 'x' && is_trun == 1)
+        {
+            is_trun = 2;
+            number_size = 2;
+        }
+        else if (c == 'u' && is_trun == 1)
+        {
+            is_trun = 3;
+            number_size = 4;
+        }
+        else if (c == 'U' && is_trun == 1)
+        {
+            is_trun = 3;
+            number_size = 8;
+        }
+        else if ((c >= '0' && c <= '9') && number_size != 0 && (is_trun == 2 || is_trun == 3))
+        {
+            number = number * 16 + (c - '0');
+            number_size--;
+        }
+        else if ((c >= 'a' && c <= 'f') && number_size != 0 && (is_trun == 2 || is_trun == 3))
+        {
+            number = number * 16 + ((c - 'a') + 10);
+            number_size--;
+        }
+        else if ((c >= 'A' && c <= 'F') && number_size != 0 && (is_trun == 2 || is_trun == 3))
+        {
+            number = number * 16 + ((c - 'A') + 10);
+            number_size--;
+        }
+        else
+        {
+            number_size = 0;
+            if (is_trun == 4 || is_trun == 2)
+            {
+                param.push_back((char)(number & 0xFF));
+            }
+            else if (is_trun == 3)
+            {
+                param += get_utf8_str(number);
+            }
+            is_trun = 0;
+            number = 0;
+            param.push_back(c);
+        }
+    }
+    if (is_trun != 0)
+    {
+        param += get_utf8_str(number);
+    }
+    if (param != "")
+    {
+        args.emplace_back(param);
+    }
+    return args;
+}
 bool effect_char(char c, std::string range)
 {
     for (int i = 0; i < range.size(); i++)
@@ -58,84 +271,92 @@ bool effect_str(std::string str, std::string range)
     }
     return true;
 }
-std::unordered_map<std::string, std::any> get_data_type(std::string sign)
+dog_param::IOConfig get_data_type(std::string sign, bool allow_file, bool is_input)
 {
-    std::string input = "";
-    std::unordered_map<std::string, std::any> result;
-    std::unordered_map<std::string, std::any> error;
-    std::cout << std::format("请输入数据类型{}",sign) << std::endl;
-    std::cout << "数据类型可以为 utf8 base64[][][] hex/Hex file" << std::endl;
-    std::cout << "[]中可以填入 (空格) ! \" # $ % & ' ( ) * + , - .  / : ; < = > ? @ [ \\ ] ^ _ ` { | } ~ 其中两两不能相同" << std::endl;
-    std::getline(std::cin, input);
-    if (input == "utf8")
+    std::string type_str = "";
+    std::string param = "";
+    std::unordered_map<std::string, std::any> map;
+    if (allow_file)
     {
-        result["type"] = 0;
-    }
-    else if (input == "hex")
-    {
-        result["type"] = 2;
-        result["is_upper"] = false;
-    }
-    else if (input == "Hex")
-    {
-        result["type"] = 2;
-        result["is_upper"] = true;
-    }
-    else if (input == "file")
-    {
-        result["type"] = 3;
-    }
-    else if (input.size() >= 6)
-    {
-        result["type"] = 1;
-        if (input.substr(0, 6) == "base64" && input.size() == 6)
-        {
-            result["char1"] = '+';
-            result["char2"] = '/';
-            result["char3"] = '=';
-        }
-        else if (input.substr(0, 6) == "base64" && input.size() == 9)
-        {
-            if (input[6] == input[7] || input[7] == input[8] || input[8] == input[6])
-            {
-                error["type"] = -1;
-                error["msg"] = std::string("base64 +/=的替换字符两两不能相同");
-                return error;
-            }
-            if (!effect_char(input[6], " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~") ||
-                !effect_char(input[7], " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~") ||
-                !effect_char(input[8], " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
-                )
-            {
-                error["type"] = -1;
-                error["msg"] = std::string("base64 +/=的替换字符只能是(空格) ! \" # $ % & ' ( ) * + , - .  / : ; < = > ? @ [ \\ ] ^ _ ` { | } ~");
-                return error;
-            }
-            result["char1"] = input[6];
-            result["char2"] = input[7];
-            result["char3"] = input[8];
-        }
-        else
-        {
-            error["type"] = -1;
-            error["msg"] = std::string("输入数据类型错误");
-            return error;
-        }
-        return result;
+        std::cout << std::format("请输入数据类型{}", sign) << std::endl;
+        std::cout << "数据类型可以为 utf8/base64[][][]/hex Hex/file" << std::endl;
+        std::cout << "[]中可以填入 (空格) ! \" # $ % & ' ( ) * + , - .  / : ; < = > ? @ [ \\ ] ^ _ ` { | } ~ 其中两两不能相同" << std::endl;
+        std::cout << "示例:\nutf8\nHex\nhex\nbase64\nbase64-_*\nfile" << std::endl;
     }
     else
     {
-        error["type"] = -1;
-        error["msg"] = std::string(std::format("{}数据类型错误", sign));
-        return error;
+        std::cout << std::format("请输入数据类型{}", sign) << std::endl;
+        std::cout << "数据类型可以为 utf8/base64[][][]/hex Hex" << std::endl;
+        std::cout << "[]中可以填入 (空格) ! \" # $ % & ' ( ) * + , - .  / : ; < = > ? @ [ \\ ] ^ _ ` { | } ~ 其中两两不能相同" << std::endl;
+        std::cout << "示例:\nutf8\nHex\nhex\nbase64\nbase64-_*" << std::endl;
     }
-    return result;
+    std::vector<std::string> params = get_args();
+    if (params.size() == 0)
+    {
+        throw DOG_EXCEPTION(std::format("参数数量不足 需要1当前{}", params.size()));
+    }
+    param = params[0];
+    map["is_file"] = false;
+    if (param == "utf8")
+    {
+        map["is_file"] = false;
+        map["type"] = (uint64_t)0;
+    }
+    else if (param == "Hex")
+    {
+        map["type"] = (uint64_t)2;
+        map["is_file"] = false;
+        map["is_upper"] = true;
+    }
+    else if (param == "hex")
+    {
+        map["type"] = (uint64_t)2;
+        map["is_file"] = false;
+        map["is_upper"] = false;
+    }
+    else if (param == "file" && allow_file)
+    {
+        map["is_file"] = true;
+    }
+    else if (param.substr(0, 6) == "base64")
+    {
+        map["is_file"] = false;
+        map["type"] = (uint64_t)1;
+        if (param.size() == 6)
+        {
+            map["replace0"] = '+';
+            map["replace1"] = '/';
+            map["replace2"] = '=';
+        }
+        if (param.size() == 9)
+        {
+            map["replace0"] = (char)param[6];
+            map["replace1"] = (char)param[7];
+            map["replace2"] = (char)param[8];
+        }
+    }
+    if (is_input)
+    {
+        if (allow_file)
+        {
+            std::cout << "请输入文本或文件路径" << std::endl;
+            std::cout << "示例:\n123\nC:/Users/123.txt" << std::endl;
+        }
+        else
+        {
+            std::cout << "请输入文本" << std::endl;
+            std::cout << "示例:\n123" << std::endl;
+        }
+        std::getline(std::cin, param);
+        map["ori_str"] = param;
+    }
+    return dog_param::IOConfig(map, is_input);
 }
-std::unordered_map<std::string, std::any> get_hash_type()
+
+dog_hash::HashCrypher get_hash_type()
 {
     std::string input = "";
-    uint64_t number = 0;
-    std::unordered_map<std::string, std::any> result;
+    std::vector<std::string> params;
     std::cout << "请输入散列类型[hash] [type] 可选项如下 示例SHA2 256" << std::endl;
     for (auto one : dog_hash::list)
     {
@@ -149,40 +370,49 @@ std::unordered_map<std::string, std::any> get_hash_type()
         }
         std::cout << std::endl;
     }
-    std::cin >> input;
-    std::cin >> number;
+    auto args = get_args();
+    if (args.size() != 2)
+    {
+        throw DOG_EXCEPTION(std::format("参数过少 需要2 当前{}", args.size()));
+    }
+    std::string hash_name = args[0];
+    uint64_t number = 0;
+    try
+    {
+        number = std::stoull(args[1]);
+    }
+    catch (std::exception& e)
+    {
+        throw DOG_EXCEPTION(std::format("此处应该输入数字{}", args[1]));
+    }
     for (auto one : dog_hash::list)
     {
-        if (one.name == input)
+        if (one.name == args[0])
         {
             if (dog_number::region::is_fall(one.region, number/8))
             {
-                result["effective"] = true;
-                auto d = dog_hash::HashCrypher(one.name, number / 8);
-                result["hasher"] = dog_hash::HashCrypher(one.name, number/8);
+                return dog_hash::HashCrypher(one.name, number / 8);
             }
             else
             {
-                result["effective"] = false;
-                result["msg"] = std::string(std::format("{} 的散列类型不支持 {} 位", input, number));
+                throw DOG_EXCEPTION(std::format("{} 的散列类型不支持 {} 位", one.name, number));
             }
         }
     }
-    if (result.size() == 0)
-    {
-        result["effective"] = false;
-        result["msg"] = std::string(std::format("不支持的的散列类型 {}", input));
-    }
-    std::getline(std::cin, input);
-    return result;
+    throw DOG_EXCEPTION(std::format("不支持的的散列类型 {}", args[0]));
 }
 std::string fmt_time(double time)
 {
     const std::vector<std::pair<uint64_t, std::string>> list = {
     {1000,"us"},{1000,"ms"},{60,"s"},{60,"min"},{24,"h"},{30,"d"}};
     std::string result = "";
-    for (uint64_t i = 0; i < list.size(); ++i) {
+    for (uint64_t i = 0; i < list.size(); ++i) 
+    {
         uint64_t nowPoint = (uint64_t)time % list[i].first;
+        if (nowPoint == 0)
+        {
+            break;
+        }
         result = std::format("{}{}{}", nowPoint, list[i].second, result);
         time = time / list[i].first;
         if (time == 0) 
@@ -252,263 +482,149 @@ int main()
         std::cout << "简易散列加密解密散列" << std::endl;
         std::cout << "1-文本数据转换" << std::endl;
         std::cout << "2-数据散列计算" << std::endl;
-        //std::cout << "3-数据对称加密" << std::endl;
-        //std::cout << "4-数据对称解密" << std::endl;
+        std::cout << "3-数据对称加密" << std::endl;
+        std::cout << "4-数据对称解密" << std::endl;
         std::cout << "5-运行任务管理" << std::endl;
         std::cout << "0-退出当前程序" << std::endl;
+        std::string operate_code_str = "";
+        std::getline(std::cin, operate_code_str);
         int operate_code = 0;
-        std::cin >> operate_code;
-        getchar();
-        switch (operate_code)
+        try
         {
-        case 0:
-        {
-            clear_print();
-            is_running = false;
-            break;
-        }
-        case 1:
-        {
-            clear_print();
-
-            auto input_args = get_data_type("(输入)");
-            if (std::any_cast<int>(input_args["type"]) == -1)
+            operate_code = std::stoi(operate_code_str);
+            switch (operate_code)
             {
-                std::cout << std::any_cast<std::string>(input_args["msg"]) << std::endl;
+            case 0:
+            {
+                clear_print();
+                is_running = false;
                 break;
             }
-            if (std::any_cast<int>(input_args["type"]) == 3)
+            case 1:
             {
-                std::cout << "文本数据不支持文件类型" << std::endl;
-                break;
-            }
-            
-            std::string text = "";
-            std::cout << "请输入要转换的文本数据" << std::endl;
-            std::getline(std::cin, text);
-
-            if (std::any_cast<int>(input_args["type"]) == 2)
-            {
-                if (!effect_str(text, "0123456789ABCDEFabcdef"))
-                {
-                    std::cout << "hex/Hex字符串只能由0123456789ABCDEFabcdef组成" << std::endl;
-                    break;
-                }
-            }
-            else if (std::any_cast<int>(input_args["type"]) == 1)
-            {
-                char range[66] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-                range[64] = std::any_cast<char>(input_args["char3"]);
-                range[63] = std::any_cast<char>(input_args["char2"]);
-                range[62] = std::any_cast<char>(input_args["char1"]);
-                if (!effect_str(text, range))
-                {
-                    std::cout << std::format("base64{}{}{}只能由{}组成", range[63], range[64], range[65], range) << std::endl;
-                    break;
-                }
-            }
-            
-            auto output_args = get_data_type("(输出)");
-            
-            dog_work::Timer timer;
-            timer.start();
-            dog_data::Data data(text, std::any_cast<int>(input_args["type"]));
-            if (std::any_cast<int>(output_args["type"]) == -1)
-            {
-                std::cout << std::any_cast<std::string>(input_args["msg"]) << std::endl;
-                break;
-            }
-            else if (std::any_cast<int>(output_args["type"]) == 0)
-            {
-                text = data.getUTF8String();
-            }
-            else if (std::any_cast<int>(output_args["type"]) == 1)
-            {
-                text = data.getBase64String(
-                    std::any_cast<char>(output_args["char1"]),
-                    std::any_cast<char>(output_args["char2"]),
-                    std::any_cast<char>(output_args["char3"])
-                );
-            }
-            else if (std::any_cast<int>(output_args["type"]) == 2)
-            {
-                text = data.getHexString(std::any_cast<bool>(output_args["is_upper"]));
-            }
-            timer.end();
-            std::cout << std::format("----结果----\n{}\n----耗时----\n{:0.2f}ms\n", text, timer.get_time());
-            break;
-        }
-        case 2:
-        {
-            clear_print();
-
-            auto input_args = get_data_type("(输入)");
-            if (std::any_cast<int>(input_args["type"]) == -1)
-            {
-                std::cout << std::any_cast<std::string>(input_args["msg"]) << std::endl;
-                break;
-            }
-
-            std::string text = "";
-            std::cout << "请输入要求散列的文本或者文件路径" << std::endl;
-            std::getline(std::cin, text);
-            
-            //hash
-            auto hash_args = get_hash_type();
-            if (!std::any_cast<bool>(hash_args["effective"]))
-            {
-                std::cout << std::any_cast<std::string>(hash_args["msg"]) << std::endl;
-                break;
-            }
-            dog_hash::HashCrypher hash_crypher = std::any_cast<dog_hash::HashCrypher>(hash_args["hasher"]);
-
-            if (std::any_cast<int>(input_args["type"]) == 2)
-            {
-                if (!effect_str(text, "0123456789ABCDEFabcdef"))
-                {
-                    std::cout << "hex/Hex字符串只能由0123456789ABCDEFabcdef组成" << std::endl;
-                    break;
-                }
-            }
-            else if (std::any_cast<int>(input_args["type"]) == 1)
-            {
-                char range[66] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-                range[64] = std::any_cast<char>(input_args["char3"]);
-                range[63] = std::any_cast<char>(input_args["char2"]);
-                range[62] = std::any_cast<char>(input_args["char1"]);
-                if (!effect_str(text, range))
-                {
-                    std::cout << std::format("base64{}{}{}只能由{}组成", range[63], range[64], range[65], range) << std::endl;
-                    break;
-                }
-            }
-            else if (std::any_cast<int>(input_args["type"]) == 3)
-            {
-                std::filesystem::path file_path(text);
-                if (!std::filesystem::exists(file_path))
-                {
-                    std::cout << "文件不存在" << std::endl;
-                    break;
-                }
-            }
-
-            auto output_args = get_data_type("(输出)");
-            if (std::any_cast<int>(input_args["type"]) != 3)
-            {
+                clear_print();
+                auto input_config = get_data_type("数据转换输入", false, true);
+                auto output_config = get_data_type("数据转换输出", false, false);
                 dog_work::Timer timer;
                 timer.start();
-                if (std::any_cast<int>(output_args["type"]) == -1)
-                {
-                    std::cout << std::any_cast<std::string>(output_args["msg"]) << std::endl;
-                    break;
-                }
-                else if (std::any_cast<int>(output_args["type"]) == 0)
-                {
-                    text = hash_crypher.getStringHash(text).getUTF8String();
-                }
-                else if (std::any_cast<int>(output_args["type"]) == 1)
-                {
-                    text = hash_crypher.getStringHash(text).getBase64String(
-                        std::any_cast<char>(output_args["char1"]),
-                        std::any_cast<char>(output_args["char2"]),
-                        std::any_cast<char>(output_args["char3"])
-                    );
-                }
-                else if (std::any_cast<int>(output_args["type"]) == 2)
-                {
-                    text = hash_crypher.getStringHash(text).getHexString(std::any_cast<bool>(output_args["is_upper"]));
-                }
-                else if (std::any_cast<int>(output_args["type"]) == 3)
-                {
-                    std::cout << "散列输出不支持文件" << std::endl;
-                    break;
-                }
+                std::string result = output_config.fmt_data(input_config.get_data());
                 timer.end();
-                std::cout << std::format("----结果----\n{}\n----耗时----\n{:0.2f}ms\n", text, timer.get_time());
+                clear_print();
+                std::cout << "处理文本" << std::endl;
+                std::cout << input_config.get_ori_str() << std::endl;
+                std::cout << "转换方式" << std::endl;
+                std::cout << std::format("{} -> {}", input_config.get_IO_string(), output_config.get_IO_string()) << std::endl;
+                std::cout << "转换结果" << std::endl;
+                std::cout << result << std::endl;
+                std::cout << "转换耗时" << std::endl;
+                std::cout << fmt_time(timer.get_time()) << std::endl;
                 break;
             }
-            else
+            case 2:
             {
-                std::unordered_map<std::string, std::any> output_params;
-                output_params["output_type"] = (uint64_t)std::any_cast<int>(output_args["type"]);
-                if (std::any_cast<int>(output_args["type"]) == 1)
+                clear_print();
+                auto input_config = get_data_type("数据转换输入", true, true);
+                auto hash_crypter = get_hash_type();
+                auto output_config = get_data_type("数据转换输出", false, false);
+                if (!input_config.is_file())
                 {
-                    output_params["replace0"] = std::any_cast<char>(output_args["char1"]);
-                    output_params["replace1"] = std::any_cast<char>(output_args["char2"]);
-                    output_params["replace2"] = std::any_cast<char>(output_args["char3"]);
+                    clear_print();
+                    dog_work::Timer timer;
+                    timer.start();
+                    std::string result = output_config.fmt_data(hash_crypter.getDataHash(input_config.get_data()));
+                    timer.end();
+                    std::cout << "处理文本" << std::endl;
+                    std::cout << input_config.get_ori_str() << std::endl;
+                    std::cout << "转换方式" << std::endl;
+                    std::cout << std::format("{} -[{}]-> {}", input_config.get_IO_string(), hash_crypter.get_config(), output_config.get_IO_string()) << std::endl;
+                    std::cout << "转换结果" << std::endl;
+                    std::cout << result << std::endl;
+                    std::cout << "转换耗时" << std::endl;
+                    std::cout << fmt_time(timer.get_time()) << std::endl;
                 }
-                else if (std::any_cast<int>(output_args["type"]) == 2)
+                else
                 {
-                    output_params["upper"] = std::any_cast<bool>(output_args["is_upper"]);
+                    //task_pool->add_hash()
                 }
-                uint64_t id = task_pool->add_hash(text, hash_crypher, output_params);
-                std::cout << std::format("----任务已添加----\n任务ID: {}\n", id) << std::endl;
                 break;
+            }
+            case 3:
+            {
+                break;
+
+            }
+            case 4:
+            {
+                break;
+
+            }
+            case 5:
+            {
+                clear_print();
+                update_task();
+                if (!task_info.size())
+                {
+                    std::cout << "当前无运行任务" << std::endl;
+                }
+                for (auto& task : task_info)
+                {
+                    task_info[std::any_cast<uint64_t>(task.second["id"])] = task.second;
+                    uint64_t id = std::any_cast<uint64_t>(task.second["id"]);
+                    int status = std::any_cast<int>(task.second["status"]);
+                    std::string status_str = "";
+                    switch (status)
+                    {
+                    case -1:
+                        status_str = "等待";
+                        break;
+                    case 0:
+                        status_str = "运行";
+                        break;
+                    case 1:
+                        status_str = "暂停";
+                        break;
+                    case 2:
+                        status_str = "完成";
+                        break;
+                    }
+                    double progress = std::any_cast<double>(task.second["progress"]);
+                    std::string type = std::any_cast<std::string>(task.second["type"]);
+                    if (type == "hash")
+                    {
+                        std::string hash = std::any_cast<std::string>(task.second["hash"]);
+                        std::string input = std::any_cast<std::string>(task.second["input"]);
+                        double time = std::any_cast<double>(task.second["time"]);
+                        std::string output_type = std::any_cast<std::string>(task.second["output_type"]);
+                        if (status == 2)
+                        {
+                            std::string result = std::any_cast<std::string>(task.second["result"]);
+                            std::cout <<
+                                std::format("任务id:{}\n任务状态:{}\n任务类型:{} {}\n输入:{}\n总时间:{}\n输出格式:{}\n输出结果:{}\n",
+                                    id, status_str, type, hash, input, fmt_time(time * ((1 / progress) - 1)), output_type, result
+                                ) << std::endl;
+                        }
+                        else
+                        {
+                            std::cout <<
+                                std::format("任务id:{}\n任务状态:{}\n任务进度:{:.2f}%\n任务类型:{} {}\n输入:{}\n预计时间:{}\n输出格式:{}\n",
+                                    id, status_str, progress * 100, type, hash, input, fmt_time(time), output_type
+                                ) << std::endl;
+                        }
+                    }
+                }
+                break;
+            }
             }
         }
-
-        case 5:
+        catch (std::exception& e)
         {
-            clear_print();
-            update_task();
-            if (!task_info.size())
-            {
-                std::cout << "当前无运行任务" << std::endl;
-            }
-            for (auto& task : task_info)
-            {
-                task_info[std::any_cast<uint64_t>(task.second["id"])] = task.second;
-                uint64_t id = std::any_cast<uint64_t>(task.second["id"]);
-                int status = std::any_cast<int>(task.second["status"]);
-                std::string status_str = "";
-                switch (status)
-                {
-                case -1:
-                    status_str = "等待";
-                    break;
-                case 0:
-                    status_str = "运行";
-                    break;
-                case 1:
-                    status_str = "暂停";
-                    break;
-                case 2:
-                    status_str = "完成";
-                    break;
-                }
-                double progress = std::any_cast<double>(task.second["progress"]);
-                std::string type = std::any_cast<std::string>(task.second["type"]);
-                if (type == "hash")
-                {
-                    std::string hash = std::any_cast<std::string>(task.second["hash"]);
-                    std::string input = std::any_cast<std::string>(task.second["input"]);
-                    double time = std::any_cast<double>(task.second["time"]);
-                    std::string output_type = std::any_cast<std::string>(task.second["output_type"]);
-                    if (status == 2)
-                    {
-                        std::string result = std::any_cast<std::string>(task.second["result"]);
-                        std::cout <<
-                            std::format("任务id:{}\n任务状态:{}\n任务类型:{} {}\n输入:{}\n总时间:{}\n输出格式:{}\n输出结果:{}\n",
-                                id, status_str, type, hash, input, fmt_time(time * ((1 / progress) - 1)), output_type, result
-                            ) << std::endl;
-                    }
-                    else
-                    {
-                        std::cout <<
-                            std::format("任务id:{}\n任务状态:{}\n任务进度:{:.2f}%\n任务类型:{} {}\n输入:{}\n预计时间:{}\n输出格式:{}\n",
-                                id, status_str, progress*100, type, hash, input, fmt_time(time), output_type
-                            ) << std::endl;
-                    }
-                }
-            }
+            std::cout << e.what() << std::endl;
         }
-        }
-
         std::cout << "输入任意键继续";
         std::cout.flush();
-        char c = getchar();
+        std::getline(std::cin, operate_code_str);
 
         clear_print();
     }
-
+    return 0;
 }

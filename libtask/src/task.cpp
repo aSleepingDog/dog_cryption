@@ -8,7 +8,7 @@ void dog_work::Timer::end()
 {
     end_point_ = std::chrono::steady_clock::now();
 }
-void dog_work::Timer::pause()
+void dog_work::Timer::pause()  
 {
     if (!this->paused_)
     {
@@ -487,6 +487,12 @@ uint64_t dog_work::TaskPool::add_hash(std::string path, dog_hash::HashCrypher& h
     }
     Task* task = new Task(id, path, hash_crypher, output_params);
     this->waitting_.emplace_back(task);
+    return id;
+}
+uint64_t dog_work::TaskPool::add_hash(dog_param::IOConfig input_config, dog_hash::HashCrypher& hash_crypher, dog_param::IOConfig output_config)
+{
+    uint64_t id = this->id_.load();
+    this->id_.fetch_add(1);
     return id;
 }
 uint64_t dog_work::TaskPool::add_encrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor, 

@@ -223,191 +223,205 @@ std::string dog_cryption::CryptionConfig::to_string() const
 }
 dog_cryption::CryptionConfig dog_cryption::CryptionConfig::get_cryption_config(std::istream& config_stream, bool return_start)
 {
-	dog_cryption::CryptionConfig config;
-	std::any value = dog_data::serialize::read(config_stream);
-	config.cryption_algorithm = std::any_cast<std::string>(value);
-	value = dog_data::serialize::read(config_stream);
-	config.block_size = std::any_cast<uint64_t>(value);
-	value = dog_data::serialize::read(config_stream);
-	config.key_size = std::any_cast<uint64_t>(value);
-	uint8_t code = config_stream.get();
+	try
 	{
-		using namespace dog_cryption::mode;
-		if (code == ECB::CODE)
+		dog_cryption::CryptionConfig config;
+		std::any value = dog_data::serialize::read(config_stream);
+		config.cryption_algorithm = std::any_cast<std::string>(value);
+		value = dog_data::serialize::read(config_stream);
+		config.block_size = std::any_cast<uint64_t>(value);
+		value = dog_data::serialize::read(config_stream);
+		config.key_size = std::any_cast<uint64_t>(value);
+		uint8_t code = config_stream.get();
 		{
-			config.mult_function = ECB::name;
+			using namespace dog_cryption::mode;
+			if (code == ECB::CODE)
+			{
+				config.mult_function = ECB::name;
+			}
+			else if (code == CBC::CODE)
+			{
+				config.mult_function = CBC::name;
+			}
+			else if (code == PCBC::CODE)
+			{
+				config.mult_function = PCBC::name;
+			}
+			else if (code == OFB::CODE)
+			{
+				config.mult_function = OFB::name;
+			}
+			else if (code == CTR::CODE)
+			{
+				config.mult_function = CTR::name;
+			}
+			else if (code == CFBB::CODE)
+			{
+				config.mult_function = CFBB::name;
+				value = dog_data::serialize::read(config_stream);
+				config.shift = std::any_cast<uint64_t>(value);
+			}
+			else if (code == CFBb::CODE)
+			{
+				config.mult_function = CFBb::name;
+				value = dog_data::serialize::read(config_stream);
+				config.shift = std::any_cast<uint64_t>(value);
+			}
+			else
+			{
+				throw CryptionException(std::format("invalid mult function code {}", code).c_str(), __FILE__, __FUNCTION__, __LINE__);
+			}
 		}
-		else if (code == CBC::CODE)
+		value = dog_data::serialize::read(config_stream);
+		config.using_padding = std::any_cast<bool>(value);
+		if (config.using_padding)
 		{
-			config.mult_function = CBC::name;
-		}
-		else if (code == PCBC::CODE)
-		{
-			config.mult_function = PCBC::name;
-		}
-		else if (code == OFB::CODE)
-		{
-			config.mult_function = OFB::name;
-		}
-		else if (code == CTR::CODE)
-		{
-			config.mult_function = CTR::name;
-		}
-		else if (code == CFBB::CODE)
-		{
-			config.mult_function = CFBB::name;
-			value = dog_data::serialize::read(config_stream);
-			config.shift = std::any_cast<uint64_t>(value);
-		}
-		else if (code == CFBb::CODE)
-		{
-			config.mult_function = CFBb::name;
-			value = dog_data::serialize::read(config_stream);
-			config.shift = std::any_cast<uint64_t>(value);
+			using namespace dog_cryption::padding;
+			code = config_stream.get();
+			if (code == PKCS7_CODE)
+			{
+				config.padding_function = PKCS7;
+			}
+			else if (code == ZERO_CODE)
+			{
+				config.padding_function = ZERO;
+			}
+			else if (code == ANSIX923_CODE)
+			{
+				config.padding_function = ANSIX923;
+			}
+			else if (code == ISO7816_4_CODE)
+			{
+				config.padding_function = ISO7816_4;
+			}
+			else if (code == ISO10126_CODE)
+			{
+				config.padding_function = ISO10126;
+			}
+			else
+			{
+				throw CryptionException(std::format("invalid padding function code {}", code).c_str(), __FILE__, __FUNCTION__, __LINE__);
+			}
 		}
 		else
 		{
-			throw CryptionException(std::format("invalid mult function code {}", code).c_str(), __FILE__, __FUNCTION__, __LINE__);
+			config.padding_function = dog_cryption::padding::NONE;
 		}
+		value = dog_data::serialize::read(config_stream);
+		config.using_iv = std::any_cast<bool>(value);
+		value = dog_data::serialize::read(config_stream);
+		config.extra_config = std::any_cast<std::unordered_map<std::string, std::any>>(value);
+		if (return_start) { config_stream.seekg(0); }
+		return config;
 	}
-	value = dog_data::serialize::read(config_stream);
-	config.using_padding = std::any_cast<bool>(value);
-	if (config.using_padding)
+	catch (std::exception& e)
 	{
-		using namespace dog_cryption::padding;
-		code = config_stream.get();
-		if (code == PKCS7_CODE)
-		{
-			config.padding_function = PKCS7;
-		}
-		else if (code == ZERO_CODE)
-		{
-			config.padding_function = ZERO;
-		}
-		else if (code == ANSIX923_CODE)
-		{
-			config.padding_function = ANSIX923;
-		}
-		else if (code == ISO7816_4_CODE)
-		{
-			config.padding_function = ISO7816_4;
-		}
-		else if (code == ISO10126_CODE)
-		{
-			config.padding_function = ISO10126;
-		}
-		else
-		{
-			throw CryptionException(std::format("invalid padding function code {}", code).c_str(), __FILE__, __FUNCTION__, __LINE__);
-		}
+		throw DOG_EXCEPTION("配置读取错误");
 	}
-	else
-	{
-		config.padding_function = dog_cryption::padding::NONE;
-	}
-	value = dog_data::serialize::read(config_stream);
-	config.using_iv = std::any_cast<bool>(value);
-	value = dog_data::serialize::read(config_stream);
-	config.extra_config = std::any_cast<std::unordered_map<std::string, std::any>>(value);
-	if (return_start) { config_stream.seekg(0); }
-	return config;
 }
 dog_cryption::CryptionConfig dog_cryption::CryptionConfig::get_cryption_config(dog_data::Data& config_data, bool is_cut)
 {
-	dog_cryption::CryptionConfig config;
-	dog_data::DataStream config_stream(config_data);
-	std::any value = dog_data::serialize::read(config_stream);
-	config.cryption_algorithm = std::any_cast<std::string>(value);
-	value = dog_data::serialize::read(config_stream);
-	config.block_size = std::any_cast<uint64_t>(value);
-	value = dog_data::serialize::read(config_stream);
-	config.key_size = std::any_cast<uint64_t>(value);
-	uint8_t code = config_stream.get();
+	try
 	{
-		using namespace dog_cryption::mode;
-		if (code == ECB::CODE)
+		dog_cryption::CryptionConfig config;
+		dog_data::DataStream config_stream(config_data);
+		std::any value = dog_data::serialize::read(config_stream);
+		config.cryption_algorithm = std::any_cast<std::string>(value);
+		value = dog_data::serialize::read(config_stream);
+		config.block_size = std::any_cast<uint64_t>(value);
+		value = dog_data::serialize::read(config_stream);
+		config.key_size = std::any_cast<uint64_t>(value);
+		uint8_t code = config_stream.get();
 		{
-			config.mult_function = ECB::name;
-		}
-		else if (code == CBC::CODE)
-		{
-			config.mult_function = CBC::name;
-		}
-		else if (code == PCBC::CODE)
-		{
-			config.mult_function = PCBC::name;
-		}
-		else if (code == OFB::CODE)
-		{
-			config.mult_function = OFB::name;
-		}
-		else if (code == CTR::CODE)
-		{
-			config.mult_function = CTR::name;
-		}
-		else if (code == CFBB::CODE)
-		{
-			config.mult_function = CFBB::name;
-			value = dog_data::serialize::read(config_stream);
-			config.shift = std::any_cast<uint64_t>(value);
-		}
-		else if (code == CFBb::CODE)
-		{
-			config.mult_function = CFBb::name;
-			value = dog_data::serialize::read(config_stream);
-			config.shift = std::any_cast<uint64_t>(value);
-		}
-		else
-		{
-			throw CryptionException(std::format("invalid mult function code {}", code).c_str(), __FILE__, __FUNCTION__, __LINE__);
-		}
+			using namespace dog_cryption::mode;
+			if (code == ECB::CODE)
+			{
+				config.mult_function = ECB::name;
+			}
+			else if (code == CBC::CODE)
+			{
+				config.mult_function = CBC::name;
+			}
+			else if (code == PCBC::CODE)
+			{
+				config.mult_function = PCBC::name;
+			}
+			else if (code == OFB::CODE)
+			{
+				config.mult_function = OFB::name;
+			}
+			else if (code == CTR::CODE)
+			{
+				config.mult_function = CTR::name;
+			}
+			else if (code == CFBB::CODE)
+			{
+				config.mult_function = CFBB::name;
+				value = dog_data::serialize::read(config_stream);
+				config.shift = std::any_cast<uint64_t>(value);
+			}
+			else if (code == CFBb::CODE)
+			{
+				config.mult_function = CFBb::name;
+				value = dog_data::serialize::read(config_stream);
+				config.shift = std::any_cast<uint64_t>(value);
+			}
+			else
+			{
+				throw CryptionException(std::format("invalid mult function code {}", code).c_str(), __FILE__, __FUNCTION__, __LINE__);
+			}
 
-	}
-	value = dog_data::serialize::read(config_stream);
-	config.using_padding = std::any_cast<bool>(value);
-	if (config.using_padding)
-	{
-		using namespace dog_cryption::padding;
-		code = config_stream.get();
-		if (code == PKCS7_CODE)
-		{
-			config.padding_function = PKCS7;
 		}
-		else if (code == ZERO_CODE)
+		value = dog_data::serialize::read(config_stream);
+		config.using_padding = std::any_cast<bool>(value);
+		if (config.using_padding)
 		{
-			config.padding_function = ZERO;
-		}
-		else if (code == ANSIX923_CODE)
-		{
-			config.padding_function = ANSIX923;
-		}
-		else if (code == ISO7816_4_CODE)
-		{
-			config.padding_function = ISO7816_4;
-		}
-		else if (code == ISO10126_CODE)
-		{
-			config.padding_function = ISO10126;
+			using namespace dog_cryption::padding;
+			code = config_stream.get();
+			if (code == PKCS7_CODE)
+			{
+				config.padding_function = PKCS7;
+			}
+			else if (code == ZERO_CODE)
+			{
+				config.padding_function = ZERO;
+			}
+			else if (code == ANSIX923_CODE)
+			{
+				config.padding_function = ANSIX923;
+			}
+			else if (code == ISO7816_4_CODE)
+			{
+				config.padding_function = ISO7816_4;
+			}
+			else if (code == ISO10126_CODE)
+			{
+				config.padding_function = ISO10126;
+			}
+			else
+			{
+				throw CryptionException(std::format("invalid padding function code {}", code).c_str(), __FILE__, __FUNCTION__, __LINE__);
+			}
 		}
 		else
 		{
-			throw CryptionException(std::format("invalid padding function code {}", code).c_str(), __FILE__, __FUNCTION__, __LINE__);
+			config.padding_function = dog_cryption::padding::NONE;
 		}
+		value = dog_data::serialize::read(config_stream);
+		config.using_iv = std::any_cast<bool>(value);
+		value = dog_data::serialize::read(config_stream);
+		config.extra_config = std::any_cast<std::unordered_map<std::string, std::any>>(value);
+		if (is_cut)
+		{
+			uint64_t size = config_stream.tellg();
+			config_data = config_data.sub_by_pos(size, config_data.size());
+		}
+		return config;
 	}
-	else
+	catch (std::exception& e)
 	{
-		config.padding_function = dog_cryption::padding::NONE;
+		throw DOG_EXCEPTION("配置读取错误");
 	}
-	value = dog_data::serialize::read(config_stream);
-	config.using_iv = std::any_cast<bool>(value);
-	value = dog_data::serialize::read(config_stream);
-	config.extra_config = std::any_cast<std::unordered_map<std::string, std::any>>(value);
-	if (is_cut)
-	{
-		uint64_t size = config_stream.tellg();
-		config_data = config_data.sub_by_pos(size, config_data.size());
-	}
-	return config;
 }
 
 bool dog_cryption::Cryptor::is_config_available(const CryptionConfig& config)
@@ -493,47 +507,8 @@ dog_cryption::Cryptor::Cryptor(
 	std::vector<std::pair<std::string, std::any>> extra_config)
 {
 	std::string name = cryption_algorithm;
-	if (name == dog_cryption::AES::name)
-	{
-		using namespace dog_cryption::AES;
-		if (!dog_number::region::gap::is_fall(KEY_REGION, key_size))
-		{
-			throw CryptionException(std::format("invalid key size for {},{} only support number in {}", name, name, KEY_REGION).c_str(), __FILE__, __FUNCTION__, __LINE__);
-		}
-		if (!dog_number::region::gap::is_fall(BLOCK_REGION, block_size))
-		{
-			throw CryptionException(std::format("invalid block size for {},{} only support number in {}", name, name, BLOCK_REGION).c_str(), __FILE__, __FUNCTION__, __LINE__);
-		}
-
-		this->extend_key_ = extend_key;
-
-		this->block_encryption_ = encoding;
-		this->block_decryption_ = decoding;
-
-		this->block_encryption_self_ = encoding_self;
-		this->block_decryption_self_ = decoding_self;
-	}
-	else if (name == dog_cryption::SM4::name)
-	{
-		using namespace dog_cryption::SM4;
-		if (!dog_number::region::gap::is_fall(KEY_REGION, key_size))
-		{
-			throw CryptionException(std::format("invalid key size for {},{} only support number in {}", name, name, KEY_REGION).c_str(), __FILE__, __FUNCTION__, __LINE__);
-		}
-		if (!dog_number::region::gap::is_fall(BLOCK_REGION, block_size))
-		{
-			throw CryptionException(std::format("invalid block size for {},{} only support number in {}", name, name, BLOCK_REGION).c_str(), __FILE__, __FUNCTION__, __LINE__);
-		}
-
-		this->extend_key_ = extend_key;
-
-		this->block_encryption_ = encoding;
-		this->block_decryption_ = decoding;
-
-		this->block_encryption_self_ = encoding_self;
-		this->block_decryption_self_ = decoding_self;
-	}
-	else if (name == dog_cryption::camellia::name)
+	/*
+	else if (name == dog_cryption::type::name)
 	{
 		using namespace dog_cryption::camellia;
 		if (!dog_number::region::gap::is_fall(KEY_REGION, key_size))
@@ -552,14 +527,38 @@ dog_cryption::Cryptor::Cryptor(
 
 		this->block_encryption_self_ = encoding_self;
 		this->block_decryption_self_ = decoding_self;
-
 	}
+	*/
+#define CRYPTOR_INIT(type) \
+if (name == dog_cryption::type::name)\
+{\
+	using namespace dog_cryption::type;\
+	if (!dog_number::region::gap::is_fall(KEY_REGION, key_size))\
+	{\
+		throw CryptionException(std::format("invalid key size for {},{} only support number in {}", name, name, KEY_REGION).c_str(), __FILE__, __FUNCTION__, __LINE__);\
+	}\
+	if (!dog_number::region::gap::is_fall(BLOCK_REGION, block_size))\
+	{\
+		throw CryptionException(std::format("invalid block size for {},{} only support number in {}", name, name, BLOCK_REGION).c_str(), __FILE__, __FUNCTION__, __LINE__);\
+	}\
+	this->extend_key_ = extend_key;\
+	\
+	this->block_encryption_ = encoding;\
+	this->block_decryption_ = decoding;\
+	\
+	this->block_encryption_self_ = encoding_self;\
+	this->block_decryption_self_ = decoding_self;\
+}
+	CRYPTOR_INIT(AES)
+	else CRYPTOR_INIT(SM4)
+	else CRYPTOR_INIT(camellia)
 	else
 	{
 		//throw CryptionException("invalid cryption algorithm", __FILE__, __FUNCTION__, __LINE__);
 		throw WrongConfigException();
 	}
 
+#undef CRYPTOR_INIT
 	{
 		using namespace dog_cryption::padding;
 		std::string padding_name = padding_function;
@@ -1087,7 +1086,6 @@ void dog_cryption::Cryptor::decryptp(std::istream& crypt, std::ostream& plain, b
 		dog_data::Data plain_check = dog_cryption::utils::get_sequence(this->config_.block_size);
 		if (plain_check != crypt_check)
 		{
-			//throw CryptionException("wrong key", __FILE__, __FUNCTION__, __LINE__);
 			throw WrongKeyException();
 		}
 	}
@@ -1095,9 +1093,17 @@ void dog_cryption::Cryptor::decryptp(std::istream& crypt, std::ostream& plain, b
 	if (with_iv)
 	{
 		crypt.read((char*)iv_.data(), this->config_.block_size);
+		if (iv_.size() < this->config_.block_size)
+		{
+			throw CryptionException("iv size is too small", __FILE__, __FUNCTION__, __LINE__);
+		}
 	}
 	else
 	{
+		if (iv.size() < this->config_.block_size)
+		{
+            throw CryptionException("iv size is too small", __FILE__, __FUNCTION__, __LINE__);
+		}
 		iv_ = iv;
 	}
 	this->stream_decryptp_(crypt, iv_, plain, *this, mutex_, cond_, progress, running_, paused_, stop_);
@@ -4065,7 +4071,7 @@ dog_data::Data dog_cryption::camellia::extend_key(dog_data::Data key, uint64_t k
 		for (uint64_t i = 0; i < 8; i++)
 		{
 			krl |= (uint64_t)(key[i + 16]) << (56 - i * 8);
-			krr |= ((0xFFUi64) << (56 - i * 8)) & (uint64_t)(~key[i + 16]) << (56 - i * 8);
+			krr |= ((0xFF) << (56 - i * 8)) & (uint64_t)(~key[i + 16]) << (56 - i * 8);
 		}
 	}
 	else if (key_size == 32)

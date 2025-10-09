@@ -78,7 +78,10 @@ int main()
 	{
 		check_file << std::vformat(fmt_str,std::make_format_args(file, hash)) << std::endl;
 	}
-	check_file << "}\n//此文件由程序生成,请勿手动修改";
+	auto now = std::chrono::system_clock::now();
+	std::chrono::zoned_time zt{ std::chrono::current_zone(), now };
+	check_file << "}\n//此文件由程序生成,请勿手动修改,生成于";
+	check_file << std::format("{:%Z|%Y-%m-%d %H:%M:%S}", zt);
 	std::cout << "文件散列值生成完成……" << std::endl;
 
 	return 0;

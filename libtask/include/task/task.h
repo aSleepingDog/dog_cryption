@@ -122,9 +122,6 @@ namespace dog_work
         *   output_type  std::string  : 输出类型 "utf8" "base64" "hex"
         *   当status == 2时
         *    result std::string : 输出结果
-        * 
-        *        
-        *      
         */
         std::unordered_map<std::string, std::any> get_info();
         void set_msg(std::string msg) { msg_ = msg; }

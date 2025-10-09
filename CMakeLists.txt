@@ -3,6 +3,16 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+
+else()
+
+endif()
+
 project("dog_cryption" VERSION 1.0 DESCRIPTION "A simple C++ library for encryption and decryption written by dog")
 
 if(MSVC)

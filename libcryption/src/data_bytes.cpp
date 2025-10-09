@@ -696,7 +696,7 @@ dog_data::Data dog_data::operator&(const Data d1, const Data d2)
 {
     if (d1.size() != d2.size())
     {
-        throw dog_exception::Exception(DOG_EXCEPTION_OPINION("the size must be equal when AND"));
+        throw dog_exception::Exception(DOG_EXCEPTION_MSG_OPINION("the size must be equal when AND"));
     }
     dog_data::Data res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -710,7 +710,7 @@ dog_data::Data dog_data::operator|(const Data d1, const Data d2)
 {
     if (d1.size() != d2.size())
     {
-        throw dog_exception::Exception(DOG_EXCEPTION_OPINION("the size must be equal when OR"));
+        throw dog_exception::Exception(DOG_EXCEPTION_MSG_OPINION("the size must be equal when OR"));
     }
     dog_data::Data res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -724,7 +724,7 @@ dog_data::Data dog_data::operator^(const Data d1, const Data d2)
 {
     if (d1.size() != d2.size())
     {
-        throw dog_exception::Exception(DOG_EXCEPTION_OPINION("the size must be equal when XOR"));
+        throw dog_exception::Exception(DOG_EXCEPTION_MSG_OPINION("the size must be equal when XOR"));
     }
     dog_data::Data res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -1734,7 +1734,7 @@ std::any dog_data::serialize::read(dog_data::DataStream& data)
     }
     else
     {
-        throw dog_exception::Exception(DOG_EXCEPTION_OPINION("bad data"));
+        throw dog_exception::Exception(DOG_EXCEPTION_MSG_OPINION("bad data"));
     }
 }
 
@@ -1860,14 +1860,21 @@ std::string dog_data::utf8::get_utf8_char(const char* str, uint64_t offset)
     return dog_data::utf8::get_utf8_char(std::string(str), offset);
 }
 
-void dog_data::json_any::skip_space_char(std::string::const_iterator& now)
+void dog_data::json_any::skip_space_char(const std::string& str, std::string::const_iterator& now)
 {
-    while (*now == ' ' || *now == '\n' || *now == '\t' || *now == '\r')
+    while (now != str.cend())
     {
-        now++;
+        if (*now == ' ' || *now == '\n' || *now == '\t' || *now == '\r')
+        {
+            now++;
+        }
+        else
+        {
+            break;
+        }
     }
 }
-bool dog_data::json_any::is_type_start(std::string::const_iterator& now)
+bool dog_data::json_any::is_type_start(const std::string::const_iterator& now)
 {
     if (*now == '{' || *now == '[' || *now == '"' || *now == 't' || *now == 'f' || *now == 'n' || *now == '-' || *now == '+' || (*now >= '0' && *now <= '9'))
     {
@@ -1876,17 +1883,17 @@ bool dog_data::json_any::is_type_start(std::string::const_iterator& now)
     return false;
 }
 
-void dog_data::json_any::null_from_json_str(std::string& str, std::string::const_iterator& now)
+void dog_data::json_any::null_from_json_str(const std::string& str, std::string::const_iterator& now)
 {
     if (str.substr(now - str.begin(), 4) != "null")
     {
         throw DOG_EXCEPTION("null错误");
     }
     now += 4;
-    skip_space_char(now);
+    skip_space_char(str, now);
     return;
 }
-bool dog_data::json_any::bool_from_json_str(std::string& str, std::string::const_iterator& now)
+bool dog_data::json_any::bool_from_json_str(const std::string& str, std::string::const_iterator& now)
 {
     if (*now == 'f')
     {
@@ -1907,9 +1914,9 @@ bool dog_data::json_any::bool_from_json_str(std::string& str, std::string::const
         return true;
     }
 }
-double dog_data::json_any::number_from_json_str(std::string& str, std::string::const_iterator& now)
+double dog_data::json_any::number_from_json_str(const std::string& str, std::string::const_iterator& now)
 {
-    skip_space_char(now);
+    skip_space_char(str, now);
     if (*now != '-' && *now != '+' && (*now < '0' || *now > '9'))
     {
         throw DOG_EXCEPTION("数字错误");
@@ -1947,6 +1954,7 @@ double dog_data::json_any::number_from_json_str(std::string& str, std::string::c
             else if (*now == ' ' || *now == '\n' || *now == '\t' || *now == '\r' || *now == ',' || *now == ']' || *now == '}')
             {
                 stage = 3;
+                continue;
             }
             else
             {
@@ -1998,7 +2006,6 @@ double dog_data::json_any::number_from_json_str(std::string& str, std::string::c
         }
         now++;
     }
-    skip_space_char(now);
     for (uint64_t i = 0; i < times; i++)
     {
         if (is_high)
@@ -2012,12 +2019,12 @@ double dog_data::json_any::number_from_json_str(std::string& str, std::string::c
     }
     return is_positive ? high : -high;
 }
-std::string dog_data::json_any::string_from_json_str(std::string& str, std::string::const_iterator& now)
+std::string dog_data::json_any::string_from_json_str(const std::string& str, std::string::const_iterator& now)
 {
     now++;
     std::string result = "";
     bool is_trun = false;
-    while (*now != '\"' && !is_trun)
+    while (*now != '\"' || is_trun)
     {
         if (is_trun)
         {
@@ -2107,7 +2114,7 @@ std::string dog_data::json_any::string_from_json_str(std::string& str, std::stri
     return result;
 }
 
-std::vector<std::any> dog_data::json_any::array_from_json_str(std::string& str, std::string::const_iterator& now)
+std::vector<std::any> dog_data::json_any::array_from_json_str(const std::string& str, std::string::const_iterator& now)
 {
     if (*now != '[')
     {
@@ -2117,7 +2124,11 @@ std::vector<std::any> dog_data::json_any::array_from_json_str(std::string& str, 
     now++;
     while (*now != ']')
     {
-        skip_space_char(now);
+        skip_space_char(str, now);
+        if (now == str.cend())
+        {
+            throw DOG_EXCEPTION("对象格式错误");
+        }
         if (*now == ',')
         {
             now++;
@@ -2159,9 +2170,9 @@ std::vector<std::any> dog_data::json_any::array_from_json_str(std::string& str, 
     now++;
     return result;
 }
-std::unordered_map<std::string, std::any> dog_data::json_any::object_from_json_str(std::string& str, std::string::const_iterator& now)
+std::unordered_map<std::string, std::any> dog_data::json_any::object_from_json_str(const std::string& str, std::string::const_iterator& now)
 {
-    skip_space_char(now);
+    skip_space_char(str, now);
     if (*now != '{')
     {
         throw DOG_EXCEPTION("对象格式错误");
@@ -2172,7 +2183,11 @@ std::unordered_map<std::string, std::any> dog_data::json_any::object_from_json_s
     now++;
     while (*now != '}')
     {
-        skip_space_char(now);
+        skip_space_char(str, now);
+        if (now == str.cend())
+        {
+            throw DOG_EXCEPTION("对象格式错误");
+        }
         if (*now == ',')
         {
             now++;
@@ -2239,30 +2254,8 @@ std::string dog_data::json_any::to_json_str(double number)
     //std::ostringstream oss;
     //oss << std::fixed << std::setprecision(17) << number;
     //return oss.str();
-    //return std::to_string(number);
-    std::string result = "";
-    if (number < 0)
-    {
-        result += '-';
-        number = -number;
-    }
-    result += std::to_string((uint64_t)(number));
-    number -= (uint64_t)(number);
-    number *= 10;
-    if (number == 0)
-    {
-        return result;
-    }
-    result += ".";
-    int times = 0;
-    while (number > 0 && times < 17)
-    {
-        result += ((uint64_t)(number)+'0') & 0xFF;
-        number -= (uint64_t)(number);
-        number *= 10;
-        times++;
-    }
-    return result;
+    return std::to_string((uint64_t)number);
+    //return result;
 }
 std::string dog_data::json_any::to_json_str(const char* param)
 {
@@ -2330,6 +2323,14 @@ std::string dog_data::json_any::to_json_str(std::vector<std::any> list, bool is_
         {
             value_str = dog_data::json_any::to_json_str(std::any_cast<double>(item));
         }
+        else if (item.type() == typeid(uint64_t))
+        {
+            value_str = dog_data::json_any::to_json_str((double)(std::any_cast<uint64_t>(item)));
+        }
+        else if (item.type() == typeid(int32_t))
+        {
+            value_str = dog_data::json_any::to_json_str((double)(std::any_cast<int32_t>(item)));
+        }
         else if (item.type() == typeid(const char*))
         {
             value_str = dog_data::json_any::to_json_str(std::any_cast<const char*>(item));
@@ -2376,6 +2377,10 @@ std::string dog_data::json_any::to_json_str(std::vector<std::any> list, bool is_
     }
     return result;
 }
+std::string dog_data::json_any::to_json_str(std::vector<std::any> list, bool is_fmt)
+{
+    return to_json_str(list, is_fmt, 0);
+}
 std::string dog_data::json_any::to_json_str(std::unordered_map<std::string, std::any> object, bool is_fmt, uint64_t depth)
 {
     std::string result = "{";
@@ -2395,6 +2400,14 @@ std::string dog_data::json_any::to_json_str(std::unordered_map<std::string, std:
         else if (value.type() == typeid(double))
         {
             value_str = dog_data::json_any::to_json_str(std::any_cast<double>(value));
+        }
+        else if (value.type() == typeid(uint64_t))
+        {
+            value_str = dog_data::json_any::to_json_str((double)(std::any_cast<uint64_t>(value)));
+        }
+        else if (value.type() == typeid(int32_t))
+        {
+            value_str = dog_data::json_any::to_json_str((double)(std::any_cast<int32_t>(value)));
         }
         else if (value.type() == typeid(const char*))
         {
@@ -2472,9 +2485,10 @@ dog_data::JsonValue::JsonValue(std::unordered_map<std::string, JsonValue> value)
     this->value_ = value;
 }
 
+
 std::string dog_data::JsonValue::to_string(bool is_fmt, uint64_t depth)
 {
-    if (std::get_if<std::nullopt_t>(&(this->value_)))
+    if (std::get_if<std::nullptr_t>(&(this->value_)))
     {
         return dog_data::json_any::to_json_str();
     }
@@ -2566,6 +2580,92 @@ std::string dog_data::JsonValue::to_string(bool is_fmt, uint64_t depth)
         return result;
     }
 }
+bool dog_data::JsonValue::is_null()
+{
+    return std::holds_alternative<std::nullptr_t>(this->value_);
+}
+bool dog_data::JsonValue::get_bool()
+{
+    if (!std::holds_alternative<bool>(this->value_))
+    {
+        throw DOG_EXCEPTION("Json value is not bool");
+    }
+    return std::get<bool>(this->value_);
+}
+double dog_data::JsonValue::get_double()
+{
+    if (!std::holds_alternative<double>(this->value_))
+    {
+        throw DOG_EXCEPTION("Json value is not double");
+    }
+    return std::get<double>(this->value_);
+}
+uint64_t dog_data::JsonValue::get_integer()
+{
+    if (!std::holds_alternative<double>(this->value_))
+    {
+        throw DOG_EXCEPTION("Json value is not double");
+    }
+    double n = std::get<double>(this->value_);
+    if (n - (uint64_t)n > 0)
+    {
+        throw DOG_EXCEPTION("Json value can not trun to integer");
+    }
+    return (uint64_t)n;
+}
+std::string dog_data::JsonValue::get_string()
+{
+    if (!std::holds_alternative<std::string>(this->value_))
+    {
+        throw DOG_EXCEPTION("Json value is not string");
+    }
+    return std::get<std::string>(this->value_);
+}
+dog_data::JsonType dog_data::JsonValue::get_type()
+{
+    struct visiting
+    {
+        dog_data::JsonType operator()(std::nullptr_t)                                      { return dog_data::JsonType::null; }
+        dog_data::JsonType operator()(bool)                                                { return dog_data::JsonType::boolean; }
+        dog_data::JsonType operator()(double)                                              { return dog_data::JsonType::number; }
+        dog_data::JsonType operator()(std::string)                                         { return dog_data::JsonType::string; }
+        dog_data::JsonType operator()(std::vector<dog_data::JsonValue>)                    { return dog_data::JsonType::array; }
+        dog_data::JsonType operator()(std::unordered_map<std::string,dog_data::JsonValue>) { return dog_data::JsonType::object; }
+    };
+    return std::visit(visiting(), this->value_);
+}
+std::vector<dog_data::JsonValue> dog_data::JsonValue::get_std_vector()
+{
+    if (!std::holds_alternative<std::vector<dog_data::JsonValue>>(this->value_))
+    {
+        throw DOG_EXCEPTION("Json value is not array");
+    }
+    return std::get<std::vector<dog_data::JsonValue>>(this->value_);
+}
+dog_data::JsonArray dog_data::JsonValue::get_array()
+{
+    if (!std::holds_alternative<std::vector<dog_data::JsonValue>>(this->value_))
+    {
+        throw DOG_EXCEPTION("Json value is not array");
+    }
+    return JsonArray(std::get<std::vector<dog_data::JsonValue>>(this->value_));
+}
+std::unordered_map<std::string, dog_data::JsonValue> dog_data::JsonValue::get_std_map()
+{
+    if (!std::holds_alternative<std::unordered_map<std::string, dog_data::JsonValue>>(this->value_))
+    {
+        throw DOG_EXCEPTION("Json value is not object");
+    }
+    return std::get<std::unordered_map<std::string, dog_data::JsonValue>>(this->value_);
+}
+dog_data::JsonObject dog_data::JsonValue::get_object()
+{
+    if (!std::holds_alternative<std::unordered_map<std::string, dog_data::JsonValue>>(this->value_))
+    {
+        throw DOG_EXCEPTION("Json value is not object");
+    }
+    return JsonObject(std::get<std::unordered_map<std::string, dog_data::JsonValue>>(this->value_));
+}
 
 dog_data::JsonObject::JsonObject()
 {
@@ -2574,6 +2674,158 @@ dog_data::JsonObject::JsonObject()
 dog_data::JsonObject::JsonObject(std::unordered_map<std::string, JsonValue> value)
 {
     this->value_ = value;
+}
+dog_data::JsonObject::JsonObject(const std::string& str)
+{
+    auto now = str.cbegin();
+    dog_data::json_any::skip_space_char(str, now);
+    if (*now != '{')
+    {
+        throw DOG_EXCEPTION("对象格式错误");
+    }
+    auto& result = this->value_;
+    std::string key = "";
+    bool is_key = true;
+    now++;
+    while (*now != '}')
+    {
+        dog_data::json_any::skip_space_char(str, now);
+        if (now == str.cend())
+        {
+            throw DOG_EXCEPTION("对象格式错误");
+        }
+        if (*now == ',')
+        {
+            now++;
+            is_key = true;
+        }
+        else if (*now == ':')
+        {
+            now++;
+            is_key = false;
+        }
+        else if (*now == 'n' && !is_key)
+        {
+            dog_data::json_any::null_from_json_str(str, now);
+            result[key] = JsonValue();
+        }
+        else if ((*now == 't' || *now == 'f') && !is_key)
+        {
+            result[key] = JsonValue(dog_data::json_any::bool_from_json_str(str, now));
+        }
+        else if (((*now >= '0' && *now <= '9') || *now == '-' || *now == '+') && !is_key)
+        {
+            result[key] = JsonValue(dog_data::json_any::number_from_json_str(str, now));
+        }
+        else if (*now == '\"' && is_key)
+        {
+            key = dog_data::json_any::string_from_json_str(str, now);
+        }
+        else if (*now == '\"' && !is_key)
+        {
+            result[key] = JsonValue(dog_data::json_any::string_from_json_str(str, now));
+        }
+        else if (*now == '[' && !is_key)
+        {
+            result[key] = dog_data::JsonArray(str, now).get_std_vector();
+        }
+        else if (*now == '{' && !is_key)
+        {
+            result[key] = dog_data::JsonObject(str, now).get_std_map();
+        }
+        else if (*now == '}' && !is_key)
+        {
+            break;
+        }
+        else
+        {
+            throw DOG_EXCEPTION("数组格式错误");
+        }
+    }
+}
+dog_data::JsonObject::JsonObject(const std::string& str, std::string::const_iterator& now)
+{
+    dog_data::json_any::skip_space_char(str, now);
+    if (*now != '{')
+    {
+        throw DOG_EXCEPTION("对象格式错误");
+    }
+    auto& result = this->value_;
+    std::string key = "";
+    bool is_key = true;
+    now++;
+    while (*now != '}')
+    {
+        dog_data::json_any::skip_space_char(str, now);
+        if (now == str.cend())
+        {
+            throw DOG_EXCEPTION("对象格式错误");
+        }
+        if (*now == ',')
+        {
+            now++;
+            is_key = true;
+        }
+        else if (*now == ':')
+        {
+            now++;
+            is_key = false;
+        }
+        else if (*now == 'n' && !is_key)
+        {
+            dog_data::json_any::null_from_json_str(str, now);
+            result[key] = JsonValue();
+        }
+        else if ((*now == 't' || *now == 'f') && !is_key)
+        {
+            result[key] = JsonValue(dog_data::json_any::bool_from_json_str(str, now));
+        }
+        else if (((*now >= '0' && *now <= '9') || *now == '-' || *now == '+') && !is_key)
+        {
+            result[key] = JsonValue(dog_data::json_any::number_from_json_str(str, now));
+        }
+        else if (*now == '\"' && is_key)
+        {
+            key = dog_data::json_any::string_from_json_str(str, now);
+        }
+        else if (*now == '\"' && !is_key)
+        {
+            result[key] = JsonValue(dog_data::json_any::string_from_json_str(str, now));
+        }
+        else if (*now == '[' && !is_key)
+        {
+            result[key] = dog_data::JsonArray(str, now).get_std_vector();
+        }
+        else if (*now == '{' && !is_key)
+        {
+            result[key] = dog_data::JsonObject(str, now).get_std_map();
+        }
+        else if (*now == '}' && !is_key)
+        {
+            break;
+        }
+        else
+        {
+            throw DOG_EXCEPTION("数组格式错误");
+        }
+    }
+    now++;
+}
+std::unordered_map<std::string, dog_data::JsonValue>::iterator dog_data::JsonObject::find(const std::string& key)
+{
+    return this->value_.find(key);
+}
+std::unordered_map<std::string, dog_data::JsonValue>::iterator dog_data::JsonObject::begin()
+{
+    return this->value_.begin();
+}
+std::unordered_map<std::string, dog_data::JsonValue>::iterator dog_data::JsonObject::end()
+{
+    return this->value_.end();
+}
+dog_data::JsonValue& dog_data::JsonObject::operator[](const std::string& key)
+{
+    return this->value_[key];
 }
 std::string dog_data::JsonObject::to_string(bool is_fmt, uint64_t depth)
 {
@@ -2613,6 +2865,10 @@ std::string dog_data::JsonObject::to_string(bool is_fmt, uint64_t depth)
     }
     return result;
 }
+std::unordered_map<std::string, dog_data::JsonValue> dog_data::JsonObject::get_std_map()
+{
+    return this->value_;
+}
 
 dog_data::JsonArray::JsonArray()
 {
@@ -2621,6 +2877,115 @@ dog_data::JsonArray::JsonArray()
 dog_data::JsonArray::JsonArray(std::vector<JsonValue> value)
 {
     this->value_ = value;
+}
+dog_data::JsonArray::JsonArray(const std::string& str)
+{
+    auto now = str.cbegin();
+    if (*now != '[')
+    {
+        throw DOG_EXCEPTION("数组格式错误");
+    }
+    auto& result = this->value_;
+    now++;
+    while (*now != ']')
+    {
+        dog_data::json_any::skip_space_char(str, now);
+        if (now == str.cend())
+        {
+            throw DOG_EXCEPTION("对象格式错误");
+        }
+        if (*now == ',')
+        {
+            now++;
+        }
+        else if (*now == 'n')
+        {
+            result.emplace_back(dog_data::JsonValue());
+            dog_data::json_any::null_from_json_str(str, now);
+        }
+        else if (*now == 't' || *now == 'f')
+        {
+            result.emplace_back(dog_data::json_any::bool_from_json_str(str, now));
+        }
+        else if ((*now >= '0' && *now <= '9') || *now == '-' || *now == '+')
+        {
+            result.emplace_back(dog_data::json_any::number_from_json_str(str, now));
+        }
+        else if (*now == '\"')
+        {
+            result.emplace_back(dog_data::json_any::string_from_json_str(str, now));
+        }
+        else if (*now == '[')
+        {
+            result.emplace_back(dog_data::JsonArray(str, now).get_std_vector());
+        }
+        else if (*now == '{')
+        {
+            result.emplace_back(dog_data::JsonObject(str, now).get_std_map());
+        }
+        else if (*now == ']')
+        {
+            break;
+        }
+        else
+        {
+            throw DOG_EXCEPTION("数组格式错误");
+        }
+    }
+}
+dog_data::JsonArray::JsonArray(const std::string& str, std::string::const_iterator& now)
+{
+    if (*now != '[')
+    {
+        throw DOG_EXCEPTION("数组格式错误");
+    }
+    auto& result = this->value_;
+    now++;
+    while (*now != ']')
+    {
+        dog_data::json_any::skip_space_char(str, now);
+        if (now == str.cend())
+        {
+            throw DOG_EXCEPTION("对象格式错误");
+        }
+        if (*now == ',')
+        {
+            now++;
+        }
+        else if (*now == 'n')
+        {
+            result.emplace_back(dog_data::JsonValue());
+            dog_data::json_any::null_from_json_str(str, now);
+        }
+        else if (*now == 't' || *now == 'f')
+        {
+            result.emplace_back(dog_data::json_any::bool_from_json_str(str, now));
+        }
+        else if ((*now >= '0' && *now <= '9') || *now == '-' || *now == '+')
+        {
+            result.emplace_back(dog_data::json_any::number_from_json_str(str, now));
+        }
+        else if (*now == '\"')
+        {
+            result.emplace_back(dog_data::json_any::string_from_json_str(str, now));
+        }
+        else if (*now == '[')
+        {
+            result.emplace_back(dog_data::JsonArray(str, now).get_std_vector());
+        }
+        else if (*now == '{')
+        {
+            result.emplace_back(dog_data::JsonObject(str, now).get_std_map());
+        }
+        else if (*now == ']')
+        {
+            break;
+        }
+        else
+        {
+            throw DOG_EXCEPTION("数组格式错误");
+        }
+    }
 }
 std::string dog_data::JsonArray::to_string(bool is_fmt, uint64_t depth)
 {
@@ -2658,4 +3023,8 @@ std::string dog_data::JsonArray::to_string(bool is_fmt, uint64_t depth)
         *(result.end() - 1) = ']';
     }
     return result;
+}
+std::vector<dog_data::JsonValue> dog_data::JsonArray::get_std_vector()
+{
+    return this->value_;
 }

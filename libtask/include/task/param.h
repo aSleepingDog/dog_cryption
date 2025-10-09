@@ -12,7 +12,27 @@
 
 namespace dog_param
 {
-	
+#ifdef _MSC_VER
+	class DOG_TASK_API WrongTypeException : public dog_exception::Exception
+	{
+	public:
+		WrongTypeException(
+			std::basic_stacktrace<std::allocator<std::stacktrace_entry>> stacktrace, std::thread::id thread_id,
+			std::string file, std::string func, uint64_t line) : 
+			dog_exception::Exception("输入类型错误,只能是UTF-8/Base64/Hex", stacktrace, thread_id, file, func, line) {}
+	};
+#elifdef __GNUC__
+    class DOG_TASK_API WrongTypeException : public dog_exception::Exception
+    {
+    public:
+        WrongTypeException(
+                std::thread::id thread_id,
+                std::string file, std::string func, uint64_t line) :
+                dog_exception::Exception("输入类型错误,只能是UTF-8/Base64/Hex", thread_id, file, func, line) {}
+    };
+
+#endif
+
 	class DOG_TASK_API IOConfig
 	{
 		/*
@@ -31,6 +51,7 @@ namespace dog_param
 		bool is_input_;
 	public:
 		IOConfig(std::unordered_map<std::string, std::any> params, bool is_input);
+		IOConfig(dog_data::JsonObject json, bool is_input);
 		bool is_file();
 		bool is_data();
 		uint64_t get_data_type();

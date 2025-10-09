@@ -465,9 +465,10 @@ function receiveAlgorithmConfig(algorithms){
 //获取常规输入输出
 function getNormalInputOutput(id){
     let args = {}
+    let input = {};
     let textInput = document.getElementById(id+"_text_input");
-    let input = textInput.value;
-    if(input === ""){
+    let inputStr = textInput.value;
+    if(inputStr === ""){
         showing(1,"请输入内容")
         return;
     }
@@ -479,57 +480,71 @@ function getNormalInputOutput(id){
         if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
             showing(1,"替换字符不能相同")
         }
-        while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
-            input = input.replace(replace0,"+");
+        while(inputStr.indexOf(replace0) !== -1 && replace0 !== "+"){
+            inputStr = inputStr.replace(replace0,"+");
+            input.replace0 = replace0;
         }
-        while(input.indexOf(replace1) !== -1 && replace1 !== "/"){
-            input = input.replace(replace1,"/");
+        while(inputStr.indexOf(replace1) !== -1 && replace1 !== "/"){
+            inputStr = inputStr.replace(replace1,"/");
+            input.replace1 = replace1;
         }
-        while(input.indexOf(replace2) !== -1 && replace2 !== "="){
-            input = input.replace(replace2,"=");
+        while(inputStr.indexOf(replace2) !== -1 && replace2 !== "="){
+            inputStr = inputStr.replace(replace2,"=");
+            input.replace2 = replace2;
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;
-        if(regex.test(input)){
+        if(regex.test(inputStr)){
             showing(1,"输入内容含有非法字符,base64仅可以为0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"+replace0+replace1+replace2)
             return;
         }
     }else if(inputType.value==="2"){
         const regex = /[^0-9a-fA-F]/g;
-        if(regex.test(input)){
+        if(regex.test(inputStr)){
             showing(1,"输入内容含有非法字符,hex仅可以为0123456789abcdefABCDEF")
             return;
         }
+        input.is_upper = true;
     }
+    input.ori_str = inputStr;
+    input.type = parseInt(inputType.value);
+    input.is_file = false;
     args.input = input;
-    args.inputType = parseInt(inputType.value);
+
+    let output = {};
+
     let outputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_output_type\"]:checked");
-    args.outputType = parseInt(outputType.value);
+    output.type = parseInt(outputType.value);
     if(outputType.value==="1"){
-        args.replace0 = document.getElementById(id+"_output_base64_replace+").value;//+
-        args.replace1 = document.getElementById(id+"_output_base64_replace/").value;// /
-        args.replace2 = document.getElementById(id+"_output_base64_replace=").value;//=
+        output.replace0 = document.getElementById(id+"_output_base64_replace+").value;//+
+        output.replace1 = document.getElementById(id+"_output_base64_replace/").value;// /
+        output.replace2 = document.getElementById(id+"_output_base64_replace=").value;//=
         if(args.replace0 === args.replace1 || args.replace0 === args.replace2 || args.replace1 === args.replace2){
             showing(1,"替换字符不能相同")
             return;
         }
     }else if(outputType.value==="2"){
-        args.upper = document.getElementById(id+"_output_hex_case_upper").checked;
+        output.is_upper = document.getElementById(id+"_output_hex_case_upper").checked;
     }
+
+    args.output = output;
+
     return args;
 }
 function getInput(id){
     let args = {}
     let idTextInput = document.getElementById(id+"_text_input");
-    let input = idTextInput.value;
+    let input = {}
+    let inputStr = idTextInput.value;
     let idInputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_input_type\"]:checked");
     if(idInputType.value==="0") {
-        if(input === ""){
+        if(inputStr === ""){
             showing(1,"请输入内容")
             return;
         }
-        args.input = input;
+        input.ori_str = inputStr;
+        input.is_file = false;
     }else if(idInputType.value==="1"){
-        if(input === ""){
+        if(inputStr === ""){
             showing(1,"请输入内容")
             return;
         }
@@ -539,65 +554,85 @@ function getInput(id){
         if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
             showing(1,"替换字符不能相同")
         }
-        while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
-            input = input.replace(replace0,"+");
+        while(inputStr.indexOf(replace0) !== -1 && replace0 !== "+"){
+            inputStr = inputStr.replace(replace0,"+");
         }
-        while(input.indexOf(replace1) !== -1 && replace1 !== "/"){
-            input = input.replace(replace1,"/");
+        while(inputStr.indexOf(replace1) !== -1 && replace1 !== "/"){
+            inputStr = inputStr.replace(replace1,"/");
         }
-        while(input.indexOf(replace2) !== -1 && replace2 !== "="){
-            input = input.replace(replace2,"=");
+        while(inputStr.indexOf(replace2) !== -1 && replace2 !== "="){
+            inputStr = inputStr.replace(replace2,"=");
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;
-        if(regex.test(input)){
+        if(regex.test(inputStr)){
             showing(1,"输入内容含有非法字符,base64仅可以为0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"+replace0+replace1+replace2)
             return;
         }
-        args.input = input;
+        input.ori_str = inputStr;
+        input.replace0 = replace0;
+        input.replace1 = replace1;
+        input.replace2 = replace2;
+        input.is_file = false;
     }else if(idInputType.value==="2"){
-        if(input === ""){
+        if(inputStr === ""){
             showing(1,"请输入内容")
             return;
         }
         const regex = /[^0-9a-fA-F]/g;
-        if(regex.test(input)){
+        if(regex.test(inputStr)){
             showing(1,"输入内容含有非法字符,hex仅可以为0123456789abcdefABCDEF")
             return;
         }
-        args.input = input;
+        input.ori_str = inputStr;
+        input.is_upper = true;
+        input.is_file = false;
     }else if(idInputType.value==="3"){
         let idFileInputField = document.getElementById(id+"_file_input_field");
         if(idFileInputField.dataset.path === ""){
             showing(1,"请选择文件")
             return;
         }
-        args.input = idFileInputField.dataset.path;
+        input.is_file = true;
+        input.ori_str = idFileInputField.dataset.path;
     }
-    args.inputType = parseInt(idInputType.value);
+    input.type = parseInt(idInputType.value);
+    args.input = input;
+
+
     let idOutputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_output_type\"]:checked");
-    args.outputType = parseInt(idOutputType.value);
+    let output = {}
+    output.type = parseInt(idOutputType.value);
+    if(idOutputType.value==="0"){
+        output.is_file = false;
+    }
     if(idOutputType.value==="1"){
-        args.replace0 = document.getElementById(id+"_output_base64_replace+").value;//+
-        args.replace1 = document.getElementById(id+"_output_base64_replace/").value;// /
-        args.replace2 = document.getElementById(id+"_output_base64_replace=").value;//=
-        if(args.replace0 === args.replace1 || args.replace0 === args.replace2 || args.replace1 === args.replace2){
+        output.replace0 = document.getElementById(id+"_output_base64_replace+").value;//+
+        output.replace1 = document.getElementById(id+"_output_base64_replace/").value;// /
+        output.replace2 = document.getElementById(id+"_output_base64_replace=").value;//=
+        if(output.replace0 === output.replace1 || output.replace0 === output.replace2 || output.replace1 === output.replace2){
             showing(1,"替换字符不能相同")
             return;
         }
+        output.is_file = false;
     }else if(idOutputType.value==="2"){
-        args.upper = document.getElementById(id+"_output_hex_case_upper").checked;
+        output.is_upper = document.getElementById(id+"_output_hex_case_upper").checked;
+        output.is_file = false;
     }else if(idOutputType.value==="3"){
-        args.output = document.getElementById(id+"_file_output_input").value;
+        output.ori_str = document.getElementById(id+"_file_output_input").value;
+        output.is_file = true;
     }
+    args.output = output;
     return args;
 }
 function getInputNoOutput(id){
     let args = {}
     let idTextInput = document.getElementById(id+"_text_input");
-    let input = idTextInput.value;
+    let input = {}
+    let inputStr = idTextInput.value;
     let idInputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_input_type\"]:checked");
     if(idInputType.value==="0") {
-        args.input = input;
+        input.ori_str = inputStr;
+        input.is_file = false;
     }else if(idInputType.value==="1"){
         let replace0 = document.getElementById(id+"_input_base64_replace+").value;//+
         let replace1 = document.getElementById(id+"_input_base64_replace/").value;// /
@@ -605,46 +640,56 @@ function getInputNoOutput(id){
         if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
             showing(1,"替换字符不能相同")
         }
-        while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
-            input = input.replace(replace0,"+");
+        while(inputStr.indexOf(replace0) !== -1 && replace0 !== "+"){
+            inputStr = inputStr.replace(replace0,"+");
         }
-        while(input.indexOf(replace1) !== -1 && replace1 !== "/"){
-            input = input.replace(replace1,"/");
+        while(inputStr.indexOf(replace1) !== -1 && replace1 !== "/"){
+            inputStr = inputStr.replace(replace1,"/");
         }
-        while(input.indexOf(replace2) !== -1 && replace2 !== "="){
-            input = input.replace(replace2,"=");
+        while(inputStr.indexOf(replace2) !== -1 && replace2 !== "="){
+            inputStr = inputStr.replace(replace2,"=");
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;
-        if(regex.test(input)){
+        if(regex.test(inputStr)){
             showing(1,"输入内容含有非法字符,base64仅可以为0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"+replace0+replace1+replace2)
             return;
         }
-        args.input = input;
+        input.replace0 = replace0;
+        input.replace1 = replace1;
+        input.replace2 = replace2;
+        input.is_file = false;
+        input.ori_str = inputStr;
     }else if(idInputType.value==="2"){
         const regex = /[^0-9a-fA-F]/g;
-        if(regex.test(input)){
+        if(regex.test(inputStr)){
             showing(1,"输入内容含有非法字符,hex仅可以为0123456789abcdefABCDEF")
             return;
         }
-        args.input = input;
+        input.ori_str = inputStr;
+        input.is_upper = true;
+        input.is_file = false;
     }else if(idInputType.value==="3"){
         let idFileInputField = document.getElementById(id+"_file_input_field");
         if(idFileInputField.dataset.path === ""){
             showing(1,"请选择文件")
             return;
         }
-        args.input = idFileInputField.dataset.path;
+        input.ori_str = idFileInputField.dataset.path;
+        input.is_file = true;
     }
-    args.inputType = parseInt(idInputType.value);
+    input.type = parseInt(idInputType.value);
+    args.input = input;
     return args;
 }
 function getInputAllowEmpty(id){
     let args = {}
     let idTextInput = document.getElementById(id+"_text_input");
-    let input = idTextInput.value;
+    let inputStr = idTextInput.value;
+    let input = {}
+    input.is_file = false;
     let idInputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_input_type\"]:checked");
     if(idInputType.value==="0") {
-        args.input = input;
+        input.ori_str = inputStr;
     }else if(idInputType.value==="1"){
         let replace0 = document.getElementById(id+"_input_base64_replace+").value;//+
         let replace1 = document.getElementById(id+"_input_base64_replace/").value;// /
@@ -652,52 +697,66 @@ function getInputAllowEmpty(id){
         if(replace0 === replace1 || replace0 === replace2 || replace1 === replace2){
             showing(1,"替换字符不能相同")
         }
-        while(input.indexOf(replace0) !== -1 && replace0 !== "+"){
-            input = input.replace(replace0,"+");
+        while(inputStr.indexOf(replace0) !== -1 && replace0 !== "+"){
+            inputStr = inputStr.replace(replace0,"+");
         }
-        while(input.indexOf(replace1) !== -1 && replace1 !== "/"){
-            input = input.replace(replace1,"/");
+        while(inputStr.indexOf(replace1) !== -1 && replace1 !== "/"){
+            inputStr = inputStr.replace(replace1,"/");
         }
-        while(input.indexOf(replace2) !== -1 && replace2 !== "="){
-            input = input.replace(replace2,"=");
+        while(inputStr.indexOf(replace2) !== -1 && replace2 !== "="){
+            inputStr = inputStr.replace(replace2,"=");
         }
         const regex = /[^A-Za-z0-9\+\/\=]/g;
-        if(regex.test(input)){
+        if(regex.test(inputStr)){
             showing(1,"输入内容含有非法字符,base64仅可以为0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"+replace0+replace1+replace2)
             return;
         }
-        args.input = input;
+        input.replace0 = replace0;
+        input.replace1 = replace1;
+        input.replace2 = replace2;
+        input.is_file = false;
+        input.ori_str = inputStr;
     }else if(idInputType.value==="2"){
         const regex = /[^0-9a-fA-F]/g;
         if(regex.test(input)){
             showing(1,"输入内容含有非法字符,hex仅可以为0123456789abcdefABCDEF")
             return;
         }
-        args.input = input;
+        input.is_file = false;
+        input.ori_str = inputStr;
+        input.is_upper = true;
     }else if(idInputType.value==="3"){
         let idFileInputField = document.getElementById(id+"_file_input_field");
         if(idFileInputField.dataset.path === ""){
             showing(1,"请选择文件")
             return;
         }
-        args.input = idFileInputField.dataset.path;
+        input.is_file = true;
+        input.ori_str = idFileInputField.dataset.path;
     }
-    args.inputType = parseInt(idInputType.value);
+    input.type = parseInt(idInputType.value);
+    args.input = input;
     let idOutputType = document.querySelector("input[type=\"radio\"][name=\""+id+"_output_type\"]:checked");
-    args.outputType = parseInt(idOutputType.value);
+    let output = {}
+    output.type = parseInt(idOutputType.value);
+    output.is_file = false;
     if(idOutputType.value==="1"){
-        args.replace0 = document.getElementById(id+"_output_base64_replace+").value;//+
-        args.replace1 = document.getElementById(id+"_output_base64_replace/").value;// /
-        args.replace2 = document.getElementById(id+"_output_base64_replace=").value;//=
-        if(args.replace0 === args.replace1 || args.replace0 === args.replace2 || args.replace1 === args.replace2){
+        output.replace0 = document.getElementById(id+"_output_base64_replace+").value;//+
+        output.replace1 = document.getElementById(id+"_output_base64_replace/").value;// /
+        output.replace2 = document.getElementById(id+"_output_base64_replace=").value;//=
+        if(output.replace0 === output.replace1 || output.replace0 === output.replace2 || output.replace1 === output.replace2){
             showing(1,"替换字符不能相同")
             return;
         }
+        output.is_file = false;
     }else if(idOutputType.value==="2"){
-        args.upper = document.getElementById(id+"_output_hex_case_upper").checked;
+        output.is_upper = document.getElementById(id+"_output_hex_case_upper").checked;
+        output.is_file = false;
     }else if(idOutputType.value==="3"){
-        args.outputPath = document.getElementById(id+"_file_output_input").value;
+        output.ori_str = document.getElementById(id+"_file_output_input").value;
+        output.is_file = true;
     }
+    args.output = output;
     return args;
 }
 
@@ -961,7 +1020,7 @@ encrypt_button.addEventListener("click",()=>{
     if(args === undefined){
         return;
     }
-    params.input= args;
+    params.io = args;
     let config = {};
     let encrypt_method = document.getElementById("encrypt_method");
     let encrypt_block_size = document.getElementById("encrypt_block_size");
@@ -1185,7 +1244,7 @@ decrypt_button.addEventListener("click",()=>{
     if(args === undefined){
         return;
     }
-    params.input= args;
+    params.io= args;
     let config = {};
     let decrypt_method = document.getElementById("decrypt_method");
     let decrypt_block_size = document.getElementById("decrypt_block_size");
@@ -1238,10 +1297,12 @@ decrypt_button.addEventListener("click",()=>{
         return;
     }
     
-    let decrypt_iv_text_input_size = document.getElementById("decrypt_iv_text_input_size");
-    if(decrypt_iv_text_input_size.dataset.size < config.blockSize){
-        showing(1,"iv长度不足,应为"+config.blockSize+"位(B),当前为"+decrypt_iv_text_input_size.dataset.size+"位(B)");
-        return;
+    if(!document.getElementById("decrypt_with_iv").checked){
+        let decrypt_iv_text_input_size = document.getElementById("decrypt_iv_text_input_size");
+        if(decrypt_iv_text_input_size.dataset.size < config.blockSize){
+            showing(1,"iv长度不足,应为"+config.blockSize+"位(B),当前为"+decrypt_iv_text_input_size.dataset.size+"位(B)");
+            return;
+        }
     }
     let iv = getInputNoOutput("decrypt_iv");
     if(iv===undefined){

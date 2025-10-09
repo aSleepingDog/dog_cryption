@@ -350,143 +350,53 @@ public:
 public slots:
 	void receive(const QString& jsonstr)
 	{
-		QJsonDocument doc = QJsonDocument::fromJson(jsonstr.toUtf8());
-		QJsonObject json = doc.object();
-		QJsonObject result;
-		dog_data::Data data;
-		if (json["input"].toString().isEmpty())
-		{
-			result["code"] = 1;
-			result["msg"] = "请输入数据";
-			emit send(QJsonDocument(result).toJson());
-			return;
-		}
-		std::string input = json["input"].toString().toStdString();
-		if (json["inputType"].isNull() || json["inputType"].isUndefined() || !isInt(json["inputType"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请选择输入类型";
-			emit send(QJsonDocument(result).toJson());
-			return;
-		}
 		try
 		{
-			dog_work::Timer t;
-			t.start();
-			data = dog_data::Data(input, toInt(json["inputType"]));
-			t.end();
-			result["time"] = t.get_time();
+			std::string std_json_str = jsonstr.toStdString();
+			dog_data::JsonObject dog_params = std_json_str;
+			dog_param::IOConfig input__config = dog_param::IOConfig(dog_params["input"].get_object(), true);
+			dog_param::IOConfig output_config = dog_param::IOConfig(dog_params["output"].get_object(), false);
+			
+			QJsonObject result;
+			dog_work::Timer timer;
+			timer.start();
+			result["res"] = QString::fromStdString(output_config.fmt_data(input__config.get_data()));
+			timer.end();
+			result["time"] = timer.get_time();
+			result["code"] = 0;
+			result["msg"] = "转换成功";
+			emit send(QJsonDocument(result).toJson());
+			return;
+		}
+		catch (std::exception& e)
+		{
+			QJsonObject result;
+			result["code"] = 1;
+			result["msg"] = QString::fromStdString(e.what()).split("\n").at(0);
+			emit send(QJsonDocument(result).toJson());
+		}
+	}
+	void get_data_size(const QString& jsonstr)
+	{
+		QJsonObject result;
+		try
+		{
+			std::string std_json_str = jsonstr.toStdString();
+			dog_data::JsonObject dog_params = std_json_str;
+			std::cout << dog_params.to_string(true, 0) << std::endl;
+			dog_param::IOConfig input__config = dog_param::IOConfig(dog_params["input"].get_object(), true);
+			dog_data::Data data = input__config.get_data();
+			result["code"] = 0;
+			result["msg"] = "success";
+			QJsonValue size = data.size() < 0x20000000000000 ? QJsonValue(data.size() * 1.0) : QJsonValue("overflow");
+			result["size"] = size;
+			result["id"] = QString::fromStdString(dog_params["id"].get_string());
 		}
 		catch (std::exception& e)
 		{
 			result["code"] = 1;
-			result["msg"] = "内部错误,请保留日志并联系开发人员"+QString::fromStdString(e.what());
-			emit send(QJsonDocument(result).toJson());
-			return;
+			result["msg"] = QString::fromStdString(e.what()).split("\n").at(0);
 		}
-		
-		if (json["outputType"].isNull() || json["outputType"].isUndefined() || !isInt(json["outputType"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请选择输出类型";
-			emit send(QJsonDocument(result).toJson());
-			return;
-		}
-		switch (toInt(json["outputType"]))
-		{
-		case 0:
-		{
-			dog_work::Timer t;
-			t.start();
-			result["res"] = QString::fromStdString(data.getUTF8String());
-			t.end();
-			result["time"] = result["time"].toDouble() + t.get_time();
-			break;
-		}
-		case 1:
-		{
-			if (json["replace0"].isNull() || json["replace0"].isUndefined()
-				|| json["replace1"].isNull() || json["replace1"].isUndefined()
-				|| json["replace2"].isNull() || json["replace2"].isUndefined())
-			{
-				result["code"] = 1;
-				result["msg"] = "请输入替换字符";
-			}
-			else if (json["replace0"].toString() == json["replace1"].toString()
-				|| json["replace0"].toString() == json["replace2"].toString()
-				|| json["replace1"].toString() == json["replace2"].toString())
-			{
-				result["code"] = 1;
-				result["msg"] = "替换字符不能相同";
-			}
-			char replace0 = json["replace0"].toString().toStdString()[0];
-			char replace1 = json["replace1"].toString().toStdString()[0];
-			char replace2 = json["replace2"].toString().toStdString()[0];
-			dog_work::Timer t;
-			t.start();
-			result["res"] = QString::fromStdString(data.getBase64String(replace0, replace1, replace2));
-			t.end();
-			result["time"] = result["time"].toDouble() + t.get_time();
-			break;
-		}
-		case 2:
-		{
-			if (json["upper"].isNull() || json["upper"].isUndefined())
-			{
-				result["code"] = 1;
-				result["msg"] = "请指定大小写";
-				emit send(QJsonDocument(result).toJson());
-				return;
-			}
-			else if (!json["upper"].isBool())
-			{
-				result["code"] = 1;
-				result["msg"] = "请正确指定大小写";
-				emit send(QJsonDocument(result).toJson());
-				return;
-			}
-			bool upper = json["upper"].toBool();
-			dog_work::Timer t;
-			t.start();
-			result["res"] = QString::fromStdString(data.getHexString(upper));
-			t.end();
-			result["time"] = result["time"].toDouble() + t.get_time();
-			break;
-		}
-		default:
-		{
-			result["code"] = 1;
-			result["msg"] = "输出类型错误,仅能为0-utf8/1-base64/2-hex";
-			emit send(QJsonDocument(result).toJson());
-			return;
-		}
-		}
-		result["code"] = 0;
-		result["msg"] = "success";
-		emit send(QJsonDocument(result).toJson());
-		return;
-	}
-	void get_data_size(const QString& jsonstr)
-	{
-		QJsonDocument doc = QJsonDocument::fromJson(jsonstr.toUtf8());
-		QJsonObject json = doc.object();
-		QJsonObject result;
-		dog_data::Data data;
-		std::string input = json["input"].toString().toStdString();
-		if (json["inputType"].isNull() || json["inputType"].isUndefined() || !isInt(json["inputType"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请选择输入类型";
-			emit send(QJsonDocument(result).toJson());
-			return;
-		}
-		uint64_t input_type = toInt(json["inputType"]);
-		data = dog_data::Data(input, input_type);
-		result["code"] = 0;
-		result["msg"] = "success";
-		QJsonValue size = data.size() < 0x20000000000000 ? QJsonValue(data.size() * 1.0) : QJsonValue("overflow");
-		result["size"] = size;
-		result["id"] = json["id"];
 		emit size_back(QJsonDocument(result).toJson());
 	}
 signals:
@@ -502,258 +412,60 @@ public:
 	explicit HashBridge(QObject* parent = nullptr) : QObject(parent) {}
 
 public slots:
-	void dog_work(const QString& jsonStr)
+	void work(const QString& jsonstr)
 	{
-		QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8());
-		QJsonObject params = doc.object();
 		QJsonObject result;
-		dog_data::Data data;
-		QString path;
-		/*
-		if (params["input"].toString().isEmpty())
+		try
 		{
-			result["code"] = 1;
-			result["msg"] = "请输入数据";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		*/
-		std::string input = params["input"].toString().toStdString();
-		if (params["inputType"].isNull() || params["inputType"].isUndefined() || !isInt(params["inputType"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请选择输入类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		int inputType = toInt(params["inputType"]);
-		if (inputType != 3)
-		{
-			data = dog_data::Data(input, inputType);
-		}
+			std::string std_json_str = jsonstr.toStdString();
+			dog_data::JsonObject dog_params = std_json_str;
+			std::cout << dog_params.to_string(true, 0) << std::endl;
+			dog_param::IOConfig input__config = dog_param::IOConfig(dog_params["input"].get_object(), true);
+			dog_param::IOConfig output_config = dog_param::IOConfig(dog_params["output"].get_object(), false);
 
-		if (params["type"].isNull() || params["type"].isUndefined() || !params["type"].isString())
-		{
-			result["code"] = 1;
-			result["msg"] = "请选择散列类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		std::unique_ptr<dog_hash::HashConfig> hash_config = nullptr;
-		for (auto& single_config : dog_hash::list)
-		{
-			if (single_config.name == params["type"].toString().toStdString())
+			std::unique_ptr<dog_hash::HashConfig> hash_config = nullptr;
+			for (auto& single_config : dog_hash::list)
 			{
-				hash_config = std::make_unique<dog_hash::HashConfig>(single_config);
-				break;
-			}
-		}
-		if (!hash_config)
-		{
-			result["code"] = 1;
-			result["msg"] = "散列类型错误,不支持的散列类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		if (params["effective"].isNull() || params["effective"].isUndefined() || !params["effective"].isDouble())
-		{
-			result["code"] = 1;
-			result["msg"] = "请输入有效输出数";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		else
-		{
-			QString effectiveStr = params["effective"].toString();
-			double effective_double = effectiveStr.toDouble();
-			if (effective_double != (uint64_t)effective_double)
-			{
-				result["code"] = 1;
-				result["msg"] = "有效输出类型错误";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			int effective = params["effective"].toInt();
-			if (!dog_number::region::is_fall(hash_config->region, effective))
-			{
-				result["code"] = 1;
-				result["msg"] = "有效输出错误,不支持的散列类型和有效输出组合";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-		}
-
-		if (inputType == 3)
-		{
-			if (input.empty())
-			{
-				result["code"] = 1;
-				result["msg"] = "请输入文件路径";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			path = QString::fromStdString(input);
-			std::unordered_map<std::string, std::any> output_params;
-			if (params["outputType"].isNull() || params["outputType"].isUndefined() || !isInt(params["outputType"]))
-			{
-				result["code"] = 1;
-				result["msg"] = "请选择输出类型";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			output_params["output_type"] = toInt(params["outputType"]);
-			switch (std::any_cast<uint64_t>(output_params["output_type"]))
-			{
-			case 0:
-			{
-				break;
-			}
-			case 1:
-			{
-				if (params["replace0"].isNull() || params["replace0"].isUndefined()
-					|| params["replace1"].isNull() || params["replace1"].isUndefined()
-					|| params["replace2"].isNull() || params["replace2"].isUndefined())
+				if (single_config.name == dog_params["type"].get_string())
 				{
-					result["code"] = 1;
-					result["msg"] = "请输入替换字符";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
+					hash_config = std::make_unique<dog_hash::HashConfig>(single_config);
+					break;
 				}
-				else if (params["replace0"].toString() == params["replace1"].toString()
-					|| params["replace0"].toString() == params["replace2"].toString()
-					|| params["replace1"].toString() == params["replace2"].toString())
-				{
-					result["code"] = 1;
-					result["msg"] = "替换字符不能相同";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
-				}
-				output_params["replace0"] = params["replace0"].toString().toStdString()[0];
-				output_params["replace1"] = params["replace1"].toString().toStdString()[0];
-				output_params["replace2"] = params["replace2"].toString().toStdString()[0];
-				break;
 			}
-			case 2:
+			if (!hash_config)
 			{
-				if (params["upper"].isNull() || params["upper"].isUndefined())
-				{
-					result["code"] = 1;
-					result["msg"] = "请指定大小写";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
-				}
-				else if (!params["upper"].isBool())
-				{
-					result["code"] = 1;
-					result["msg"] = "请正确指定大小写";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
-				}
-				output_params["upper"] = params["upper"].toBool();
-				break;
+				throw DOG_EXCEPTION("散列类型错误,不支持的散列类型");
 			}
-			default:
+			if (!dog_number::region::is_fall(hash_config->region, dog_params["effective"].get_integer()))
 			{
-				result["code"] = 1;
-				result["msg"] = "输出类型错误,仅能为0-utf8/1-base64/2-hex";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
+				throw DOG_EXCEPTION("有效输出数不在范围内");
 			}
+			dog_hash::HashCrypher hash_crypher = dog_hash::HashCrypher(hash_config->name, dog_params["effective"].get_integer());
+			if (input__config.is_data())
+			{
+				dog_work::Timer timer;
+				timer.start();
+				result["res"] = QString::fromStdString(output_config.fmt_data(hash_crypher.getDataHash(input__config.get_data())));
+				timer.end();
+				result["time"] = timer.get_time();
+				result["msg"] = "散列成功";
 			}
-			dog_hash::HashCrypher hash_crypher(params["type"].toString().toStdString(), params["effective"].toInt());
-			uint64_t id = task_pool->add_hash(path.toStdString(), hash_crypher, output_params);
+			else if (input__config.is_file())
+			{
+				uint64_t task_id = task_pool->add_hash(input__config,hash_crypher,output_config);
+				result["msg"] = QString::fromStdString("任务已添加至队列,任务编号" + std::to_string(task_id));
+				result["file"] = true;
+			}
 			result["code"] = 0;
-			result["file"] = true;
-			result["msg"] = QString::fromStdString("任务已添加至队列,任务编号" + std::to_string(id));
-			emit send_result(QJsonDocument(result).toJson());
-			return;
 		}
-		else
-		{
-			try
-			{
-				dog_hash::HashCrypher hash_crypher(params["type"].toString().toStdString(), params["effective"].toInt());
-				dog_work::Timer t;
-				t.start();
-				data = hash_crypher.getDataHash(data);
-				t.end();
-				result["time"] = t.get_time();
-			}
-			catch (std::exception& e)
-			{
-				result["code"] = 1;
-				result["msg"] = QString::fromStdString(e.what());
-			}
-		}
-		if (params["outputType"].isNull() || params["outputType"].isUndefined() || !isInt(params["outputType"]))
+		catch (std::exception& e)
 		{
 			result["code"] = 1;
-			result["msg"] = "请选择输出类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
+			result["msg"] = QString::fromStdString(e.what()).split("\n").at(0);
 		}
-		uint64_t output_type = toInt(params["outputType"]);
-		switch (output_type)
-		{
-		case 0:
-		{
-			result["res"] = QString::fromStdString(data.getUTF8String());
-			break;
-		}
-		case 1:
-		{
-			if (params["replace0"].isNull() || params["replace0"].isUndefined()
-				|| params["replace1"].isNull() || params["replace1"].isUndefined()
-				|| params["replace2"].isNull() || params["replace2"].isUndefined())
-			{
-				result["code"] = 1;
-				result["msg"] = "请输入替换字符";
-			}
-			else if (params["replace0"].toString() == params["replace1"].toString()
-				|| params["replace0"].toString() == params["replace2"].toString()
-				|| params["replace1"].toString() == params["replace2"].toString())
-			{
-				result["code"] = 1;
-				result["msg"] = "替换字符不能相同";
-			}
-			char replace0 = params["replace0"].toString().toStdString()[0];
-			char replace1 = params["replace1"].toString().toStdString()[0];
-			char replace2 = params["replace2"].toString().toStdString()[0];
-			result["res"] = QString::fromStdString(data.getBase64String(replace0, replace1, replace2));
-			break;
-		}
-		case 2:
-		{
-			if (params["upper"].isNull() || params["upper"].isUndefined())
-			{
-				result["code"] = 1;
-				result["msg"] = "请指定大小写";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			else if (!params["upper"].isBool())
-			{
-				result["code"] = 1;
-				result["msg"] = "请正确指定大小写";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			bool upper = params["upper"].toBool();
-			result["res"] = QString::fromStdString(data.getHexString(upper));
-			break;
-		}
-		default:
-		{
-			result["code"] = 1;
-			result["msg"] = "输出类型错误,仅能为0-utf8/1-base64/2-hex";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		}
-		result["code"] = 0;
-		result["msg"] = "success";
+		
 		emit send_result(QJsonDocument(result).toJson());
-		return;
+
 	}
 public slots:
 	void test(const QString& jsonStr)
@@ -786,339 +498,86 @@ public:
 	explicit EncryptionBridge(QObject* parent = nullptr) : QObject(parent) {}
 
 public slots:
-	void dog_work(const QString& jsonstr)
+	void work(const QString& jsonstr)
 	{
-		QJsonDocument doc = QJsonDocument::fromJson(jsonstr.toUtf8());
-		QJsonObject params = doc.object();
 		QJsonObject result;
-		/*
-{
-	"head":{
-		"withCheck":true,
-		"withConfig":true,
-		"withIV":true
-	},
-	"config":{
-		"type":"AES",
-		"blockSize":16,
-		"keySize":16,
-
-		"isPadding":true,
-		"padding":"PKCS7",
-		"mode":"ECB",
-		"shift":15
-	},
-	"input":{
-		"input":"11",
-		"inputType":0,
-		"outputType":"2",
-		"upper":true
-	}
-}
-		*/
-
-		QJsonObject config_json = params["config"].toObject();
-		std::string algorithm = "";
-		if (config_json["type"].isNull() || config_json["type"].isUndefined() || !config_json["type"].isString())
+		try
 		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择加密类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		algorithm = config_json["type"].toString().toStdString();
+			std::string std_json_str = jsonstr.toStdString();
+			dog_data::JsonObject dog_params = std_json_str;
+			std::cout << dog_params.to_string(true, 0) << std::endl;
+			dog_param::IOConfig input__config = dog_param::IOConfig(dog_params["io"].get_object()["input"].get_object(), true);
+			dog_param::IOConfig output_config = dog_param::IOConfig(dog_params["io"].get_object()["output"].get_object(), false);
+			
+			dog_data::JsonObject all_config = dog_params["config"].get_object();
+			dog_cryption::CryptionConfig config = dog_cryption::CryptionConfig(
+				all_config["type"].get_string(), all_config["blockSize"].get_integer(), all_config["keySize"].get_integer(),
+				all_config["isPadding"].get_bool(), all_config["padding"].get_string(),
+				all_config["mode"].get_string(), true, all_config["shift"].get_integer()
+			);
 
-		uint64_t block_size = 0;
-		if (config_json["blockSize"].isNull() || config_json["blockSize"].isUndefined() || !isInt(config_json["blockSize"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择加密分块长度";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		block_size = toInt(config_json["blockSize"]);
-
-		uint64_t key_size = 0;
-		if (config_json["keySize"].isNull() || config_json["keySize"].isUndefined() || !isInt(config_json["keySize"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择加密密钥长度";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		key_size = toInt(config_json["keySize"]);
-
-		bool using_padding = false;
-		if (config_json["isPadding"].isNull() || config_json["isPadding"].isUndefined() || !config_json["isPadding"].isBool())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择是否使用填充";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		using_padding = config_json["isPadding"].toBool();
-
-		std::string padding = "";
-		if (config_json["padding"].isNull() || config_json["padding"].isUndefined() || !config_json["padding"].isString())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择填充类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		padding = config_json["padding"].toString().toStdString();
-
-		std::string mode = "";
-		if (config_json["mode"].isNull() || config_json["mode"].isUndefined() || !config_json["mode"].isString())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择加密模式";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		mode = config_json["mode"].toString().toStdString();
-
-		uint64_t shift = 0;
-		if (config_json["shift"].isNull() || config_json["shift"].isUndefined() || !isInt(config_json["shift"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择偏移长度";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		shift = toInt(config_json["shift"]);
-
-		dog_data::Data iv_data;
-		QJsonObject iv_json = params["iv"].toObject();
-		//qDebug() << iv_json;
-		if (iv_json["auto"].isBool())
-		{
-			iv_data = dog_cryption::utils::randiv(block_size);
-			result["iv"] = QString::fromStdString(iv_data.getHexString());
-		}
-		else
-		{
-			if (iv_json["inputType"].isNull() || iv_json["inputType"].isUndefined() || !isInt(iv_json["inputType"]))
+			dog_param::IOConfig key_config = dog_param::IOConfig(dog_params["key"].get_object()["input"].get_object(), true);
+			std::unique_ptr<dog_param::IOConfig> iv_config = nullptr;
+			auto iv_params = dog_params["iv"].get_object();
+			if (iv_params.find("auto") != iv_params.end())
 			{
-				result["code"] = 1;
-				result["msg"] = "iv请正确选择输入类型";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
+				std::unordered_map<std::string, std::any> iv_params;
+				iv_params["ori_str"] = dog_cryption::utils::randiv(config.block_size).getHexString();
+				iv_params["type"] = (uint64_t)2;
+				iv_params["is_upper"] = true;
+				iv_params["is_file"] = false;
+				iv_config = std::make_unique<dog_param::IOConfig>(iv_params, true);
 			}
-			if (iv_json["input"].isNull() || iv_json["input"].isUndefined() || !iv_json["input"].isString())
+			else
 			{
-				result["code"] = 1;
-				result["msg"] = "请输入iv";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
+				iv_config = std::make_unique<dog_param::IOConfig>(iv_params["input"].get_object(), true);
 			}
-			iv_data = dog_data::Data(iv_json["input"].toString().toStdString(), toInt(iv_json["inputType"]));
-		}
 
-		QJsonObject key_json = params["key"].toObject();
-		if (key_json["inputType"].isNull() || key_json["inputType"].isUndefined() || !isInt(key_json["inputType"]))
-		{
-            result["code"] = 1;
-			result["msg"] = "key请正确选择输入类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		if (key_json["input"].isNull() || key_json["input"].isUndefined() || !key_json["input"].isString())
-		{
-			result["code"] = 1;
-			result["msg"] = "请输入key";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		dog_data::Data key_data(key_json["input"].toString().toStdString(), toInt(key_json["inputType"]));
+			dog_data::JsonObject head = dog_params["head"].get_object();
+			bool with_check = head["withCheck"].get_bool();
+			bool with_config = head["withConfig"].get_bool();
+			bool with_iv = head["withIV"].get_bool();
 
-		QJsonObject head_json = params["head"].toObject();
-		bool with_check = false;
-		if (head_json["withCheck"].isNull() || head_json["withCheck"].isUndefined() || !head_json["withCheck"].isBool())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择是否启用密钥校验";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		with_check = head_json["withCheck"].toBool();
-		bool with_iv = false;
-		if (head_json["withIV"].isNull() || head_json["withIV"].isUndefined() || !head_json["withIV"].isBool())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择是否启用iv";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		with_iv = head_json["withIV"].toBool();
-		bool with_config = false;
-		if (head_json["withConfig"].isNull() || head_json["withConfig"].isUndefined() || !head_json["withConfig"].isBool())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择是否启用配置";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		with_config = head_json["withConfig"].toBool();
+			dog_cryption::Cryptor cryptor = dog_cryption::Cryptor(config);
 
-		QJsonObject input_json = params["input"].toObject();
-		if (input_json["inputType"].isNull() || input_json["inputType"].isUndefined() || !isInt(input_json["inputType"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择输入类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		if (input_json["input"].isNull() || input_json["input"].isUndefined() || !input_json["input"].isString())
-		{
-			result["code"] = 1;
-			result["msg"] = "请输入内容";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		uint64_t input_type = toInt(input_json["inputType"]);
-		dog_data::Data input_data;
-		if (input_type != 3)
-		{
-			dog_data::Data output_data;
-			try
+			dog_data::Data key_data = key_config.get_data();
+			dog_data::Data iv_data = iv_config->get_data();
+
+			if (!input__config.is_file())
 			{
-				dog_cryption::CryptionConfig cryption_config(algorithm, block_size, key_size, using_padding, padding, mode, true, shift);
-				dog_cryption::Cryptor cryptor(cryption_config);
+				dog_data::Data input_data = input__config.get_data();
+				result["iv"] = QString::fromStdString(iv_data.getHexString());
+
 				cryptor.set_key(key_data);
-				input_data = dog_data::Data(input_json["input"].toString().toStdString(), input_type);
-				dog_work::Timer t;
-				t.start();
-				output_data = cryptor.encrypt(input_data, with_config, with_iv, iv_data, with_check);
-				t.end();
-				result["time"] = t.get_time();
+				dog_work::Timer timer;
+				timer.start();
+				dog_data::Data output_data = cryptor.encrypt(input_data, with_config, with_iv, iv_data, with_check);
+				timer.end();
+				result["time"] = timer.get_time();
+				result["res"] = QString::fromStdString(output_config.fmt_data(output_data));
+				result["msg"] = "加密成功";
 			}
-			catch (std::exception& e)
+			else
 			{
-				result["code"] = 1;
-				result["msg"] = "内部错误,请保留日志并联系开发人员" + QString::fromStdString(e.what());
-				emit send_result(QJsonDocument(result).toJson());
-				return;
+				cryptor.set_key(key_data);
+				result["iv"] = QString::fromStdString(iv_data.getHexString());
+				uint64_t task_id = task_pool->add_encrypt(
+					input__config.get_file_path(), output_config.get_file_path(), cryptor,
+					iv_data, with_config, with_iv, with_check
+				);
+				result["msg"] = QString::fromStdString("任务已添加至队列,任务编号" + std::to_string(task_id));
+				result["file"] = true;
 			}
-
-			uint64_t output_type = 0;
-			if (input_json["outputType"].isNull() || input_json["outputType"].isUndefined() || !isInt(input_json["outputType"]))
-			{
-				result["code"] = 1;
-				result["msg"] = "请正确选择输出类型";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			output_type = toInt(input_json["outputType"]);
-
-			switch (output_type)
-			{
-			case 0:
-			{
-				result["res"] = QString::fromStdString(output_data.getUTF8String());
-				break;
-			}
-			case 1:
-			{
-				if (input_json["replace0"].isNull() || input_json["replace0"].isUndefined()
-					|| input_json["replace1"].isNull() || input_json["replace1"].isUndefined()
-					|| input_json["replace2"].isNull() || input_json["replace2"].isUndefined())
-				{
-					result["code"] = 1;
-					result["msg"] = "请输入替换字符";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
-				}
-				else if (input_json["replace0"].toString() == input_json["replace1"].toString()
-					|| input_json["replace0"].toString() == input_json["replace2"].toString()
-					|| input_json["replace1"].toString() == input_json["replace2"].toString())
-				{
-					result["code"] = 1;
-					result["msg"] = "替换字符不能相同";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
-				}
-				char replace0 = input_json["replace0"].toString().toStdString()[0];
-				char replace1 = input_json["replace1"].toString().toStdString()[0];
-				char replace2 = input_json["replace2"].toString().toStdString()[0];
-				result["res"] = QString::fromStdString(output_data.getBase64String(replace0, replace1, replace2));
-				break;
-			}
-			case 2:
-			{
-				if (input_json["upper"].isNull() || input_json["upper"].isUndefined())
-				{
-					result["code"] = 1;
-					result["msg"] = "请指定大小写";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
-				}
-				else if (!input_json["upper"].isBool())
-				{
-					result["code"] = 1;
-					result["msg"] = "请正确指定大小写";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
-				}
-				bool upper = input_json["upper"].toBool();
-				result["res"] = QString::fromStdString(output_data.getHexString(upper));
-				break;
-			}
-			default:
-			{
-				result["code"] = 1;
-				result["msg"] = "输出类型错误,仅能为0-utf8/1-base64/2-hex";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			};
 			result["code"] = 0;
-			result["msg"] = "加密成功";
-			emit send_result(QJsonDocument(result).toJson());
 		}
-		else
+		catch (dog_exception::Exception& e)
 		{
-			std::string input_path = input_json["input"].toString().toStdString();
-			std::string output_path = input_json["output"].toString().toStdString();
-			std::filesystem::path temp_input_path = std::filesystem::path(input_path);
-			if (!std::filesystem::exists(temp_input_path))
-			{
-				result["code"] = 1;
-				result["msg"] = "文件不存在";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			if (std::filesystem::file_size(temp_input_path) == 0)
-			{
-				result["code"] = 1;
-				result["msg"] = "文件为空";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			std::unique_ptr<dog_cryption::Cryptor> cryptor;
-			try
-			{
-				dog_cryption::CryptionConfig cryption_config(algorithm, block_size, key_size, using_padding, padding, mode, true, shift);
-				cryptor = std::make_unique<dog_cryption::Cryptor>(cryption_config);
-				cryptor->set_key(key_data);
-			}
-			catch (std::exception& e)
-			{
-				result["code"] = 1;
-				result["msg"] = "内部错误,请保留日志并联系开发人员" + QString::fromStdString(e.what());
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			uint64_t id = task_pool->add_encrypt(input_path, output_path, *cryptor,
-				iv_data, with_config, with_iv, with_check);
-			result["code"] = 0;
-			result["file"] = true;
-			result["msg"] = QString::fromStdString("任务已添加至队列,任务编号" + std::to_string(id));
-			emit send_result(QJsonDocument(result).toJson());
-			return;
+			result["code"] = 1;
+			result["msg"] = QString::fromStdString(e.what()).split("\n").at(0);
+			std::cout << e.what() << std::endl;
 		}
-
-	};
+		emit send_result(QJsonDocument(result).toJson());
+	}
 public slots:
 	void test(const QString& jsonstr)
 	{
@@ -1206,355 +665,85 @@ class DecryptionBridge : public QObject
 public:
 	explicit DecryptionBridge(QObject* parent = nullptr) : QObject(parent) {}
 public slots:
-	void dog_work(const QString& jsonstr)
+	void work(const QString& jsonstr)
 	{
-		QJsonDocument doc = QJsonDocument::fromJson(jsonstr.toUtf8());
-		QJsonObject params = doc.object();
 		QJsonObject result;
-		/*
-{
-    "config": {
-        "blockSize": 16,
-        "isPadding": true,
-        "keySize": 16,
-        "mode": "ECB",
-        "padding": "PKCS7",
-        "shift": 1,
-        "type": "AES"
-    },
-    "head": {
-        "withCheck": true,
-        "withConfig": true,
-        "withIV": true
-    },
-    "input": {
-        "input": "0123456789ABCDEF",
-        "inputType": 2,
-        "outputType": 0
-    },
-    "iv": {
-        "input": "0123456789ABCDEF",
-        "inputType": 0
-    },
-    "key": {
-        "input": "0123456789ABCDEF",
-        "inputType": 0
-    }
-}
-		*/
-		QJsonObject config_json = params["config"].toObject();
-		std::string algorithm = "";
-		if (config_json["type"].isNull() || config_json["type"].isUndefined() || !config_json["type"].isString())
+		try
 		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择加密类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		algorithm = config_json["type"].toString().toStdString();
+			std::string std_json_str = jsonstr.toStdString();
+			dog_data::JsonObject dog_params = std_json_str;
+			std::cout << dog_params.to_string(true, 0) << std::endl;
+			dog_param::IOConfig input__config = dog_param::IOConfig(dog_params["io"].get_object()["input"].get_object(), true);
+			dog_param::IOConfig output_config = dog_param::IOConfig(dog_params["io"].get_object()["output"].get_object(), false);
 
-		uint64_t block_size = 0;
-		if (config_json["blockSize"].isNull() || config_json["blockSize"].isUndefined() || !isInt(config_json["blockSize"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择加密分块长度";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		block_size = toInt(config_json["blockSize"]);
+			dog_data::JsonObject all_config = dog_params["config"].get_object();
+			dog_cryption::CryptionConfig config = dog_cryption::CryptionConfig(
+				all_config["type"].get_string(), all_config["blockSize"].get_integer(), all_config["keySize"].get_integer(),
+				all_config["isPadding"].get_bool(), all_config["padding"].get_string(),
+				all_config["mode"].get_string(), true, all_config["shift"].get_integer()
+			);
 
-		uint64_t key_size = 0;
-		if (config_json["keySize"].isNull() || config_json["keySize"].isUndefined() || !isInt(config_json["keySize"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择加密密钥长度";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		key_size = toInt(config_json["keySize"]);
-
-		bool using_padding = false;
-		if (config_json["isPadding"].isNull() || config_json["isPadding"].isUndefined() || !config_json["isPadding"].isBool())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择是否使用填充";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		using_padding = config_json["isPadding"].toBool();
-
-		std::string padding = "";
-		if (config_json["padding"].isNull() || config_json["padding"].isUndefined() || !config_json["padding"].isString())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择填充类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		padding = config_json["padding"].toString().toStdString();
-
-		std::string mode = "";
-		if (config_json["mode"].isNull() || config_json["mode"].isUndefined() || !config_json["mode"].isString())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择加密模式";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		mode = config_json["mode"].toString().toStdString();
-
-		uint64_t shift = 0;
-		if (config_json["shift"].isNull() || config_json["shift"].isUndefined() || !isInt(config_json["shift"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择偏移长度";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		shift = toInt(config_json["shift"]);
-
-		QJsonObject iv_json = params["iv"].toObject();
-		if (iv_json["inputType"].isNull() || iv_json["inputType"].isUndefined() || !isInt(iv_json["inputType"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "iv请正确选择输入类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		if (iv_json["input"].isNull() || iv_json["input"].isUndefined() || !iv_json["input"].isString())
-		{
-			result["code"] = 1;
-			result["msg"] = "请输入iv";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		dog_data::Data iv_data = dog_data::Data(iv_json["input"].toString().toStdString(), toInt(iv_json["inputType"]));
-
-		QJsonObject key_json = params["key"].toObject();
-		if (key_json["inputType"].isNull() || key_json["inputType"].isUndefined() || !isInt(key_json["inputType"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "key请正确选择输入类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		if (key_json["input"].isNull() || key_json["input"].isUndefined() || !key_json["input"].isString())
-		{
-			result["code"] = 1;
-			result["msg"] = "请输入key";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		dog_data::Data key_data(key_json["input"].toString().toStdString(), toInt(key_json["inputType"]));
-
-		QJsonObject head_json = params["head"].toObject();
-		bool with_check = false;
-		if (head_json["withCheck"].isNull() || head_json["withCheck"].isUndefined() || !head_json["withCheck"].isBool())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择是否启用密钥校验";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		with_check = head_json["withCheck"].toBool();
-		bool with_iv = false;
-		if (head_json["withIV"].isNull() || head_json["withIV"].isUndefined() || !head_json["withIV"].isBool())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择是否启用iv";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		with_iv = head_json["withIV"].toBool();
-		bool with_config = false;
-		if (head_json["withConfig"].isNull() || head_json["withConfig"].isUndefined() || !head_json["withConfig"].isBool())
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择是否启用配置";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		with_config = head_json["withConfig"].toBool();
-
-		if (!with_iv && iv_data.size() < block_size)
-		{
-			result["code"] = 1;
-			result["msg"] = "iv长度不足,当前" + QString::number(iv_data.size()) + "位(B)" + "需要" + QString::number(block_size) + "位(B)";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-
-		QJsonObject input_json = params["input"].toObject();
-		if (input_json["inputType"].isNull() || input_json["inputType"].isUndefined() || !isInt(input_json["inputType"]))
-		{
-			result["code"] = 1;
-			result["msg"] = "请正确选择输入类型";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		if (input_json["input"].isNull() || input_json["input"].isUndefined() || !input_json["input"].isString())
-		{
-			result["code"] = 1;
-			result["msg"] = "请输入内容";
-			emit send_result(QJsonDocument(result).toJson());
-			return;
-		}
-		uint64_t input_type = toInt(input_json["inputType"]);
-		dog_data::Data input_data;
-		QString input_path = "";
-		if (input_type != 3)
-		{
-			dog_data::Data output_data;
-			try
+			dog_param::IOConfig key_config = dog_param::IOConfig(dog_params["key"].get_object()["input"].get_object(), true);
+			std::unique_ptr<dog_param::IOConfig> iv_config = nullptr;
+			auto iv_params = dog_params["iv"].get_object();
+			if (iv_params.find("auto") != iv_params.end())
 			{
-				dog_cryption::CryptionConfig cryption_config(algorithm, block_size, key_size, using_padding, padding, mode, true, shift);
-				dog_cryption::Cryptor cryptor(cryption_config);
+				std::unordered_map<std::string, std::any> iv_params;
+				iv_params["ori_str"] = dog_cryption::utils::randiv(config.block_size).getHexString();
+				iv_params["type"] = (uint64_t)2;
+				iv_params["is_upper"] = true;
+				iv_params["is_file"] = false;
+				iv_config = std::make_unique<dog_param::IOConfig>(iv_params, true);
+			}
+			else
+			{
+				iv_config = std::make_unique<dog_param::IOConfig>(iv_params["input"].get_object(), true);
+			}
+
+			dog_data::JsonObject head = dog_params["head"].get_object();
+			bool with_check = head["withCheck"].get_bool();
+			bool with_config = head["withConfig"].get_bool();
+			bool with_iv = head["withIV"].get_bool();
+
+			dog_cryption::Cryptor cryptor = dog_cryption::Cryptor(config);
+
+			dog_data::Data key_data = key_config.get_data();
+			dog_data::Data iv_data = iv_config->get_data();
+
+			if (!input__config.is_file())
+			{
+				dog_data::Data input_data = input__config.get_data();
+				result["iv"] = QString::fromStdString(iv_data.getHexString());
+
 				cryptor.set_key(key_data);
-				input_data = dog_data::Data(input_json["input"].toString().toStdString(), input_type);
-				dog_work::Timer t;
-				t.start();
-				output_data = cryptor.decrypt(input_data, with_config, with_iv, iv_data, with_check);
-				t.end();
-				result["time"] = t.get_time();
+				dog_work::Timer timer;
+				timer.start();
+				dog_data::Data output_data = cryptor.decrypt(input_data, with_config, with_iv, iv_data, with_check);
+				timer.end();
+				result["time"] = timer.get_time();
+				result["res"] = QString::fromStdString(output_config.fmt_data(output_data));
+				result["msg"] = "解密成功";
 			}
-			catch (dog_cryption::WrongKeyException& e)
+			else
 			{
-				result["code"] = 1;
-				result["msg"] = "密钥校验失败,请输入正确的密钥";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
+				cryptor.set_key(key_data);
+				result["iv"] = QString::fromStdString(iv_data.getHexString());
+				uint64_t task_id = task_pool->add_decrypt(
+					input__config.get_file_path(), output_config.get_file_path(), cryptor,
+					iv_data, with_config, with_iv, with_check
+				);
+				result["msg"] = QString::fromStdString("任务已添加至队列,任务编号" + std::to_string(task_id));
+				result["file"] = true;
 			}
-			catch (dog_cryption::WrongConfigException& e)
-			{
-				result["code"] = 1;
-				result["msg"] = "前导配置错误,请确保配置字节不被修改";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			catch (std::exception& e)
-			{
-				result["code"] = 1;
-				result["msg"] = "内部错误,请保留日志并联系开发人员" + QString::fromStdString(e.what());
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-
-			uint64_t output_type = 0;
-			if (input_json["outputType"].isNull() || input_json["outputType"].isUndefined() || !isInt(input_json["outputType"]))
-			{
-				result["code"] = 1;
-				result["msg"] = "请正确选择输出类型";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			output_type = toInt(input_json["outputType"]);
-
-			switch (output_type)
-			{
-			case 0:
-			{
-				result["res"] = QString::fromStdString(output_data.getUTF8String());
-				break;
-			}
-			case 1:
-			{
-				if (input_json["replace0"].isNull() || input_json["replace0"].isUndefined()
-					|| input_json["replace1"].isNull() || input_json["replace1"].isUndefined()
-					|| input_json["replace2"].isNull() || input_json["replace2"].isUndefined())
-				{
-					result["code"] = 1;
-					result["msg"] = "请输入替换字符";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
-				}
-				else if (input_json["replace0"].toString() == input_json["replace1"].toString()
-					|| input_json["replace0"].toString() == input_json["replace2"].toString()
-					|| input_json["replace1"].toString() == input_json["replace2"].toString())
-				{
-					result["code"] = 1;
-					result["msg"] = "替换字符不能相同";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
-				}
-				char replace0 = input_json["replace0"].toString().toStdString()[0];
-				char replace1 = input_json["replace1"].toString().toStdString()[0];
-				char replace2 = input_json["replace2"].toString().toStdString()[0];
-				result["res"] = QString::fromStdString(output_data.getBase64String(replace0, replace1, replace2));
-				break;
-			}
-			case 2:
-			{
-				if (input_json["upper"].isNull() || input_json["upper"].isUndefined())
-				{
-					result["code"] = 1;
-					result["msg"] = "请指定大小写";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
-				}
-				else if (!input_json["upper"].isBool())
-				{
-					result["code"] = 1;
-					result["msg"] = "请正确指定大小写";
-					emit send_result(QJsonDocument(result).toJson());
-					return;
-				}
-				bool upper = input_json["upper"].toBool();
-				result["res"] = QString::fromStdString(output_data.getHexString(upper));
-				break;
-			}
-			default:
-			{
-				result["code"] = 1;
-				result["msg"] = "输出类型错误,仅能为0-utf8/1-base64/2-hex";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			};
 			result["code"] = 0;
-			result["msg"] = "解密成功";
-			emit send_result(QJsonDocument(result).toJson());
 		}
-		else
+		catch (dog_exception::Exception& e)
 		{
-			std::string input_path = input_json["input"].toString().toStdString();
-			std::string output_path = input_json["output"].toString().toStdString();
-			std::filesystem::path temp_input_path = input_path;
-			if (!std::filesystem::exists(temp_input_path))
-			{
-				result["code"] = 1;
-				result["msg"] = "文件不存在";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			if (std::filesystem::file_size(temp_input_path) == 0)
-			{
-				result["code"] = 1;
-				result["msg"] = "文件为空";
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			std::unique_ptr<dog_cryption::Cryptor> cryptor;
-			try
-			{
-				dog_cryption::CryptionConfig cryption_config(algorithm, block_size, key_size, using_padding, padding, mode, true, shift);
-				cryptor = std::make_unique<dog_cryption::Cryptor>(cryption_config);
-				cryptor->set_key(key_data);
-			}
-			catch (std::exception& e)
-			{
-				result["code"] = 1;
-				result["msg"] = "内部错误,请保留日志并联系开发人员" + QString::fromStdString(e.what());
-				emit send_result(QJsonDocument(result).toJson());
-				return;
-			}
-			uint64_t id = task_pool->add_decrypt(input_path, output_path, *cryptor,
-				iv_data, with_config, with_iv, with_check);
-			result["code"] = 0;
-			result["file"] = true;
-			result["msg"] = QString::fromStdString("任务已添加至队列,任务编号" + std::to_string(id));
-			emit send_result(QJsonDocument(result).toJson());
-			return;
+			result["code"] = 1;
+			result["msg"] = QString::fromStdString(e.what()).split("\n").at(0);
+			std::cout << e.what() << std::endl;
 		}
+		emit send_result(QJsonDocument(result).toJson());
 	}
 public slots:
 	void test(const QString& jsonstr)
@@ -1792,6 +981,34 @@ public:
 		this->close();
 		delete 文本;
 	}
+
+	bool check()
+	{
+		std::string now_path = QCoreApplication::applicationDirPath().toStdString();
+		std::vector<std::pair<std::string, std::string>> files_hash = HASH_TABEL;
+		dog_hash::HashCrypher crypher("SHA2", 32);
+		uint64_t i = 0;
+		for (auto& file : files_hash)
+		{
+			std::string text = "正在校验文件完整性,这可能需要一点时间" + std::to_string(i * 100 / files_hash.size()) + "%";
+			this->changeText(QString::fromStdString(text));
+			std::string file_path = now_path + file.first.substr(1, -1);
+			std::ifstream file_stream(file_path, std::ios::binary);
+			if (!file_stream.is_open())
+			{
+				return false;
+			}
+			std::string hash_str = dog_hash::HashCrypher::streamHash(crypher, file_stream).getHexString();
+			crypher.init();
+			if (hash_str != file.second)
+			{
+				return false;
+			}
+			i++;
+		}
+		this->changeText("文件校验成功,正在启动程序......");
+		return true;
+	}
 	
 	void changeText(const QString& text)
 	{
@@ -1822,15 +1039,15 @@ class CryptionWindow : public QMainWindow
 	DecryptionBridge* decryptionBridge = new DecryptionBridge(this);
 
 	TaskBridge* taskBridge = new TaskBridge(this);
-	
+
 	bool is_effective_ = true;
 
 public:
 	CryptionWindow(QWidget* parent = nullptr) : QMainWindow(parent)
 	{
 		infoWindow->show();
-		check();
-		if (!is_effective_)
+		this->is_effective_ = infoWindow->check();
+		if (!this->is_effective_)
 		{
 			infoWindow->changeText("文件校验失败,请重新下载程序!");
 			this->infoWindow->setVisible(false);
@@ -2003,16 +1220,18 @@ public:
 protected:
 	void keyPressEvent(QKeyEvent* event) override 
 	{
-		//if ((event->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier)) == (Qt::ControlModifier | Qt::ShiftModifier)
-		//	&& event->key() == Qt::Key_I)
-		//{
-		//	devTools->show();
-		//	devTools->move(0, 350);
-		//}
-		//else if (event->key() == Qt::Key_Delete)
-		//{
-		//	devTools->hide();
-		//}
+		/*
+		if ((event->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier)) == (Qt::ControlModifier | Qt::ShiftModifier)
+			&& event->key() == Qt::Key_I)
+		{
+			devTools->show();
+			devTools->move(0, 350);
+		}
+		else if (event->key() == Qt::Key_Delete)
+		{
+			devTools->hide();
+		}
+		*/
 	}
 
 	void closeEvent(QCloseEvent* event) override
@@ -2039,31 +1258,6 @@ protected:
 			}
 		}
 	}
-
-	void check()
-	{
-		std::string now_path = QCoreApplication::applicationDirPath().toStdString();
-		std::vector<std::pair<std::string, std::string>> files_hash = HASH_TABEL;
-		dog_hash::HashCrypher crypher("SHA2", 32);
-		for (auto& file : files_hash)
-		{
-			std::string file_path = now_path + file.first.substr(1, -1);
-			std::ifstream file_stream(file_path, std::ios::binary);
-			if (!file_stream.is_open())
-			{
-				this->is_effective_ = false;
-				return;
-			}
-			std::string hash_str = dog_hash::HashCrypher::streamHash(crypher, file_stream).getHexString();
-			crypher.init();
-			if (hash_str != file.second)
-			{
-				this->is_effective_ = false;
-				return;
-			}
-		}
-	}
-
 	
 };
 

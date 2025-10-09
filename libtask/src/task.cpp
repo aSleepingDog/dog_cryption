@@ -205,7 +205,7 @@ dog_work::Task::Task(uint64_t id, int type, std::string input, std::string outpu
     }
     else if (type == -1)
     {
-        this->type_ = "decrypt";
+        this->type_ = "decrypt"; 
     }
     (*this->params_)["input"] = input;
     (*this->params_)["output"] = output;
@@ -316,11 +316,10 @@ void dog_work::TaskPool::manage(TaskPool* task_pool)
     try
     {
         //2025.7.30 在优化情况下,这里的逻辑被莫名奇妙地省掉了,一直报错,加上了异常处理就正常了.
-        int32_t flag = task_pool->flag_.load();
-        while (flag != 0)
+        while (task_pool->flag_.load() != 0)
         {
             std::lock_guard<std::mutex> lock(task_pool->mutex_);
-            if (flag == 1 && !task_pool->waitting_.empty() && task_pool->running_.size() < task_pool->max_)
+            if (task_pool->flag_.load() == 1 && !task_pool->waitting_.empty() && task_pool->running_.size() < task_pool->max_)
             {
                 Task* task = task_pool->waitting_.front();
                 task_pool->waitting_.pop_front();
@@ -493,6 +492,24 @@ uint64_t dog_work::TaskPool::add_hash(dog_param::IOConfig input_config, dog_hash
 {
     uint64_t id = this->id_.load();
     this->id_.fetch_add(1);
+    if (!std::filesystem::exists(std::filesystem::path(input_config.get_file_path())))
+    {
+        throw std::runtime_error("File not exist");
+    }
+    std::unordered_map<std::string, std::any> output_params;
+    output_params["output_type"] = output_config.get_data_type();
+    if (output_config.get_data_type() == 1)
+    {
+        output_params["replace0"] = output_config.get_replace0();
+        output_params["replace1"] = output_config.get_replace1();
+        output_params["replace2"] = output_config.get_replace2();
+    }
+    else if (output_config.get_data_type() == 2)
+    {
+        output_params["upper"] = output_config.get_is_upper();
+    }
+    Task* task = new Task(id, input_config.get_file_path(), hash_crypher, output_params);
+    this->waitting_.emplace_back(task);
     return id;
 }
 uint64_t dog_work::TaskPool::add_encrypt(std::string input_path, std::string output_path, dog_cryption::Cryptor& cryptor, 

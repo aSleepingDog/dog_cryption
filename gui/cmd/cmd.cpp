@@ -248,6 +248,28 @@ std::vector<std::string> get_args()
     }
     return args;
 }
+std::vector<std::string> spilt(std::string str, char c)
+{
+    std::vector<std::string> res;
+    std::string one = "";
+    for (auto cit : str)
+    {
+        if (cit == c)
+        {
+            res.emplace_back(one);
+            one = "";
+        }
+        else
+        {
+            one.push_back(cit);
+        }
+    }
+    if (one != "")
+    {
+        res.emplace_back(one);
+    }
+    return res;
+}
 bool effect_char(char c, std::string range)
 {
     for (int i = 0; i < range.size(); i++)
@@ -278,17 +300,15 @@ dog_param::IOConfig get_data_type(std::string sign, bool allow_file, bool is_inp
     std::unordered_map<std::string, std::any> map;
     if (allow_file)
     {
-        std::cout << std::format("请输入数据类型{}", sign) << std::endl;
-        std::cout << "数据类型可以为 utf8/base64[][][]/hex Hex/file" << std::endl;
+        std::cout << std::format("当前输入 {}\n请输入数据类型", sign) << std::endl;
+        std::cout << "数据类型可以为 utf8 base64[][][] hex/Hex file" << std::endl;
         std::cout << "[]中可以填入 (空格) ! \" # $ % & ' ( ) * + , - .  / : ; < = > ? @ [ \\ ] ^ _ ` { | } ~ 其中两两不能相同" << std::endl;
-        std::cout << "示例:\nutf8\nHex\nhex\nbase64\nbase64-_*\nfile" << std::endl;
     }
     else
     {
-        std::cout << std::format("请输入数据类型{}", sign) << std::endl;
+        std::cout << std::format("当前输入 {}\n请输入数据类型", sign) << std::endl;
         std::cout << "数据类型可以为 utf8/base64[][][]/hex Hex" << std::endl;
         std::cout << "[]中可以填入 (空格) ! \" # $ % & ' ( ) * + , - .  / : ; < = > ? @ [ \\ ] ^ _ ` { | } ~ 其中两两不能相同" << std::endl;
-        std::cout << "示例:\nutf8\nHex\nhex\nbase64\nbase64-_*" << std::endl;
     }
     std::vector<std::string> params = get_args();
     if (params.size() == 0)
@@ -335,22 +355,50 @@ dog_param::IOConfig get_data_type(std::string sign, bool allow_file, bool is_inp
             map["replace2"] = (char)param[8];
         }
     }
-    if (is_input)
+    if (allow_file)
     {
-        if (allow_file)
+        if (param == "file")
         {
-            std::cout << "请输入文本或文件路径" << std::endl;
-            std::cout << "示例:\n123\nC:/Users/123.txt" << std::endl;
+            std::cout << "请输入文件路径" << std::endl;
+            std::getline(std::cin, param);
+            map["is_file"] = true;
+            map["ori_str"] = param;
+            if (!std::filesystem::exists(param) && is_input)
+            {
+                throw DOG_EXCEPTION(std::format("文件不存在 {}", param));
+            }
         }
-        else
+        else if(is_input)
         {
             std::cout << "请输入文本" << std::endl;
-            std::cout << "示例:\n123" << std::endl;
+            std::getline(std::cin, param);
+            map["ori_str"] = param;
         }
-        std::getline(std::cin, param);
-        map["ori_str"] = param;
+    }
+    else
+    {
+        if (is_input)
+        {
+            std::cout << "请输入文本" << std::endl;
+            std::getline(std::cin, param);
+            map["ori_str"] = param;
+        }
     }
     return dog_param::IOConfig(map, is_input);
+}
+dog_param::IOConfig get_file(bool is_input)
+{
+    std::cout << "请输入文件路径" << std::endl;
+    std::string path = "";
+    std::getline(std::cin, path);
+    if (!std::filesystem::exists(path) && is_input)
+    {
+        throw DOG_EXCEPTION(std::format("文件不存在 {}", path));
+    }
+    std::unordered_map<std::string, std::any> map;
+    map["is_file"] = true;
+    map["ori_str"] = path;
+    return dog_param::IOConfig(map, true);
 }
 
 dog_hash::HashCrypher get_hash_type()
@@ -400,6 +448,161 @@ dog_hash::HashCrypher get_hash_type()
         }
     }
     throw DOG_EXCEPTION(std::format("不支持的的散列类型 {}", args[0]));
+}
+dog_param::IOConfig get_iv(uint64_t block_size)
+{
+    std::cout << "是否自动生成iv y/n" << std::endl;
+    auto args = get_args();
+    if (args.size() != 1)
+    {
+        throw DOG_EXCEPTION(std::format("参数过少 需要1 当前{}", args.size()));
+    }
+    if (args[0] == "y")
+    {
+        std::unordered_map<std::string, std::any> iv_params;
+        iv_params["ori_str"] = dog_cryption::utils::randiv(block_size).getHexString();
+        iv_params["type"] = (uint64_t)2;
+        iv_params["is_upper"] = true;
+        iv_params["is_file"] = false;
+        return dog_param::IOConfig(iv_params, true);
+    }
+    else
+    {
+        return get_data_type("请输入iv", false, true);
+    }
+}
+struct CryptionParams
+{
+    dog_cryption::CryptionConfig config;
+    bool with_config;
+    bool with_iv;
+    bool with_check;
+};
+CryptionParams get_cryption_type()
+{
+    std::string input = "";
+    std::cout << "请输入基础算法类型[type] [block_size] [key_size]可选项如下" << std::endl;
+    for (auto one : dog_cryption::Algorithm_list)
+    {
+        std::cout << std::format("{} |", one.name);
+        dog_number::region::NumberIterator nit(one.block_size_region);
+        while (nit.have_next())
+        {
+            std::cout << nit.next() * 8 << " ";
+        }
+        std::cout << "|";
+        nit = dog_number::region::NumberIterator(one.key_size_region);
+        while (nit.have_next())
+        {
+            std::cout << nit.next() * 8 << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << "示例ASE 128 128" << std::endl;
+    auto args = get_args();
+    if (args.size() != 3)
+    {
+        throw DOG_EXCEPTION(std::format("参数过少 需要3 当前{}", args.size()));
+    }
+    std::string algorithm_name = args[0];
+    uint64_t block_size = 0;
+    uint64_t key_size = 0;
+    bool is_config_effective = false;
+    try
+    {
+        block_size = std::stoull(args[1]) / 8;
+        key_size = std::stoull(args[2]) / 8; 
+    }
+    catch (std::exception& e)
+    {
+        throw DOG_EXCEPTION(std::format("此处应该输入数字{}", args[1]));
+    }
+    dog_cryption::CryptionConfig config;
+    for (auto one : dog_cryption::Algorithm_list)
+    {
+        if (one.name == args[0])
+        {
+            if (dog_number::region::is_fall(one.block_size_region, block_size) && dog_number::region::is_fall(one.key_size_region, key_size))
+            {
+                is_config_effective = true;
+            }
+        }
+    }
+    if (!is_config_effective)
+    {
+        throw DOG_EXCEPTION(std::format("不支持 {} {} {}", algorithm_name, block_size, key_size));
+    }
+    std::cout << "请输入工作模式[mode] [using iv y/n] [using padding y/n] [using shift]" << std::endl;
+    std::cout << "以下是可选工作模式和如何针对三个参数,如果某个参数强制需要,则会忽略用户输入" << std::endl;
+    for (auto one : dog_cryption::mode::list)
+    {
+        std::cout << std::format("{} | {} | {} | {} \n", 
+            one.name_, 
+            one.force_iv_ ? "强制使用iv" : "不强制使用iv", 
+            one.force_padding_ ? "强制使用填充" : "不强制使用填充", 
+            one.force_shift_ ? "需要偏移" : "不需要偏移");
+    }
+    std::cout << "示例CBC y y 0" << std::endl;
+    auto args2 = get_args();
+    if (args2.size() != 4)
+    {
+        throw DOG_EXCEPTION(std::format("参数过少 需要4 当前{}", args2.size()));
+    }
+    std::string mode_name = args2[0];
+    bool using_iv = (args2[1] == "y");
+    bool using_padding = (args2[2] == "y");
+    uint64_t shift = 0;
+    try
+    {
+        shift = std::stoull(args2[3]);
+    }
+    catch (std::exception& e)
+    {
+        throw DOG_EXCEPTION(std::format("此处应该输入数字{}", args2[3]));
+    }
+    std::string padding_name = "";
+    uint64_t padding_code = 0;
+    std::cout << "请选择填充方式 [padding_code] \n可选项如下 示例PKCS7" << std::endl;
+    for (auto one : dog_cryption::padding::list)
+    {
+        std::cout << std::format("{}->{}|", one.name_, one.code_);
+    }
+    std::cout << std::endl;
+    auto args3 = get_args();
+    if (args3.size() != 1)
+    {
+        throw DOG_EXCEPTION(std::format("参数过少 需要1 当前{}", args3.size()));
+    }
+    try
+    {
+        padding_code = std::stoull(args3[0]);
+    }
+    catch (std::exception& e)
+    {
+        throw DOG_EXCEPTION(std::format("此处应该输入数字{}", args3[0]));
+    }
+    for (auto one : dog_cryption::padding::list)
+    {
+        if (one.code_ == padding_code)
+        {
+            padding_name = one.name_;
+        }
+    }
+    if (padding_name == "" && using_padding)
+    {
+        throw DOG_EXCEPTION(std::format("不支持填充方式{}", padding_code));
+    }
+    std::cout << "请选择数据头部信息 [with_config y/n] [with_check y/n] [with_iv y/n]" << std::endl;
+    auto args4 = get_args();
+    bool with_config = (args4[0] == "y");
+    bool with_check = (args4[1] == "y");
+    bool with_iv = (args4[2] == "y");
+    dog_cryption::CryptionConfig config_ = {
+        algorithm_name, block_size, key_size,
+        using_padding,padding_name,
+        mode_name, using_iv,shift,
+    };
+    return { config_, with_config, with_iv, with_check };
 }
 std::string fmt_time(double time)
 {
@@ -497,6 +700,10 @@ int main()
             case 0:
             {
                 clear_print();
+                std::cout << "正在退出程序" << std::endl;
+                delete task_pool;
+                clear_print();
+                std::cout << "资源释放完成" << std::endl;
                 is_running = false;
                 break;
             }
@@ -523,9 +730,9 @@ int main()
             case 2:
             {
                 clear_print();
-                auto input_config = get_data_type("数据转换输入", true, true);
+                auto input_config = get_data_type("数据散列输入", true, true);
                 auto hash_crypter = get_hash_type();
-                auto output_config = get_data_type("数据转换输出", false, false);
+                auto output_config = get_data_type("数据散列输出", false, false);
                 if (!input_config.is_file())
                 {
                     clear_print();
@@ -544,19 +751,122 @@ int main()
                 }
                 else
                 {
-                    //task_pool->add_hash()
+                    if (output_config.is_file())
+                    {
+                        std::cout << "散列计算文件不支持输出文件" << std::endl;
+                    }
+                    uint64_t task_id = task_pool->add_hash(input_config, hash_crypter, output_config);
+                    clear_print();
+                    std::cout << "添加任务成功，任务ID为" << task_id << std::endl;
                 }
                 break;
             }
             case 3:
             {
-                break;
+                clear_print();
+                auto input_config = get_data_type("数据加密输入", true, true);
+                auto cryption = get_cryption_type();
+                auto iv_config = get_iv(cryption.config.block_size);
+                auto key = get_data_type("密钥", true, true);
 
+
+                if (!input_config.is_file())
+                {
+                    dog_param::IOConfig output_config = get_data_type("数据转换输出", false, false);
+                    clear_print();
+                    dog_cryption::Cryptor cryptor(cryption.config);
+                    cryptor.set_key(key.get_data());
+                    dog_work::Timer timer;
+                    timer.start();
+                    std::string result = output_config.fmt_data(
+                        cryptor.encrypt(input_config.get_data(), cryption.with_config, cryption.with_iv, iv_config.get_data(), cryption.with_check)
+                    );
+                    timer.end();
+                    clear_print();
+                    std::cout << "处理文本" << std::endl;
+                    std::cout << input_config.get_ori_str() << std::endl;
+                    std::cout << "加密方式" << std::endl;
+                    std::cout << std::format("{} -[{}]-> {}",input_config.get_IO_string(), cryption.config.to_string(),output_config.get_IO_string()) << std::endl;
+                    std::cout << "加密密钥(莫忘记)" << std::endl;
+                    std::cout << std::format("[{}]{}", key.get_IO_string(), key.get_ori_str()) << std::endl;
+                    std::cout << "加密初始化向量(若写入iv则需要记忆)" << std::endl;
+                    std::cout << std::format("[{}]{}", iv_config.get_IO_string(), iv_config.get_ori_str()) << std::endl;
+                    std::cout << "密文组成" << std::endl;
+                    if (cryption.with_config) { std::cout << "加密配置|"; }
+                    if (cryption.with_check) { std::cout << "密钥校验|"; }
+                    if (cryption.with_iv) { std::cout << "iv|"; }
+                    std::cout << "密文" << std::endl;
+                    std::cout << "加密结果" << std::endl;
+                    std::cout << result << std::endl;
+                    std::cout << "加密耗时" << std::endl;
+                    std::cout << fmt_time(timer.get_time()) << std::endl;
+                }
+                else
+                {
+                    std::cout << "当前输入 加密文件输出" << std::endl;
+                    dog_param::IOConfig output_config = get_file(false);
+                    clear_print();
+                    dog_cryption::Cryptor cryptor(cryption.config);
+                    cryptor.set_key(key.get_data());
+                    uint64_t task_id = task_pool->add_encrypt(
+                        input_config.get_file_path(), output_config.get_file_path(), cryptor,
+                        iv_config.get_data(), cryption.with_config, cryption.with_iv, cryption.with_check
+                    );
+                    std::cout << "添加任务成功，任务ID为" << task_id << std::endl;
+                }
+                break;
             }
             case 4:
             {
-                break;
+                clear_print();
+                auto input_config = get_data_type("数据散列输入", true, true);
+                auto cryption = get_cryption_type();
+                auto iv_config = get_iv(cryption.config.block_size);
+                auto key = get_data_type("密钥", true, true);
+                auto output_config = get_data_type("数据转换输出", true, false);
 
+                if (!input_config.is_file())
+                {
+                    clear_print();
+                    dog_cryption::Cryptor cryptor(cryption.config);
+                    cryptor.set_key(key.get_data());
+                    dog_work::Timer timer;
+                    timer.start();
+                    std::string result = output_config.fmt_data(
+                        cryptor.decrypt(input_config.get_data(), cryption.with_config, cryption.with_iv, iv_config.get_data(), cryption.with_check)
+                    );
+                    timer.end();
+                    clear_print();
+                    std::cout << "处理文本" << std::endl;
+                    std::cout << input_config.get_ori_str() << std::endl;
+                    std::cout << "输入的密文组成" << std::endl;
+                    if (cryption.with_config) { std::cout << "加密配置|"; }
+                    if (cryption.with_check) { std::cout << "密钥校验|"; }
+                    if (cryption.with_iv) { std::cout << "iv|"; }
+                    std::cout << "密文" << std::endl;
+                    std::cout << "解密方式" << std::endl;
+                    std::cout << std::format("{} -[{}]-> {}", input_config.get_IO_string(), cryption.config.to_string(), output_config.get_IO_string()) << std::endl;
+                    std::cout << "解密密钥" << std::endl;
+                    std::cout << std::format("[{}]{}", key.get_IO_string(), key.get_ori_str()) << std::endl;
+                    std::cout << "解密初始化向量(若写入iv则需要记忆)" << std::endl;
+                    std::cout << std::format("[{}]{}", iv_config.get_IO_string(), iv_config.get_ori_str()) << std::endl;
+                    std::cout << "解密结果" << std::endl;
+                    std::cout << result << std::endl;
+                    std::cout << "解密耗时" << std::endl;
+                    std::cout << fmt_time(timer.get_time()) << std::endl;
+                }
+                else
+                {
+                    clear_print();
+                    dog_cryption::Cryptor cryptor(cryption.config);
+                    cryptor.set_key(key.get_data());
+                    uint64_t task_id = task_pool->add_decrypt(
+                        input_config.get_file_path(), output_config.get_file_path(), cryptor,
+                        iv_config.get_data(), cryption.with_config, cryption.with_iv, cryption.with_check
+                    );
+                    std::cout << "添加任务成功，任务ID为" << task_id << std::endl;
+                }
+                break;
             }
             case 5:
             {
@@ -611,6 +921,33 @@ int main()
                                 ) << std::endl;
                         }
                     }
+                    else
+                    {
+                        double time = std::any_cast<double>(task.second["time"]);
+                        //std::cout << dog_data::json_any::to_json_str(task.second, true) << std::endl;
+                        if (status != 2)
+                        {
+                            std::cout << std::format("任务id:{}\n任务状态:{}\n任务类型:{}\n输入:{}\n输出:{}\n预计时间:{}\n运行消息:{}\n",
+                                id, status_str,
+                                std::any_cast<std::string>(task.second["config"]),
+                                std::any_cast<std::string>(task.second["input"]),
+                                std::any_cast<std::string>(task.second["output"]),
+                                fmt_time(time * ((1 / progress) - 1)),
+                                std::any_cast<std::string>(task.second["msg"])
+                            ) << std::endl;
+                        }
+                        else
+                        {
+                            std::cout << std::format("任务id:{}\n任务状态:{}\n任务类型:{}\n输入:{}\n输出:{}\n总计时间:{}\n运行消息:{}\n",
+                                id, status_str,
+                                std::any_cast<std::string>(task.second["config"]),
+                                std::any_cast<std::string>(task.second["input"]),
+                                std::any_cast<std::string>(task.second["output"]),
+                                fmt_time(time),
+                                std::any_cast<std::string>(task.second["msg"])
+                            ) << std::endl;
+                        }
+                    }
                 }
                 break;
             }
@@ -618,7 +955,7 @@ int main()
         }
         catch (std::exception& e)
         {
-            std::cout << e.what() << std::endl;
+            std::cout << spilt(e.what(), '\n')[0] << std::endl;
         }
         std::cout << "输入任意键继续";
         std::cout.flush();

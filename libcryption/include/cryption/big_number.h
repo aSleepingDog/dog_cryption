@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <cstring>
 #include <utility>
 #include <complex>
 #include <iostream>
@@ -62,7 +63,7 @@ namespace dog_number
 
 	namespace galois_field
 	{
-		uint8_t GF2_mult(uint8_t a, uint8_t b, uint16_t n);
+		DOG_CRYPTION_API uint8_t GF2_mult(uint8_t a, uint8_t b, uint16_t n);
 	}
 
 	namespace region
@@ -396,9 +397,4 @@ namespace dog_number
 	DOG_CRYPTION_API extern const BigInteger BIG_UINT32_MAX;
 	DOG_CRYPTION_API extern const BigInteger BIG_UINT64_MAX;
 	DOG_CRYPTION_API extern const BigInteger BIG_UINT128_MAX;
-
-	//DOG_CRYPTION_API extern const BigInteger ZERO = "0";
-	//DOG_CRYPTION_API extern const BigInteger BIG_UINT32_MAX = "4294967295";
-	//DOG_CRYPTION_API extern const BigInteger BIG_UINT64_MAX = "18446744073709551615";
-	//DOG_CRYPTION_API extern const BigInteger BIG_UINT128_MAX = "340282366920938463463374607431768211455";
 }

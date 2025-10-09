@@ -64,7 +64,7 @@ dog_hash::HashCrypher::HashCrypher(std::string type, uint64_t effective)
 		}
 		else
 		{
-			throw dog_hash::HashException(DOG_EXCEPTION_OPINION("Unknown hash type"));
+			throw dog_hash::HashException(DOG_EXCEPTION_MSG_OPINION("Unknown hash type"));
 		}
 	}
 	else if (type == SM3::name)
@@ -86,12 +86,12 @@ dog_hash::HashCrypher::HashCrypher(std::string type, uint64_t effective)
 		}
 		else
 		{
-            throw dog_hash::HashException(DOG_EXCEPTION_OPINION("Unknown hash type"));
+            throw dog_hash::HashException(DOG_EXCEPTION_MSG_OPINION("Unknown hash type"));
 		}
 	}
 	else
 	{
-		throw dog_hash::HashException(DOG_EXCEPTION_OPINION("Unknown hash type"));
+		throw dog_hash::HashException(DOG_EXCEPTION_MSG_OPINION("Unknown hash type"));
 	}
 }
 void dog_hash::HashCrypher::update(dog_data::Data data)
@@ -201,7 +201,7 @@ void dog_hash::HashCrypher::init()
 		}
 		else
 		{
-			throw dog_hash::HashException(DOG_EXCEPTION_OPINION("Unknown hash type"));
+			throw dog_hash::HashException(DOG_EXCEPTION_MSG_OPINION("Unknown hash type"));
 		}
 	}
 	else if (type_ == SM3::name)
@@ -213,12 +213,12 @@ void dog_hash::HashCrypher::init()
 		}
 		else
 		{
-			throw dog_hash::HashException(DOG_EXCEPTION_OPINION("Unknown hash type"));
+			throw dog_hash::HashException(DOG_EXCEPTION_MSG_OPINION("Unknown hash type"));
 		}
 	}
 	else
 	{
-		throw dog_hash::HashException(DOG_EXCEPTION_OPINION("Unknown hash type"));
+		throw dog_hash::HashException(DOG_EXCEPTION_MSG_OPINION("Unknown hash type"));
 	}
 	this->total_ = 0;
 }
@@ -428,7 +428,7 @@ void dog_hash::SHA2::b256::single_update(dog_data::Data plain, dog_data::Data& c
 {
 	if (plain.size() != 64)
 	{
-		throw HashException(DOG_EXCEPTION_OPINION("plain size is not 64"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION("plain size is not 64"));
 	}
 	dog_data::Data tempBlock = std::move(plain);
 	uint32_t tempN[9], tempH[8];
@@ -496,7 +496,7 @@ void dog_hash::SHA2::b224::single_update(dog_data::Data plain, dog_data::Data& c
 {
 	if (plain.size() != 64)
 	{
-		throw HashException(DOG_EXCEPTION_OPINION("plain size is not 64"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION("plain size is not 64"));
 	}
 	dog_data::Data tempBlock = std::move(plain);
 	uint32_t tempN[9], tempH[8];
@@ -586,7 +586,7 @@ void dog_hash::SHA2::b512::single_update(dog_data::Data plain, dog_data::Data& c
 {
 	if (plain.size() != 128)
 	{
-		throw HashException(DOG_EXCEPTION_OPINION("plain size is not 64"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION("plain size is not 64"));
 	}
 	dog_data::Data tempBlock = std::move(plain);
 	uint64_t tempN[9], tempH[8];
@@ -656,7 +656,7 @@ void dog_hash::SHA2::b384::single_update(dog_data::Data plain, dog_data::Data& c
 {
 	if (plain.size() != 128)
 	{
-		throw HashException(DOG_EXCEPTION_OPINION("plain size is not 64"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION("plain size is not 64"));
 	}
 	dog_data::Data tempBlock = std::move(plain);
 	uint64_t tempN[9], tempH[8];
@@ -779,7 +779,7 @@ void dog_hash::SM3::b256::single_update(dog_data::Data plain, dog_data::Data& ch
 {
 	if (plain.size() != 64)
 	{
-		throw HashException(DOG_EXCEPTION_OPINION("plain size is not 64"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION("plain size is not 64"));
 	}
 	dog_data::Data tempBlock = std::move(plain);
 	uint32_t tempN[8], tempH[8];

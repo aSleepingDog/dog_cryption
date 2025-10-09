@@ -17,6 +17,7 @@ target_sources(static_dog_cryption_task
 PRIVATE
     ${resource_code_file}
 )
+target_link_libraries(static_dog_cryption_task PRIVATE static_dog_cryption_core)
 
 add_library(shared_dog_cryption_task SHARED)
 set_target_properties(shared_dog_cryption_task PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shared_dog_cryption_task")

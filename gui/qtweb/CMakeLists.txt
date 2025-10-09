@@ -19,10 +19,6 @@ find_package(Qt6 COMPONENTS
     WebChannel 
 REQUIRED)
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
-
 add_executable(qtWebFileCheck)
 set_target_properties(qtWebFileCheck PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qtWebFileCheck")
 target_sources(qtWebFileCheck
@@ -30,6 +26,10 @@ target_sources(qtWebFileCheck
         file_check.cpp
 )
 target_link_libraries(qtWebFileCheck PRIVATE static_dog_cryption_core)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 
 #出现Cannot find source file: file_check_hash. 请将qtWebFileCheck拖到gui/qtweb/目录下运行
 add_executable(qtWebStatic)

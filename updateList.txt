@@ -39,6 +39,16 @@ v1.2.2-2025.0925
 修改
  对param内的IOConfig的output模式添加输出
 
+v1.3.0-2025.10.09
+新增
+ json部分优化
+ dog_exception新增GUN无stacktrace版本
+ qtweb的文件校验生成部分新增生成时间
+修改
+ 控制台版本功能补充完善（但不建议使用）
+ qtweb适配dog_param参数和校验
+ 新增无参数异常参数宏用于异常子类
+
 未来
  加入twofish算法
  qtWeb加入多文件选择支持

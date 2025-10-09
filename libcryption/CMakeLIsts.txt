@@ -33,6 +33,3 @@ PRIVATE
     include/cryption/export.h
     ${resource_code_file}
 )
-
-
-

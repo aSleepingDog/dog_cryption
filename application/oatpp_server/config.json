@@ -1,0 +1,12 @@
+{
+    "port":ui8000,
+    "swagger":{ 
+        "switch":true,
+        "path": "./page/res",
+        "url":"/api-docs"
+    },
+    "log":{
+        "switch":true,
+        "path":"./log"
+    }
+}

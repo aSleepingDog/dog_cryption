@@ -1,5 +1,5 @@
-#include "../libcryption/include/cryption/dog_cryption.h"
-#include "../libtask/include/task/task.h"
+#include "dog_torch.h"
+
 
 #include <iostream>
 #include <print> 
@@ -22,13 +22,13 @@ int main()
 		std::ofstream res_file(res_path / entry.path().filename().string());
 		if (entry.path().filename().string().substr(0, 1)[0] < '5')
 		{
-			auto json = dog_data::json_any::object_from_json_str(json_string, it);
-			res_file << dog_data::json_any::to_json_str(json, true);
+			auto json = dog_torch::serialize::json::any::to_object(json_string, it);
+			res_file << dog_torch::serialize::json::any::to_json_str(json, true);
 		}
 		else
 		{
-			std::vector<std::any> json = dog_data::json_any::array_from_json_str(json_string, it);
-			res_file << dog_data::json_any::to_json_str(json, true);
+			auto json = dog_torch::serialize::json::any::to_array(json_string, it);
+			res_file << dog_torch::serialize::json::any::to_json_str(json, true);
 		}
 	}
 }

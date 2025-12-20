@@ -1,9 +1,10 @@
-#include "crypto/symmetric/camellia.h"//camellia
+#include "crypto/symmetric/algorithm/camellia.h"//camellia
+#define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root 
+#define DOG_DATA dog_torch::serialize::Data
 
-//unit单位:uint8_t字节
-const dog_torch::crypto::symmetric::AlgorithmConfig dog_torch::crypto::symmetric::camellia::CONFIG = AlgorithmConfig("camellia", "[16,16]0", "[16,32]8");
+const NSROOT::algorithm::Config NSROOT::algorithm::camellia::CONFIG = Config("camellia", "[16,16]0", "[16,32]8");
 
-const uint8_t dog_torch::crypto::symmetric::camellia::Sbox[256] =
+const uint8_t NSROOT::algorithm::camellia::Sbox[256] = 
 {
 	//   0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
 	0x70, 0x82, 0x2c, 0xec, 0xb3, 0x27, 0xc0, 0xe5, 0xe4, 0x85, 0x57, 0x35, 0xea, 0x0c, 0xae, 0x41,//0
@@ -23,8 +24,7 @@ const uint8_t dog_torch::crypto::symmetric::camellia::Sbox[256] =
 	0x72, 0x07, 0xb9, 0x55, 0xf8, 0xee, 0xac, 0x0a, 0x36, 0x49, 0x2a, 0x68, 0x3c, 0x38, 0xf1, 0xa4,//E
 	0x40, 0x28, 0xd3, 0x7b, 0xbb, 0xc9, 0x43, 0xc1, 0x15, 0xe3, 0xad, 0xf4, 0x77, 0xc7, 0x80, 0x9e //F
 };
-
-const uint64_t dog_torch::crypto::symmetric::camellia::sigma[6] =
+const uint64_t NSROOT::algorithm::camellia::sigma[6] =
 {
 	0xa09e667f3bcc908b,
 	0xb67ae8584caa73b2,
@@ -33,8 +33,7 @@ const uint64_t dog_torch::crypto::symmetric::camellia::sigma[6] =
 	0x10e527fade682d1d,
 	0xb05688c2b3e6c1fd
 };
-
-std::pair<uint64_t, uint64_t> dog_torch::crypto::symmetric::camellia::CLMB(uint64_t l, uint64_t r, uint64_t i)
+std::pair<uint64_t, uint64_t> NSROOT::algorithm::camellia::CLMB(uint64_t l, uint64_t r, uint64_t i)
 {
 	i %= 128;
 	if (i == 0)
@@ -56,23 +55,23 @@ std::pair<uint64_t, uint64_t> dog_torch::crypto::symmetric::camellia::CLMB(uint6
 		return CLMB(r, l, i - 64);
 	}
 }
-uint8_t dog_torch::crypto::symmetric::camellia::s1(uint8_t n)
+uint8_t NSROOT::algorithm::camellia::s1(uint8_t n)
 {
 	return Sbox[n];
 }
-uint8_t dog_torch::crypto::symmetric::camellia::s2(uint8_t n)
+uint8_t NSROOT::algorithm::camellia::s2(uint8_t n)
 {
 	return ((Sbox[n] << 1) + (Sbox[n] >> 7));
 }
-uint8_t dog_torch::crypto::symmetric::camellia::s3(uint8_t n)
+uint8_t NSROOT::algorithm::camellia::s3(uint8_t n)
 {
 	return ((Sbox[n] << 7) + (Sbox[n] >> 1));
 }
-uint8_t dog_torch::crypto::symmetric::camellia::s4(uint8_t n)
+uint8_t NSROOT::algorithm::camellia::s4(uint8_t n)
 {
 	return Sbox[(uint8_t)(((n) << 1) + ((n) >> 7))];
 }
-uint64_t dog_torch::crypto::symmetric::camellia::s(uint64_t n)
+uint64_t NSROOT::algorithm::camellia::s(uint64_t n)
 {
 	typedef uint8_t byte;
 	byte a1 = (n >> 56) & 0xff;
@@ -93,9 +92,16 @@ uint64_t dog_torch::crypto::symmetric::camellia::s(uint64_t n)
 	byte l7 = s4(a7);
 	byte l8 = s1(a8);
 
-	return ((uint64_t)l1 << 56) | ((uint64_t)l2 << 48) | ((uint64_t)l3 << 40) | ((uint64_t)l4 << 32) | ((uint64_t)l5 << 24) | ((uint64_t)l6 << 16) | ((uint64_t)l7 << 8) | ((uint64_t)l8);
+	return ((uint64_t)l1 << 56) | 
+		((uint64_t)l2 << 48) | 
+		((uint64_t)l3 << 40) | 
+		((uint64_t)l4 << 32) | 
+		((uint64_t)l5 << 24) | 
+		((uint64_t)l6 << 16) | 
+		((uint64_t)l7 << 8) | 
+		((uint64_t)l8);
 }
-uint64_t dog_torch::crypto::symmetric::camellia::p(uint64_t n)
+uint64_t NSROOT::algorithm::camellia::p(uint64_t n)
 {
 	typedef uint8_t byte;
 
@@ -127,7 +133,7 @@ uint64_t dog_torch::crypto::symmetric::camellia::p(uint64_t n)
 		((uint64_t)z_7 << 8) |
 		((uint64_t)z_8);
 }
-uint64_t dog_torch::crypto::symmetric::camellia::FL(uint64_t x, uint64_t kl)
+uint64_t NSROOT::algorithm::camellia::FL(uint64_t x, uint64_t kl)
 {
 	uint32_t xl = (x >> 32) & 0xffffffff;
 	uint32_t xr = x & 0xffffffff;
@@ -139,7 +145,7 @@ uint64_t dog_torch::crypto::symmetric::camellia::FL(uint64_t x, uint64_t kl)
 	//把yr(y_right放左边),yl(y_left放右边)
 	return (uint64_t)yl << 32 | (uint64_t)yr;
 }
-uint64_t dog_torch::crypto::symmetric::camellia::FL_inv(uint64_t y, uint64_t kl)
+uint64_t NSROOT::algorithm::camellia::FL_inv(uint64_t y, uint64_t kl)
 {
 	uint32_t yl = (y >> 32) & 0xffffffff;
 	uint32_t yr = y & 0xffffffff;
@@ -151,13 +157,13 @@ uint64_t dog_torch::crypto::symmetric::camellia::FL_inv(uint64_t y, uint64_t kl)
 	//把xr(x_right放左边),xl(x_left放右边)
 	return (uint64_t)xl << 32 | (uint64_t)xr;
 }
-uint64_t dog_torch::crypto::symmetric::camellia::F(uint64_t x, uint64_t k)
+uint64_t NSROOT::algorithm::camellia::F(uint64_t x, uint64_t k)
 {
 	return p(s(x ^ k));
 }
-dog_torch::serialize::Data dog_torch::crypto::symmetric::camellia::extend_key(dog_torch::serialize::Data key, uint64_t key_size)
+DOG_DATA NSROOT::algorithm::camellia::extend_key(const Data& key, uint64_t block_size, uint64_t key_size)
 {
-	dog_torch::serialize::Data res;
+	DOG_DATA res;
 	if (key.size() < 16)
 	{
 		throw CryptionException(DOG_EXCEPTION_MSG_OPINION(std::format("Error:key is to short need {} now {}\n错误：密钥过短 需要 {} 当前 {}", 16, key.size(), 16, key.size())));
@@ -223,8 +229,8 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::camellia::extend_key(do
 		res.reserve(208);
 		for (uint64_t i = 0; i < 8; i++)
 		{
-			auto kl_ = dog_torch::crypto::symmetric::camellia::CLMB(kll, klr, shift[i]);
-			auto ka_ = dog_torch::crypto::symmetric::camellia::CLMB(kal, kar, shift[i]);
+			auto kl_ = NSROOT::algorithm::camellia::CLMB(kll, klr, shift[i]);
+			auto ka_ = NSROOT::algorithm::camellia::CLMB(kal, kar, shift[i]);
 			switch (shift[i])
 			{
 			case 0:
@@ -300,10 +306,10 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::camellia::extend_key(do
 		std::swap(kbl, kbr);
 		for (uint64_t i = 0; i < 8; i++)
 		{
-			auto kl_ = dog_torch::crypto::symmetric::camellia::CLMB(kll, klr, shift[i]);
-			auto kr_ = dog_torch::crypto::symmetric::camellia::CLMB(krl, krr, shift[i]);
-			auto ka_ = dog_torch::crypto::symmetric::camellia::CLMB(kal, kar, shift[i]);
-			auto kb_ = dog_torch::crypto::symmetric::camellia::CLMB(kbl, kbr, shift[i]);
+			auto kl_ = NSROOT::algorithm::camellia::CLMB(kll, klr, shift[i]);
+			auto kr_ = NSROOT::algorithm::camellia::CLMB(krl, krr, shift[i]);
+			auto ka_ = NSROOT::algorithm::camellia::CLMB(kal, kar, shift[i]);
+			auto kb_ = NSROOT::algorithm::camellia::CLMB(kbl, kbr, shift[i]);
 			switch (shift[i])
 			{
 			case 0:
@@ -380,9 +386,9 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::camellia::extend_key(do
 
 
 }
-dog_torch::serialize::Data dog_torch::crypto::symmetric::camellia::encoding(dog_torch::serialize::Data& plain, uint64_t block_size, const dog_torch::serialize::Data& key, uint64_t key_size)
+DOG_DATA NSROOT::algorithm::camellia::encoding(const Data& plain, uint64_t block_size, const Data& key, uint64_t key_size)
 {
-	auto take_uint64 = [](const dog_torch::serialize::Data& data, uint64_t pos) -> uint64_t
+	auto take_uint64 = [](const DOG_DATA& data, uint64_t pos) -> uint64_t
 		{
 			uint64_t res = 0;
 			for (uint64_t i = 0; i < 8; i++)
@@ -427,7 +433,7 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::camellia::encoding(dog_
 	uint64_t kw3 = take_uint64(key, pos), kw4 = take_uint64(key, pos + 8);
 	pl ^= kw3, pr ^= kw4;
 	//std::println("{:0>16x} {:0>16x}", pl, pr);
-	dog_torch::serialize::Data crypt(16);
+	DOG_DATA crypt(16);
 	for (uint64_t i = 0; i < 8; i++)
 	{
 		crypt[i] = pl >> (56 - 8 * i) & 0xff;
@@ -436,9 +442,9 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::camellia::encoding(dog_
 	return crypt;
 
 }
-dog_torch::serialize::Data dog_torch::crypto::symmetric::camellia::decoding(dog_torch::serialize::Data& crypt, uint64_t block_size, const dog_torch::serialize::Data& key, uint64_t key_size)
+DOG_DATA NSROOT::algorithm::camellia::decoding(const Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size)
 {
-	auto take_uint64 = [](const dog_torch::serialize::Data& data, uint64_t pos) -> uint64_t
+	auto take_uint64 = [](const DOG_DATA& data, uint64_t pos) -> uint64_t
 		{
 			uint64_t res = 0;
 			for (uint64_t i = 0; i < 8; i++)
@@ -481,7 +487,7 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::camellia::decoding(dog_
 	uint64_t kw1 = take_uint64(key, 0), kw2 = take_uint64(key, 8);
 	cr ^= kw1, cl ^= kw2;
 	//std::println("{:0>16x} {:0>16x}", cr, cl);
-	dog_torch::serialize::Data plain(16);
+	DOG_DATA plain(16);
 	for (uint64_t i = 0; i < 8; i++)
 	{
 		plain[i] = cr >> (56 - 8 * i) & 0xff;
@@ -489,9 +495,9 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::camellia::decoding(dog_
 	}
 	return plain;
 }
-void dog_torch::crypto::symmetric::camellia::encoding_self(dog_torch::serialize::Data& plain, uint64_t block_size, const dog_torch::serialize::Data& key, uint64_t key_size)
+void NSROOT::algorithm::camellia::encoding_self(Data& plain, uint64_t block_size, const Data& key, uint64_t key_size)
 {
-	auto take_uint64 = [](const dog_torch::serialize::Data& data, uint64_t pos) -> uint64_t
+	auto take_uint64 = [](const DOG_DATA& data, uint64_t pos) -> uint64_t
 		{
 			uint64_t res = 0;
 			for (uint64_t i = 0; i < 8; i++)
@@ -542,9 +548,9 @@ void dog_torch::crypto::symmetric::camellia::encoding_self(dog_torch::serialize:
 		plain[i + 8] = pr >> (56 - 8 * i) & 0xff;
 	}
 }
-void dog_torch::crypto::symmetric::camellia::decoding_self(dog_torch::serialize::Data& crypt, uint64_t block_size, const dog_torch::serialize::Data& key, uint64_t key_size)
+void NSROOT::algorithm::camellia::decoding_self(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size)
 {
-	auto take_uint64 = [](const dog_torch::serialize::Data& data, uint64_t pos) -> uint64_t
+	auto take_uint64 = [](const DOG_DATA& data, uint64_t pos) -> uint64_t
 		{
 			uint64_t res = 0;
 			for (uint64_t i = 0; i < 8; i++)
@@ -593,3 +599,28 @@ void dog_torch::crypto::symmetric::camellia::decoding_self(dog_torch::serialize:
 		crypt[i + 8] = cl >> (56 - 8 * i) & 0xff;
 	}
 }
+
+NSROOT::algorithm::extend_key_func NSROOT::algorithm::camellia::get_extend_key() const
+{
+	return extend_key;
+}
+NSROOT::algorithm::block_cryption_func NSROOT::algorithm::camellia::get_encrypt() const
+{
+	return encoding;
+}
+NSROOT::algorithm::block_cryption_func NSROOT::algorithm::camellia::get_decrypt() const
+{
+	return decoding;
+}
+NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::camellia::get_encrypt_self() const
+{
+	return encoding_self;
+}
+NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::camellia::get_decrypt_self() const
+{
+	return decoding_self;
+}
+
+
+#undef NSROOT
+#undef DOG_DATA

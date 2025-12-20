@@ -1,7 +1,10 @@
-#include "crypto/symmetric/Twofish.h"
+#include "crypto/symmetric/algorithm/Twofish.h"
 
-const dog_torch::crypto::symmetric::AlgorithmConfig dog_torch::crypto::symmetric::Twofish::CONFIG = AlgorithmConfig("Twofish", "[16,16]0", "[16,32]8");
-const uint8_t dog_torch::crypto::symmetric::Twofish::P8x8[2][256] = {
+#define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root
+#define DOG_DATA dog_torch::serialize::Data
+
+const NSROOT::algorithm::Config NSROOT::algorithm::Twofish::CONFIG = Config("Twofish", "[16,16]0", "[16,32]8");
+const uint8_t NSROOT::algorithm::Twofish::P8x8[2][256] = {
 	{
 		// 0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
 		0xA9,0x67,0xB3,0xE8,0x04,0xFD,0xA3,0x76,0x9A,0x92,0x80,0x78,0xE4,0xDD,0xD1,0x38,//0
@@ -44,7 +47,7 @@ const uint8_t dog_torch::crypto::symmetric::Twofish::P8x8[2][256] = {
 };
 
 //GF(256)生成元0x02幂表,不可约多项式为0x14D 
-const uint8_t dog_torch::crypto::symmetric::Twofish::GF14D[255] = {
+const uint8_t NSROOT::algorithm::Twofish::GF14D[255] = {
 	0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x4D,0x9A,0x79,0xF2,0xA9,0x1F,0x3E,0x7C,
 	0xF8,0xBD,0x37,0x6E,0xDC,0xF5,0xA7,0x03,0x06,0x0C,0x18,0x30,0x60,0xC0,0xCD,0xD7,
 	0xE3,0x8B,0x5B,0xB6,0x21,0x42,0x84,0x45,0x8A,0x59,0xB2,0x29,0x52,0xA4,0x05,0x0A,
@@ -62,7 +65,7 @@ const uint8_t dog_torch::crypto::symmetric::Twofish::GF14D[255] = {
 	0x9E,0x71,0xE2,0x89,0x5F,0xBE,0x31,0x62,0xC4,0xC5,0xC7,0xC3,0xCB,0xDB,0xFB,0xBB,
 	0x3B,0x76,0xEC,0x95,0x67,0xCE,0xD1,0xEF,0x93,0x6B,0xD6,0xE1,0x8F,0x53,0xA6
 };
-const uint8_t dog_torch::crypto::symmetric::Twofish::GFi14D[255] = {
+const uint8_t NSROOT::algorithm::Twofish::GFi14D[255] = {
 	0x00,0x01,0x17,0x02,0x2E,0x18,0x53,0x03,0x6A,0x2F,0x93,0x19,0x34,0x54,0x45,
 	0x04,0x5C,0x6B,0xB6,0x30,0xA6,0x94,0x4B,0x1A,0x8C,0x35,0x81,0x55,0xAA,0x46,0x0D,
 	0x05,0x24,0x5D,0x87,0x6C,0x9B,0xB7,0xC1,0x31,0x2B,0xA7,0xA3,0x95,0x98,0x4C,0xCA,
@@ -81,7 +84,7 @@ const uint8_t dog_torch::crypto::symmetric::Twofish::GFi14D[255] = {
 	0x49,0xB4,0x0B,0x7F,0x51,0x15,0x43,0x91,0x10,0x71,0xBB,0xEE,0xBF,0x85,0xC8,0xA1
 };
 //GF(256)生成元0x02幂表,不可约多项式为0x169
-// const uint8_t dog_torch::crypto::symmetric::Twofish::GF169[255] = {
+// const uint8_t NSROOT::algorithm::Twofish::GF169[255] = {
 // 			// 0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
 // 			0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x69,0xD2,0xCD,0xF3,0x8F,0x77,0xEE,0xB5,//0
 // 			0x03,0x06,0x0C,0x18,0x30,0x60,0xC0,0xE9,0xBB,0x1F,0x3E,0x7C,0xF8,0x99,0x5B,0xB6,//1
@@ -100,7 +103,7 @@ const uint8_t dog_torch::crypto::symmetric::Twofish::GFi14D[255] = {
 // 			0x90,0x49,0x92,0x4D,0x9A,0x5D,0xBA,0x1D,0x3A,0x74,0xE8,0xB9,0x1B,0x36,0x6C,0xD8,//E
 // 			0xD9,0xDB,0xDF,0xD7,0xC7,0xE7,0xA7,0x27,0x4E,0x9C,0x51,0xA2,0x2D,0x5A,0xB4,     //F
 // 		};
-// const uint8_t dog_torch::crypto::symmetric::Twofish::GFi169[255] = {
+// const uint8_t NSROOT::algorithm::Twofish::GFi169[255] = {
 // 			// 0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
 // 			0x00,0x01,0x10,0x02,0x20,0x11,0xCC,0x03,0xDC,0x21,0xD7,0x12,0x7D,0xCD,0x30,0x04,//0
 // 			0x40,0xDD,0x77,0x22,0x99,0xD8,0x8D,0x13,0x91,0x7E,0xEC,0xCE,0xE7,0x31,0x19,0x05,//1
@@ -120,20 +123,20 @@ const uint8_t dog_torch::crypto::symmetric::Twofish::GFi14D[255] = {
 // 			0x53,0x45,0x0B,0x64,0xC4,0x37,0xC0,0x1C,0x95,0xB2,0x83,0xAB,0x5C,0x56,0x70      //F
 // 		};
 
-const uint8_t dog_torch::crypto::symmetric::Twofish::MDS[16] = {
+const uint8_t NSROOT::algorithm::Twofish::MDS[16] = {
 	0x01,0xEF,0x5B,0x5B,
 	0x5B,0xEF,0xEF,0x01,
 	0xEF,0x5B,0x01,0xEF,
 	0xEF,0x01,0xEF,0x5B
 };
-const uint8_t dog_torch::crypto::symmetric::Twofish::RS[32] = {
+const uint8_t NSROOT::algorithm::Twofish::RS[32] = {
 	0x01,0xA4,0x55,0x87,0x5A,0x58,0xDB,0x9E,
 	0xA4,0x56,0x82,0xF3,0x1E,0xC6,0x68,0xE5,
 	0x02,0xA1,0xFC,0xC1,0x47,0xAE,0x3D,0x19,
 	0xA4,0x55,0x87,0x5A,0x58,0xDB,0x9E,0x03
 };
 
-uint8_t dog_torch::crypto::symmetric::Twofish::mult14D(uint8_t a, uint8_t b)
+uint8_t NSROOT::algorithm::Twofish::mult14D(uint8_t a, uint8_t b)
 {
 	if (a == 0x00 || b == 0x00)
 	{
@@ -142,7 +145,7 @@ uint8_t dog_torch::crypto::symmetric::Twofish::mult14D(uint8_t a, uint8_t b)
 	return GF14D[((GFi14D[a - 1] + GFi14D[b - 1])) % 255];
 	// a==0||b==0 ? 0 : GF14D[((GFi14D[a - 1] + GFi14D[b - 1])) % 255];
 }
-uint8_t dog_torch::crypto::symmetric::Twofish::mult169(uint8_t a, uint8_t b)
+uint8_t NSROOT::algorithm::Twofish::mult169(uint8_t a, uint8_t b)
 {
 	switch (b)
 	{
@@ -159,7 +162,7 @@ uint8_t dog_torch::crypto::symmetric::Twofish::mult169(uint8_t a, uint8_t b)
 	}
 	throw DOG_EXCEPTION("Error:this function only allow b equal 0x01 0x5B 0xEF\n错误：此函数仅允许b等于0x01 0x5B 0xEF");
 }
-uint32_t dog_torch::crypto::symmetric::Twofish::multMDS(uint32_t n)
+uint32_t NSROOT::algorithm::Twofish::multMDS(uint32_t n)
 {
 	uint8_t n_[4] = {
 			dog_torch::math::integer::pick_byte(n,4),
@@ -176,7 +179,7 @@ uint32_t dog_torch::crypto::symmetric::Twofish::multMDS(uint32_t n)
 	}
 	return s[0] | (s[1] << 8) | (s[2] << 16) | (s[3] << 24);
 }
-uint32_t dog_torch::crypto::symmetric::Twofish::multRS(uint64_t n)
+uint32_t NSROOT::algorithm::Twofish::multRS(uint64_t n)
 {
 	uint8_t n_[8] = {
 					dog_torch::math::integer::pick_byte(n,8),
@@ -197,7 +200,7 @@ uint32_t dog_torch::crypto::symmetric::Twofish::multRS(uint64_t n)
 	}
 	return s[0] | (s[1] << 8) | (s[2] << 16) | (s[3] << 24);
 }
-uint32_t dog_torch::crypto::symmetric::Twofish::function_h(uint32_t x, std::vector<uint32_t> l)
+uint32_t NSROOT::algorithm::Twofish::function_h(uint32_t x, std::vector<uint32_t> l)
 {
 	using namespace dog_torch::math::integer;
 	uint8_t y[4] = { 
@@ -227,7 +230,7 @@ uint32_t dog_torch::crypto::symmetric::Twofish::function_h(uint32_t x, std::vect
 	uint32_t Y = y[0] << 24 | y[1] << 16 | y[2] << 8 | y[3];
 	return multMDS(Y);
 }
-dog_torch::serialize::Data dog_torch::crypto::symmetric::Twofish::extend_key(dog_torch::serialize::Data& key, uint64_t key_size)
+DOG_DATA NSROOT::algorithm::Twofish::extend_key(const Data& key, uint64_t block_size, uint64_t key_size)
 {
 	uint64_t max_length = 0;
 	uint64_t k = 0;
@@ -246,9 +249,10 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::Twofish::extend_key(dog
 		max_length = 32;
 		k = 4;
 	}
+	Data key_ = key;
 	for (uint64_t i = key_size; i < max_length; i++)
 	{
-		key.push_back(0x00);
+		key_.push_back(0x00);
 	}
 	std::vector<uint32_t> Me, Mo, S, rkey(40);
 	uint32_t m = 0;
@@ -256,7 +260,7 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::Twofish::extend_key(dog
 	
 	for (uint64_t i = 0; i < max_length; i += 4)
 	{
-		m = key[i] << 24 | key[i + 1] << 16 | key[i + 2] << 8 | key[i + 3];
+		m = key_[i] << 24 | key_[i + 1] << 16 | key_[i + 2] << 8 | key_[i + 3];
 		if ((i / 4) % 2 == 0)
 		{
 			Me.push_back(m);
@@ -267,19 +271,19 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::Twofish::extend_key(dog
 		}
 		if ((i + 4) % 8 == 0)
 		{
-			s |= (uint64_t)key[i] << 24;
-			s |= (uint64_t)key[i + 1] << 16;
-			s |= (uint64_t)key[i + 2] << 8;
-			s |= (uint64_t)key[i + 3];
+			s |= (uint64_t)key_[i] << 24;
+			s |= (uint64_t)key_[i + 1] << 16;
+			s |= (uint64_t)key_[i + 2] << 8;
+			s |= (uint64_t)key_[i + 3];
 			S.push_back(multRS(s));
 			s = 0;
 		}
 		else
 		{
-			s |= (uint64_t)key[i] << 56;
-			s |= (uint64_t)key[i + 1] << 48;
-			s |= (uint64_t)key[i + 2] << 40;
-			s |= (uint64_t)key[i + 3] << 32;
+			s |= (uint64_t)key_[i] << 56;
+			s |= (uint64_t)key_[i + 1] << 48;
+			s |= (uint64_t)key_[i + 2] << 40;
+			s |= (uint64_t)key_[i + 3] << 32;
 		}
 		
 	}
@@ -316,7 +320,7 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::Twofish::extend_key(dog
 	return res;
 }
 
-dog_torch::serialize::Data dog_torch::crypto::symmetric::Twofish::encoding(Data& plain, uint64_t block_size, const Data& key, uint64_t key_size)
+DOG_DATA NSROOT::algorithm::Twofish::encoding(const Data& plain, uint64_t block_size, const Data& key, uint64_t key_size)
 {
 	std::vector<uint32_t> S(2);
 	S[0] = (uint32_t)key[0] << 0 | (uint32_t)key[0 + 1] << 8 | (uint32_t)key[0 + 2] << 16 | (uint32_t)key[0 + 3] << 24;
@@ -393,7 +397,7 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::Twofish::encoding(Data&
 	}
 	return res;
 }
-dog_torch::serialize::Data dog_torch::crypto::symmetric::Twofish::decoding(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size)
+DOG_DATA NSROOT::algorithm::Twofish::decoding(const Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size)
 {
 	std::vector<uint32_t> S(2);
 	S[0] = (uint32_t)key[0] << 0 | (uint32_t)key[0 + 1] << 8 | (uint32_t)key[0 + 2] << 16 | (uint32_t)key[0 + 3] << 24;
@@ -471,7 +475,7 @@ dog_torch::serialize::Data dog_torch::crypto::symmetric::Twofish::decoding(Data&
 	return res;
 }
 
-void dog_torch::crypto::symmetric::Twofish::encoding_self(Data& plain, uint64_t block_size, const Data& key, uint64_t key_size)
+void NSROOT::algorithm::Twofish::encoding_self(Data& plain, uint64_t block_size, const Data& key, uint64_t key_size)
 {
 	std::vector<uint32_t> S(2);
 	S[0] = (uint32_t)key[0] << 0 | (uint32_t)key[0 + 1] << 8 | (uint32_t)key[0 + 2] << 16 | (uint32_t)key[0 + 3] << 24;
@@ -547,7 +551,7 @@ void dog_torch::crypto::symmetric::Twofish::encoding_self(Data& plain, uint64_t 
 		}
 	}
 }
-void dog_torch::crypto::symmetric::Twofish::decoding_self(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size)
+void NSROOT::algorithm::Twofish::decoding_self(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size)
 {
 	std::vector<uint32_t> S(2);
 	S[0] = (uint32_t)key[0] << 0 | (uint32_t)key[0 + 1] << 8 | (uint32_t)key[0 + 2] << 16 | (uint32_t)key[0 + 3] << 24;
@@ -623,3 +627,27 @@ void dog_torch::crypto::symmetric::Twofish::decoding_self(Data& crypt, uint64_t 
 		}
 	}
 }
+
+NSROOT::algorithm::extend_key_func NSROOT::algorithm::Twofish::get_extend_key() const
+{
+	return extend_key;
+}
+NSROOT::algorithm::block_cryption_func NSROOT::algorithm::Twofish::get_encrypt() const
+{
+	return encoding;
+}
+NSROOT::algorithm::block_cryption_func NSROOT::algorithm::Twofish::get_decrypt() const
+{
+	return decoding;
+}
+NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::Twofish::get_encrypt_self() const
+{
+	return encoding_self;
+}
+NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::Twofish::get_decrypt_self() const
+{
+	return decoding_self;
+}
+
+#undef DOG_DATA
+#undef NSROOT

@@ -21,16 +21,14 @@
 namespace dog_torch { namespace serialize { namespace tlv
 {
 	/*
-		null  -> 0000 0000
-		start  -> 0000 0001
-		end   -> 0000 0010
-		bool  -> 0010 (0000/1111=false/true)
-		int   -> 100 (0/1=+/-) 0001-1000(0-8):length
-		float  -> 101X (4/8=float/double)
-		bytes  -> 010X 0000-1000(0-8):length length + int(length) + bytes
-		string  -> 011X 0000-1000(0-8):length length + int(length) + bytes(utf8)
-		array  -> 110X 0000-1000(0-8):length length + int(length) + other
-		object(hash table)  -> 111X 0000-1000(0-8):length length + int(length) + string:other
+		null    -> 0000 0000                                                                    | 0
+		bool    -> 0010 (0000/1111=false/true)                                                  | 2
+		int     -> 100 (0/1=+/-) 0001-1000(0-8):length                                          | 8
+		float   -> 101X (4/8=float/double)                                                      | A
+		bytes   -> 010X 0000-1000(1-8):length length + int(length) + bytes                      | 4
+		string  -> 011X 0000-1000(1-8):length length + int(length) + bytes(utf8)                | 6
+		array   -> 110X 0000-1000(1-8):length length + int(length) + other                      | C
+		object(hash table)  -> 111X 0000-1000(0-8):length length + int(length) + string:other   | E
 	*/
 	DOG_CRYPTION_API dog_torch::serialize::Data boolean(bool b);
 

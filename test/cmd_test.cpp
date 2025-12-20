@@ -1,28 +1,25 @@
-#include <iostream>
-#include <fstream>
-#include <format>
-#include <print> 
 #include <chrono>
+#include <format>
+#include <fstream>
+#include <iostream>
+#include <print> 
 
 #include <cmath>
 
-#include "dog_torch.h"
+#include "crypto/symmetric/algorithm/Rijndael.h"
+#include "crypto/symmetric/mode/CBC.h"
+#include "crypto/symmetric/padding/PKCS7.h"
+#include "crypto/symmetric/symmetric_base.h"
+
 
 int main()
 {
-	dog_torch::serialize::Data key = "00000000000000000000000000000000";
-	key = dog_torch::crypto::symmetric::Twofish::extend_key(key, 16);
+	using namespace dog_torch::crypto::symmetric;
+	using namespace dog_torch::crypto::symmetric::algorithm;
+	using namespace dog_torch::crypto::symmetric::mode;
+	using namespace dog_torch::crypto::symmetric::padding;
 
-	dog_torch::serialize::Data plain = "00000000000000000000000000000000";
-	plain = dog_torch::crypto::symmetric::Twofish::encoding(plain, 16, key, 16);
-	std::cout << plain.to_hex_string() << std::endl;
-	plain = dog_torch::crypto::symmetric::Twofish::decoding(plain, 16, key, 16);
-	std::cout << plain.to_hex_string() << std::endl;
-
-	//std::vector<uint32_t> l = { 0x61106645,0x4BBC55B2,0xF2F69FB8 };
-	//uint32_t b = dog_torch::crypto::symmetric::Twofish::function_h(0x244A3938, l);
-	//printf("%08X", b);
-	//using dog_torch::crypto::symmetric::Twofish::mult169;
-
-	return 0;
+	CryptionConfig cryptor(AES(16), CBC(), PKCS7());
+	std::cout << cryptor.to_data().to_hex_string(true) << std::endl;
+	
 }

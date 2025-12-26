@@ -206,23 +206,28 @@ void NSROOT::algorithm::SM4::decoding_self(Data& crypt, uint64_t block_size, con
 	}
 }
 
-NSROOT::algorithm::extend_key_func NSROOT::algorithm::SM4::get_extend_key() const
+std::unique_ptr<NSROOT::algorithm::Algorithm> NSROOT::algorithm::SM4::clone() const
+{
+	return std::move(std::make_unique<SM4>(*this));
+}
+
+NSROOT::algorithm::Extend_key_func NSROOT::algorithm::SM4::get_extend_key() const
 {
 	return extend_key;
 }
-NSROOT::algorithm::block_cryption_func NSROOT::algorithm::SM4::get_encrypt() const
+NSROOT::algorithm::Block_cryption_func NSROOT::algorithm::SM4::get_encrypt() const
 {
 	return encoding;
 }
-NSROOT::algorithm::block_cryption_func NSROOT::algorithm::SM4::get_decrypt() const
+NSROOT::algorithm::Block_cryption_func NSROOT::algorithm::SM4::get_decrypt() const
 {
 	return decoding;
 }
-NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::SM4::get_encrypt_self() const
+NSROOT::algorithm::Block_self_cryption_func NSROOT::algorithm::SM4::get_encrypt_self() const
 {
 	return encoding_self;
 }
-NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::SM4::get_decrypt_self() const
+NSROOT::algorithm::Block_self_cryption_func NSROOT::algorithm::SM4::get_decrypt_self() const
 {
 	return decoding_self;
 }

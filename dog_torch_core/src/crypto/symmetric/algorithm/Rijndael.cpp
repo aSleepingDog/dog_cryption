@@ -490,23 +490,27 @@ NSROOT::algorithm::AES::AES(const uint64_t key_size) : Rijndael(16, key_size)
 		);
 	}
 }
-NSROOT::algorithm::extend_key_func NSROOT::algorithm::AES::get_extend_key() const
+std::unique_ptr<NSROOT::algorithm::Algorithm> NSROOT::algorithm::AES::clone() const
+{
+	return std::move(std::make_unique<AES>(*this));
+}
+NSROOT::algorithm::Extend_key_func NSROOT::algorithm::AES::get_extend_key() const
 {
 	return extend_key;
 }
-NSROOT::algorithm::block_cryption_func NSROOT::algorithm::AES::get_encrypt() const
+NSROOT::algorithm::Block_cryption_func NSROOT::algorithm::AES::get_encrypt() const
 {
 	return encoding;
 }
-NSROOT::algorithm::block_cryption_func NSROOT::algorithm::AES::get_decrypt() const
+NSROOT::algorithm::Block_cryption_func NSROOT::algorithm::AES::get_decrypt() const
 {
 	return decoding;
 }
-NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::AES::get_encrypt_self() const
+NSROOT::algorithm::Block_self_cryption_func NSROOT::algorithm::AES::get_encrypt_self() const
 {
 	return encoding_self;
 }
-NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::AES::get_decrypt_self() const
+NSROOT::algorithm::Block_self_cryption_func NSROOT::algorithm::AES::get_decrypt_self() const
 {
 	return decoding_self;
 }

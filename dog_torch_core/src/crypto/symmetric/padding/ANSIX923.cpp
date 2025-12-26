@@ -32,6 +32,11 @@ void NSROOT::padding::ANSIX923::unpadding(Data& data, uint64_t block_size)
  	}
 }
 
+std::unique_ptr<NSROOT::padding::Padding> NSROOT::padding::ANSIX923::clone() const
+{
+    return std::move(std::make_unique<ANSIX923>(*this));
+}
+
 NSROOT::padding::padding_func NSROOT::padding::ANSIX923::get_padding() const
 {
 	return padding;

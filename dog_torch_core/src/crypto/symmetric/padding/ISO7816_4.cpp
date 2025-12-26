@@ -25,6 +25,11 @@ void NSROOT::padding::ISO7816_4::unpadding(Data& data, uint64_t block_size)
  	data.pop_back();
 }
 
+std::unique_ptr<NSROOT::padding::Padding> NSROOT::padding::ISO7816_4::clone() const
+{
+    return std::move(std::make_unique<ISO7816_4>(*this));
+}
+
 NSROOT::padding::padding_func NSROOT::padding::ISO7816_4::get_padding() const
 {
     return padding_func();

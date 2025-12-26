@@ -22,7 +22,7 @@
 
 #include "serialize/serialize.h"
 #include "math/math.h"
-#include "crypto/symmetric/symmetric_base.h"
+#include "crypto/symmetric/base.h"
 
 namespace dog_torch { namespace crypto { namespace symmetric { namespace algorithm
 {
@@ -54,10 +54,12 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace algorit
 		static void encoding_self(Data& plain, uint64_t block_size, const Data& key, uint64_t key_size);
 		static void decoding_self(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size);
 
-		extend_key_func           get_extend_key()    const override;
-		block_cryption_func       get_encrypt()       const override;
-		block_cryption_func       get_decrypt()       const override;
-		block_self_cryption_func  get_encrypt_self()  const override;
-		block_self_cryption_func  get_decrypt_self()  const override;
+		std::unique_ptr<Algorithm> clone() const override;
+
+		Extend_key_func           get_extend_key()    const override;
+		Block_cryption_func       get_encrypt()       const override;
+		Block_cryption_func       get_decrypt()       const override;
+		Block_self_cryption_func  get_encrypt_self()  const override;
+		Block_self_cryption_func  get_decrypt_self()  const override;
 	};
 }}}}

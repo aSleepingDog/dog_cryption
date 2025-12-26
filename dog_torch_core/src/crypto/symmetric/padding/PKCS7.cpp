@@ -33,6 +33,10 @@ void NSROOT::padding::PKCS7::unpadding(Data& data, uint64_t block_size)
  		}
  	}
 }
+std::unique_ptr<NSROOT::padding::Padding> NSROOT::padding::PKCS7::clone() const
+{
+    return std::move(std::make_unique<PKCS7>(*this));
+}
 NSROOT::padding::padding_func NSROOT::padding::PKCS7::get_padding() const
 {
     return padding;

@@ -19,6 +19,10 @@ namespace dog_torch { namespace crypto { namespace hash
 	using HashException = dog_torch::utils::Exception;
 	using Data = dog_torch::serialize::Data;
 
+	/*
+	* BLAKE2b, BLAKE2s, Keccack (F1600), SHA-1, SHA-3, SHAKE (128/256), SipHash, LSH (128/256), Tiger, RIPEMD (128/160/256/320), WHIRLPOOL
+	*/
+
 	class DOG_CRYPTION_API HashConfig
 	{
 	public:

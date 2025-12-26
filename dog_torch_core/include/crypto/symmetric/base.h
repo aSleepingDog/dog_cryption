@@ -70,9 +70,9 @@ namespace dog_torch { namespace crypto {namespace symmetric
 
 	namespace algorithm
 	{
-		using extend_key_func = std::function<Data(const Data&, uint64_t, uint64_t)>;
-		using block_self_cryption_func = std::function<void(Data&, uint64_t, const Data&, uint64_t)>;
-		using block_cryption_func = std::function<Data(const Data&, uint64_t, const Data&, uint64_t)>;
+		using Extend_key_func = std::function<Data(const Data&, uint64_t, uint64_t)>;
+		using Block_self_cryption_func = std::function<void(Data&, uint64_t, const Data&, uint64_t)>;
+		using Block_cryption_func = std::function<Data(const Data&, uint64_t, const Data&, uint64_t)>;
 
 		class DOG_CRYPTION_API Config
 		{
@@ -83,7 +83,6 @@ namespace dog_torch { namespace crypto {namespace symmetric
 			Config(const std::string& name, const std::string& block_size_region, const std::string& key_size_region) :
 				name(name), block_size_region(block_size_region), key_size_region(key_size_region) {};
 		};
-
 
 		/*
 		RC6, MARS,  Serpent, CAST-256,ARIA, Blowfish, CHAM, HIGHT, IDEA, Kalyna (128/256/512), LEA, SEED, RC5, SHACAL-2, SIMECK, SIMON (64/128), Skipjack, SPECK (64/128), Simeck,Threefish (256/512/1024), Triple-DES (DES-EDE2 and DES-EDE3), TEA, XTEA
@@ -110,16 +109,18 @@ namespace dog_torch { namespace crypto {namespace symmetric
 
 			Algorithm(const std::string& name, const uint64_t block_size, const uint64_t key_size) : 
 				name(name), block_size(block_size), key_size(key_size) {};
+			virtual ~Algorithm() = default;
+			virtual std::unique_ptr<Algorithm> clone() const;
 			virtual Data to_data() const;
 			virtual std::string fmt_config() const;
 			virtual std::string get_name() const;
 			virtual uint64_t get_block_size() const;
 			virtual uint64_t get_key_size() const;
-			virtual extend_key_func           get_extend_key() const;
-			virtual block_cryption_func       get_encrypt() const;
-			virtual block_cryption_func       get_decrypt() const;
-			virtual block_self_cryption_func  get_encrypt_self() const;
-			virtual block_self_cryption_func  get_decrypt_self() const;
+			virtual Extend_key_func           get_extend_key() const;
+			virtual Block_cryption_func       get_encrypt() const;
+			virtual Block_cryption_func       get_decrypt() const;
+			virtual Block_self_cryption_func  get_encrypt_self() const;
+			virtual Block_self_cryption_func  get_decrypt_self() const;
 		};
 	}
 
@@ -138,20 +139,22 @@ namespace dog_torch { namespace crypto {namespace symmetric
 			void unpadding(Data& data, uint64_t block_size);
 			*/
 			Padding(const std::string& name);
+			Padding();
+			virtual ~Padding() = default;
+			virtual std::unique_ptr<Padding> clone() const;
 			virtual Data to_data() const;
 			virtual std::string fmt_config() const;
+			virtual std::string get_name() const;
 			virtual padding_func get_padding() const;
 			virtual padding_func get_unpadding() const;
 		};
 	}
-
-	class Cryptor;
-
+	class Cipher;
 	namespace mode
 	{
-		using crypt_func           =    std::function<Data(const Data&, const Data&, Cryptor&)>;
-		using stream_crypt_func    =    std::function<void(std::istream&, const Data&, std::ostream&, Cryptor&)>;
-		using stream_cryptp_func   =    std::function<void(std::istream&, const Data&, std::ostream&, Cryptor&,
+		using crypt_func           =    std::function<Data(const Data&, const Cipher&)>;
+		using stream_crypt_func    =    std::function<void(std::istream&, std::ostream&, const Cipher&)>;
+		using stream_cryptp_func   =    std::function<void(std::istream&, std::ostream&, const Cipher&,
 			std::mutex*, std::condition_variable*, std::atomic<double>*, std::atomic<bool>*, std::atomic<bool>*, std::atomic<bool>*)>;
 
 		double update_progress(double progress, double progress_step, double progress_max);
@@ -160,15 +163,14 @@ namespace dog_torch { namespace crypto {namespace symmetric
 		{
 		protected:
 			std::string name;
-			bool using_iv;
-			bool using_padding;
 		public:
-			Mode(const std::string& name, bool using_iv, bool using_padding) : name(name), using_iv(using_iv), using_padding(using_padding) {};
+			Mode(const std::string& name) : name(name) {};
 			
+			virtual ~Mode() = default;
+			virtual std::unique_ptr<Mode> clone() const;
+
 			virtual std::string fmt_config() const;
 			virtual Data to_data() const;
-			virtual bool get_using_iv() const;
-			virtual bool get_using_padding() const;
 
 			virtual crypt_func get_mult_encrypt() const;
 			virtual crypt_func get_mult_decrypt() const;
@@ -184,68 +186,66 @@ namespace dog_torch { namespace crypto {namespace symmetric
 	class DOG_CRYPTION_API CryptionConfig
 	{
 	public:
-		algorithm::Algorithm   algorithm_;
-		padding::Padding       padding_;
-		mode::Mode             mode_;
+		std::unique_ptr<algorithm::Algorithm>   algorithm_;
+		std::unique_ptr<mode::Mode>             mode_;
 
-		CryptionConfig(const algorithm::Algorithm& algorithm, const mode::Mode& mode, const padding::Padding& padding) :
-			algorithm_(algorithm), padding_(padding), mode_(mode) {};
-		CryptionConfig(algorithm::Algorithm&& algorithm, mode::Mode&& mode, padding::Padding&& padding) :
-			algorithm_(algorithm), padding_(padding), mode_(mode) {};
-
-		 Data to_data() const;
-		 std::string to_string() const;
+		CryptionConfig(const algorithm::Algorithm& algorithm, const mode::Mode& mode);
+		void swap(CryptionConfig& other);
+		Data to_data() const;
+		std::string to_string() const;
 	};
 
-	class DOG_CRYPTION_API Cryptor
+	class DOG_CRYPTION_API Cipher
 	{
 	private:
-		CryptionConfig  config_;
-		bool            is_setting_key_ = false;
-		Data            original_key_;
-		Data            available_key_;
+		CryptionConfig    config_;
+		bool              is_setting_key_ = false;
+		Data              original_key_;
+		Data              available_key_;
 	public:
-		Cryptor(const algorithm::Algorithm& algorithm, const mode::Mode& mode, const padding::Padding& padding);
+		Cipher(const algorithm::Algorithm& algorithm, const mode::Mode& mode);
 		
 		void set_key(Data key);
 		bool is_available() const;
 
- 		void swap(const Cryptor& other);
- 		void swap_config(const Cryptor& other);
+ 		void swap(Cipher& other);
+ 		void swap_config(Cipher& other);
 
 		uint64_t get_block_size() const;
 		uint64_t get_key_size() const;
 
- 		bool get_using_iv() const;
- 		bool get_using_padding() const;
-
 		Data& get_original_key();
 		Data& get_available_key();
 
- 		Data get_original_key() const;
- 		Data get_available_key() const;
+ 		const Data& get_original_key() const;
+		const Data& get_available_key() const;
 
- 		padding::padding_func get_padding() const;
-		padding::padding_func get_unpadding() const;
+		const algorithm::Block_self_cryption_func get_block_self_encryption() const;
+		const algorithm::Block_self_cryption_func get_block_self_decryption() const;
 
-		algorithm::block_self_cryption_func get_block_self_encryption() const;
-		algorithm::block_self_cryption_func get_block_self_decryption() const;
+		const algorithm::Block_cryption_func get_block_encryption() const;
+		const algorithm::Block_cryption_func get_block_decryption() const;
 
-		algorithm::block_cryption_func get_block_encryption() const;
-		algorithm::block_cryption_func get_block_decryption() const;
+		algorithm::Block_self_cryption_func get_block_self_encryption();
+		algorithm::Block_self_cryption_func get_block_self_decryption();
+
+		algorithm::Block_cryption_func get_block_encryption();
+		algorithm::Block_cryption_func get_block_decryption();
 
  		//CryptionConfig get_config();
 		const algorithm::Algorithm& get_algorithm() const;
-		const padding::Padding& get_paddion() const;
 		const mode::Mode& get_mode() const;
 
- 		Data encrypt(const Data& plain, bool with_config, bool with_iv, const Data& iv, bool with_check);
- 		void encrypt(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, const Data& iv, bool with_check);
- 		void encryptp(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, const Data& iv, bool with_check,
+		algorithm::Algorithm& get_algorithm();
+		mode::Mode& get_mode();
+
+ 		Data encrypt(const Data& plain);
+ 		void encrypt(std::istream& plain, std::ostream& crypt);
+ 		void encryptp(std::istream& plain, std::ostream& crypt,
  			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
- 		Data decrypt(const Data& crypt, bool with_config, bool with_iv, const Data& iv, bool with_check);
- 		void decrypt(std::istream& crypt, std::ostream& plain,bool with_config, bool with_iv, const Data& iv, bool with_check);
- 		void decryptp(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, const Data& iv, bool with_check,
+ 		Data decrypt(const Data& crypt);
+ 		void decrypt(std::istream& crypt, std::ostream& plain);
+ 		void decryptp(std::istream& plain, std::ostream& crypt,
  			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 
 	};

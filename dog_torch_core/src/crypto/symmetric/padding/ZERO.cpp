@@ -22,6 +22,10 @@ void NSROOT::padding::ZERO::unpadding(Data& data, uint64_t block_size)
  		if (data.size() == 0) { return; }
  	}
 }
+std::unique_ptr<NSROOT::padding::Padding> NSROOT::padding::ZERO::clone() const
+{
+    return std::move(std::make_unique<ZERO>(*this));
+}
 NSROOT::padding::padding_func NSROOT::padding::ZERO::get_padding() const
 {
 	return padding;

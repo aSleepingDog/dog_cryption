@@ -23,7 +23,7 @@
 
 #include "serialize/serialize.h"
 #include "math/math.h"
-#include "crypto/symmetric/symmetric_base.h"
+#include "crypto/symmetric/base.h"
 
 namespace dog_torch { namespace crypto { namespace symmetric { namespace padding
 {
@@ -35,6 +35,7 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace padding
 		static void padding(Data& data, uint64_t block_size);
 		static void unpadding(Data& data, uint64_t block_size);
 		ANSIX923() : Padding("ANSIX923") {}
+		std::unique_ptr<Padding> clone() const override;
 		padding_func get_padding() const override;
 		padding_func get_unpadding() const override;
 	};

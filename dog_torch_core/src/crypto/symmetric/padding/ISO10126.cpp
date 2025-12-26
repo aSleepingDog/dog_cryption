@@ -18,7 +18,16 @@ void dog_torch::crypto::symmetric::padding::ISO10126::padding(Data& data, uint64
 
 void dog_torch::crypto::symmetric::padding::ISO10126::unpadding(Data& data, uint64_t block_size)
 {
+    uint8_t end = *data.rbegin();
+    for (uint32_t i = 0; i < end; i++)
+    {
+        data.pop_back();
+    }
+}
 
+std::unique_ptr<NSROOT::padding::Padding> NSROOT::padding::ISO10126::clone() const
+{
+    return std::move(std::make_unique<ISO10126>(*this));
 }
 
 NSROOT::padding::padding_func NSROOT::padding::ISO10126::get_padding() const

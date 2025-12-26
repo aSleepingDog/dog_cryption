@@ -22,25 +22,27 @@
 
 #include "serialize/serialize.h"
 #include "math/math.h"
-#include "crypto/symmetric/symmetric_base.h"
+#include "crypto/symmetric/base.h"
 
 namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 
 	class CTR : public Mode
 	{
 	public:
-		static Data encrypt(const Data& plain, const Data& iv, Cryptor& cryptor);
-		static Data decrypt(const Data& crypt, const Data& iv, Cryptor& cryptor);
+		static Data encrypt(const Data& plain, const Cipher& cipher);
+		static Data decrypt(const Data& crypt, const Cipher& cipher);
 
-		static void encrypt_stream(std::istream& plain, const Data& iv, std::ostream& crypt, Cryptor& cryptor);
-		static void decrypt_stream(std::istream& crypt, const Data& iv, std::ostream& plain, Cryptor& cryptor);
+		static void encrypt_stream(std::istream& plain, std::ostream& crypt, const Cipher& cipher);
+		static void decrypt_stream(std::istream& crypt, std::ostream& plain, const Cipher& cipher);
 
-		static void encrypt_streamp(std::istream& plain, const Data& iv, std::ostream& crypt, Cryptor& cryptor,
+		static void encrypt_streamp(std::istream& plain, std::ostream& crypt, const Cipher& cipher,
 			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-		static void decrypt_streamp(std::istream& crypt, const Data& iv, std::ostream& plain, Cryptor& cryptor,
+		static void decrypt_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
 			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 
-		CTR(bool using_padding) : Mode("CTR", true, using_padding) {};
+		CTR(bool using_padding) : Mode("CTR") {};
+
+		std::unique_ptr<Mode> clone() const override;
 
 		crypt_func get_mult_encrypt() const override;
 		crypt_func get_mult_decrypt() const override;

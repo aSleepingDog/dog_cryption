@@ -173,7 +173,11 @@ std::reverse_iterator<std::vector<uint8_t>::const_iterator> dog_torch::serialize
 {
     return this->inside_data.crend();
 }
-std::vector<char> dog_torch::serialize::Data::to_utf8_vector()
+std::vector<uint8_t> dog_torch::serialize::Data::to_byte_vector() const
+{
+    return this->inside_data;
+}
+std::vector<char> dog_torch::serialize::Data::to_utf8_vector() const
 {
     std::vector<char> res(this->inside_data.size());
     for (int i = 0; i < this->inside_data.size(); i++)
@@ -182,15 +186,15 @@ std::vector<char> dog_torch::serialize::Data::to_utf8_vector()
     }
     return res;
 }
-std::vector<char> dog_torch::serialize::Data::to_base64_vector()
+std::vector<char> dog_torch::serialize::Data::to_base64_vector() const
 {
     return this->to_base64_vector('+', '/', '=');
 }
-std::vector<char> dog_torch::serialize::Data::to_base64_vector(char a, char b)
+std::vector<char> dog_torch::serialize::Data::to_base64_vector(char a, char b) const
 {
     return this->to_base64_vector(a, b, '=');
 }
-std::vector<char> dog_torch::serialize::Data::to_base64_vector(char a, char b, char c)
+std::vector<char> dog_torch::serialize::Data::to_base64_vector(char a, char b, char c) const
 {
     char tempList[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     tempList[62] = a; tempList[63] = b;
@@ -229,7 +233,7 @@ std::vector<char> dog_torch::serialize::Data::to_base64_vector(char a, char b, c
     }
     return res;
 }
-std::vector<char> dog_torch::serialize::Data::to_hex_vector(bool is_upper)
+std::vector<char> dog_torch::serialize::Data::to_hex_vector(bool is_upper) const
 {
     std::vector<char> res;
     std::string HexList;
@@ -249,27 +253,27 @@ std::vector<char> dog_torch::serialize::Data::to_hex_vector(bool is_upper)
     }
     return res;
 }
-std::string dog_torch::serialize::Data::to_utf8_string()
+std::string dog_torch::serialize::Data::to_utf8_string() const
 {
     std::vector<char> res = this->to_utf8_vector();
     return std::string(res.begin(), res.end());
 }
-std::string dog_torch::serialize::Data::to_base64_string()
+std::string dog_torch::serialize::Data::to_base64_string() const
 {
     std::vector<char> res = this->to_base64_vector();
     return std::string(res.begin(), res.end());
 }
-std::string dog_torch::serialize::Data::to_base64_string(char a, char b)
+std::string dog_torch::serialize::Data::to_base64_string(char a, char b) const
 {
     std::vector<char> res = this->to_base64_vector(a, b);
     return std::string(res.begin(), res.end());
 }
-std::string dog_torch::serialize::Data::to_base64_string(char a, char b, char c)
+std::string dog_torch::serialize::Data::to_base64_string(char a, char b, char c) const
 {
     std::vector<char> res = this->to_base64_vector(a, b, c);
     return std::string(res.begin(), res.end());
 }
-std::string dog_torch::serialize::Data::to_hex_string(bool is_upper)
+std::string dog_torch::serialize::Data::to_hex_string(bool is_upper) const
 {
     std::vector<char> res = this->to_hex_vector(is_upper);
     return std::string(res.begin(), res.end());

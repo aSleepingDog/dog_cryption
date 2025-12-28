@@ -28,6 +28,8 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 
 	class ECB : public Mode
 	{
+	private:
+		std::unique_ptr<padding::Padding> padding_;
 	public:
 		static Data encrypt(const Data& plain, const Cipher& cipher);
 		static Data decrypt(const Data& crypt, const Cipher& cipher);
@@ -40,9 +42,11 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 		static void decrypt_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
 			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 		
-		ECB(bool using_iv, bool using_padding) : Mode("ECB") {};
+		ECB(padding::Padding padding);
+		ECB(const ECB& other);
 
 		std::unique_ptr<Mode> clone() const override;
+		const padding::Padding& get_padding() const;
 
 		crypt_func get_mult_encrypt() const override;
 		crypt_func get_mult_decrypt() const override;

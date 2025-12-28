@@ -80,23 +80,23 @@ uint64_t NSROOT::algorithm::Algorithm::get_key_size() const
 {
 	return this->key_size;
 }
-NSROOT::algorithm::Extend_key_func NSROOT::algorithm::Algorithm::get_extend_key() const
+NSROOT::algorithm::extend_key_func NSROOT::algorithm::Algorithm::get_extend_key() const
 {
 	return [](const Data&, uint64_t, uint64_t) -> Data {return ""; };
 }
-NSROOT::algorithm::Block_cryption_func NSROOT::algorithm::Algorithm::get_encrypt() const
+NSROOT::algorithm::block_cryption_func NSROOT::algorithm::Algorithm::get_encrypt() const
 {
 	return [](const Data&, uint64_t, const Data&, uint64_t) -> Data {return ""; };
 }
-NSROOT::algorithm::Block_cryption_func NSROOT::algorithm::Algorithm::get_decrypt() const
+NSROOT::algorithm::block_cryption_func NSROOT::algorithm::Algorithm::get_decrypt() const
 {
 	return [](const Data&, uint64_t, const Data&, uint64_t) -> Data {return ""; };
 }
-NSROOT::algorithm::Block_self_cryption_func NSROOT::algorithm::Algorithm::get_encrypt_self() const
+NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::Algorithm::get_encrypt_self() const
 {
 	return [](Data&, uint64_t, const Data&, uint64_t) -> void {};
 }
-NSROOT::algorithm::Block_self_cryption_func NSROOT::algorithm::Algorithm::get_decrypt_self() const
+NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::Algorithm::get_decrypt_self() const
 {
 	return [](Data&, uint64_t, const Data&, uint64_t) -> void {};
 }
@@ -186,8 +186,9 @@ double NSROOT::mode::update_progress(double progress, double progress_step, doub
 
 
 NSROOT::CryptionConfig::CryptionConfig(const algorithm::Algorithm& algorithm, const mode::Mode& mode)
+	: algorithm_(algorithm.clone()), mode_(mode.clone())
 {
-	this->algorithm_ = algorithm.clone();
+	//2025.12.28 20:57 发现加密模式是空指针 一看构造函数没有构造 给我气笑了
 }
 
 void NSROOT::CryptionConfig::swap(CryptionConfig& other)
@@ -264,41 +265,46 @@ const DOG_DATA& NSROOT::Cipher::get_available_key() const
 {
 	return this->available_key_;
 }
-const NSROOT::algorithm::Block_self_cryption_func NSROOT::Cipher::get_block_self_encryption() const
+const NSROOT::algorithm::block_self_cryption_func NSROOT::Cipher::get_block_self_encryption() const
 {
 	return this->config_.algorithm_->get_encrypt_self();
 }
-const NSROOT::algorithm::Block_self_cryption_func NSROOT::Cipher::get_block_self_decryption() const
+const NSROOT::algorithm::block_self_cryption_func NSROOT::Cipher::get_block_self_decryption() const
 {
 	return this->config_.algorithm_->get_decrypt_self();
 }
-const NSROOT::algorithm::Block_cryption_func NSROOT::Cipher::get_block_encryption() const
+const NSROOT::algorithm::block_cryption_func NSROOT::Cipher::get_block_encryption() const
 {
 	return this->config_.algorithm_->get_encrypt();
 }
-const NSROOT::algorithm::Block_cryption_func NSROOT::Cipher::get_block_decryption() const
+const NSROOT::algorithm::block_cryption_func NSROOT::Cipher::get_block_decryption() const
 {
 	return this->config_.algorithm_->get_decrypt();
 }
-
-NSROOT::algorithm::Block_self_cryption_func dog_torch::crypto::symmetric::Cipher::get_block_self_encryption()
+NSROOT::algorithm::block_self_cryption_func NSROOT::Cipher::get_block_self_encryption()
 {
-	// TODO: 在此处插入 return 语句
+	return this->config_.algorithm_->get_encrypt_self();
 }
-NSROOT::algorithm::Block_self_cryption_func dog_torch::crypto::symmetric::Cipher::get_block_self_decryption()
+NSROOT::algorithm::block_self_cryption_func NSROOT::Cipher::get_block_self_decryption()
 {
-	// TODO: 在此处插入 return 语句
+	return this->config_.algorithm_->get_decrypt_self();
 }
-NSROOT::algorithm::Block_cryption_func dog_torch::crypto::symmetric::Cipher::get_block_encryption()
+NSROOT::algorithm::block_cryption_func NSROOT::Cipher::get_block_encryption()
 {
-	// TODO: 在此处插入 return 语句
+	return this->config_.algorithm_->get_encrypt();
 }
-NSROOT::algorithm::Block_cryption_func dog_torch::crypto::symmetric::Cipher::get_block_decryption()
+NSROOT::algorithm::block_cryption_func NSROOT::Cipher::get_block_decryption()
 {
-	// TODO: 在此处插入 return 语句
+	return this->config_.algorithm_->get_decrypt();
 }
-
-
+DOG_DATA dog_torch::crypto::symmetric::Cipher::to_data() const
+{
+	return this->config_.to_data();
+}
+std::string dog_torch::crypto::symmetric::Cipher::to_string() const
+{
+	return this->config_.to_string();
+}
 const NSROOT::algorithm::Algorithm& NSROOT::Cipher::get_algorithm() const
 {
 	return *this->config_.algorithm_;
@@ -307,12 +313,10 @@ const NSROOT::mode::Mode& NSROOT::Cipher::get_mode() const
 {
 	return *this->config_.mode_;
 }
-
 NSROOT::algorithm::Algorithm& NSROOT::Cipher::get_algorithm()
 {
 	return *this->config_.algorithm_;
 }
-
 NSROOT::mode::Mode& NSROOT::Cipher::get_mode()
 {
 	return *this->config_.mode_;

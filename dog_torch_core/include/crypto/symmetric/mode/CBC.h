@@ -51,6 +51,8 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 
 		std::unique_ptr<Mode> clone() const override;
 
+		Data to_data() const override;
+
 		crypt_func get_mult_encrypt() const override;
 		crypt_func get_mult_decrypt() const override;
 

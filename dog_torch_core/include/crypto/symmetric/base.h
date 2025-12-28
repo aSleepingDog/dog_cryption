@@ -70,9 +70,9 @@ namespace dog_torch { namespace crypto {namespace symmetric
 
 	namespace algorithm
 	{
-		using Extend_key_func = std::function<Data(const Data&, uint64_t, uint64_t)>;
-		using Block_self_cryption_func = std::function<void(Data&, uint64_t, const Data&, uint64_t)>;
-		using Block_cryption_func = std::function<Data(const Data&, uint64_t, const Data&, uint64_t)>;
+		using extend_key_func = std::function<Data(const Data&, uint64_t, uint64_t)>;
+		using block_self_cryption_func = std::function<void(Data&, uint64_t, const Data&, uint64_t)>;
+		using block_cryption_func = std::function<Data(const Data&, uint64_t, const Data&, uint64_t)>;
 
 		class DOG_CRYPTION_API Config
 		{
@@ -116,11 +116,11 @@ namespace dog_torch { namespace crypto {namespace symmetric
 			virtual std::string get_name() const;
 			virtual uint64_t get_block_size() const;
 			virtual uint64_t get_key_size() const;
-			virtual Extend_key_func           get_extend_key() const;
-			virtual Block_cryption_func       get_encrypt() const;
-			virtual Block_cryption_func       get_decrypt() const;
-			virtual Block_self_cryption_func  get_encrypt_self() const;
-			virtual Block_self_cryption_func  get_decrypt_self() const;
+			virtual extend_key_func           get_extend_key() const;
+			virtual block_cryption_func       get_encrypt() const;
+			virtual block_cryption_func       get_decrypt() const;
+			virtual block_self_cryption_func  get_encrypt_self() const;
+			virtual block_self_cryption_func  get_decrypt_self() const;
 		};
 	}
 
@@ -220,19 +220,20 @@ namespace dog_torch { namespace crypto {namespace symmetric
  		const Data& get_original_key() const;
 		const Data& get_available_key() const;
 
-		const algorithm::Block_self_cryption_func get_block_self_encryption() const;
-		const algorithm::Block_self_cryption_func get_block_self_decryption() const;
+		const algorithm::block_self_cryption_func get_block_self_encryption() const;
+		const algorithm::block_self_cryption_func get_block_self_decryption() const;
 
-		const algorithm::Block_cryption_func get_block_encryption() const;
-		const algorithm::Block_cryption_func get_block_decryption() const;
+		const algorithm::block_cryption_func get_block_encryption() const;
+		const algorithm::block_cryption_func get_block_decryption() const;
 
-		algorithm::Block_self_cryption_func get_block_self_encryption();
-		algorithm::Block_self_cryption_func get_block_self_decryption();
+		algorithm::block_self_cryption_func get_block_self_encryption();
+		algorithm::block_self_cryption_func get_block_self_decryption();
 
-		algorithm::Block_cryption_func get_block_encryption();
-		algorithm::Block_cryption_func get_block_decryption();
+		algorithm::block_cryption_func get_block_encryption();
+		algorithm::block_cryption_func get_block_decryption();
 
- 		//CryptionConfig get_config();
+		Data to_data() const;
+		std::string to_string() const;
 		const algorithm::Algorithm& get_algorithm() const;
 		const mode::Mode& get_mode() const;
 

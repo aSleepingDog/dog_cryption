@@ -56,10 +56,10 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace algorit
 
 		std::unique_ptr<Algorithm> clone() const override;
 
-		Extend_key_func           get_extend_key()    const override;
-		Block_cryption_func       get_encrypt()       const override;
-		Block_cryption_func       get_decrypt()       const override;
-		Block_self_cryption_func  get_encrypt_self()  const override;
-		Block_self_cryption_func  get_decrypt_self()  const override;
+		extend_key_func           get_extend_key()    const override;
+		block_cryption_func       get_encrypt()       const override;
+		block_cryption_func       get_decrypt()       const override;
+		block_self_cryption_func  get_encrypt_self()  const override;
+		block_self_cryption_func  get_decrypt_self()  const override;
 	};
 }}}}

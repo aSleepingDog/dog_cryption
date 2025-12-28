@@ -62,17 +62,18 @@ namespace dog_torch { namespace serialize
 		crit crbegin() const;
 		crit crend() const;
 
-		std::vector<char> to_utf8_vector();
-		std::vector<char> to_base64_vector();
-		std::vector<char> to_base64_vector(char a, char b);
-		std::vector<char> to_base64_vector(char a, char b, char c);
-		std::vector<char> to_hex_vector(bool is_upper = true);
+		std::vector<uint8_t> to_byte_vector() const;
+		std::vector<char> to_utf8_vector() const;
+		std::vector<char> to_base64_vector() const;
+		std::vector<char> to_base64_vector(char a, char b) const;
+		std::vector<char> to_base64_vector(char a, char b, char c) const;
+		std::vector<char> to_hex_vector(bool is_upper = true) const;
 
-		std::string to_utf8_string();
-		std::string to_base64_string();
-		std::string to_base64_string(char a, char b);
-		std::string to_base64_string(char a, char b, char c);
-		std::string to_hex_string(bool is_upper = true);
+		std::string to_utf8_string() const;
+		std::string to_base64_string() const;
+		std::string to_base64_string(char a, char b) const;
+		std::string to_base64_string(char a, char b, char c) const;
+		std::string to_hex_string(bool is_upper = true) const;
 
 		dog_torch::serialize::Data sub_by_pos(uint64_t start, uint64_t end) const;
 		dog_torch::serialize::Data sub_by_len(uint64_t start, uint64_t len) const;

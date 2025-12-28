@@ -25,13 +25,17 @@
 #include "crypto/symmetric/base.h"
 
 namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
+	/*
+	* CFB模式默认不使用填充 只有处于CFBB(按字节分组)且反馈长度大于1时才使用填充
+	*/
+
 
 	class CFBB : public Mode
 	{
 	private:
-		std::unique_ptr<padding::Padding> padding;
-		Data iv;
-		uint64_t shift;
+		std::unique_ptr<padding::Padding> padding_;
+		Data iv_;
+		uint64_t shift_;
 	public:
 		static Data encrypt(const Data& plain, const Cipher& cipher);
 		static Data decrypt(const Data& crypt, const Cipher& cipher);
@@ -66,7 +70,9 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 		static void decrypt_CFB128_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
 			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 
-		CFBB(uint64_t shitf, bool using_padding);
+		CFBB(const padding::Padding& padding, const Data& iv, uint64_t shift);
+		CFBB(const Data& iv, uint64_t shift) : CFBB(padding::Padding(), iv, shift) {}
+		CFBB(const CFBB& other);
 
 		std::unique_ptr<Mode> clone() const override;
 
@@ -88,9 +94,9 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 	class CFBb : public Mode
 	{
 	private:
-		std::unique_ptr<padding::Padding> padding;
-		Data iv;
-		uint64_t shift;
+		std::unique_ptr<padding::Padding> padding_;
+		Data iv_;
+		uint64_t shift_;
 	public:
 		static Data encrypt(const Data& plain, const Cipher& cipher);
 		static Data decrypt(const Data& crypt, const Cipher& cipher);
@@ -114,7 +120,9 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 		static void decrypt_CFB1_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
 			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 
-		CFBb(uint64_t shitf, bool using_padding);
+		CFBb(const padding::Padding& padding, const Data& iv, uint64_t shift);
+		CFBb(const Data& iv, uint64_t shift) : CFBb(padding::Padding(), iv, shift) {}
+		CFBb(const CFBb& other);
 
 		uint64_t get_shift() const;
 

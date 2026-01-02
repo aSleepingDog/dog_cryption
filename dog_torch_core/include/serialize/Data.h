@@ -150,6 +150,8 @@ namespace dog_torch { namespace serialize
 		Data concat(const Data& b) const;
 	};
 
+	Data operator"" _DogHexData(const char* str, size_t len);
+
 	class DOG_CRYPTION_API DataStream
 	{
 	private:

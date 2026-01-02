@@ -22,7 +22,7 @@ DOG_DATA NSROOT::mode::CTR::encrypt(const Data& plain, const Cipher& cipher)
 	for (uint64_t i0 = 0; i0 <= plain.size(); i0 += block_size)
 	{
 		tempBlock2 = tempBlock0;
-		(tempBlock0, block_size, key, key_size);
+		block_self_encryption(tempBlock0, block_size, key, key_size);
 		tempBlock1 = plain.sub_by_len(i0, block_size);
 		padding(tempBlock1, block_size);
 		res = res + NSROOT::utils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size());

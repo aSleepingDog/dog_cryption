@@ -191,6 +191,18 @@ NSROOT::CryptionConfig::CryptionConfig(const algorithm::Algorithm& algorithm, co
 	//2025.12.28 20:57 发现加密模式是空指针 一看构造函数没有构造 给我气笑了
 }
 
+NSROOT::CryptionConfig::CryptionConfig(const CryptionConfig& other)
+{
+	this->algorithm_ = other.algorithm_->clone();
+	this->mode_      = other.mode_->clone();
+}
+
+NSROOT::CryptionConfig::CryptionConfig(CryptionConfig&& other)
+{
+	this->algorithm_ = std::move(other.algorithm_);
+	this->mode_      = std::move(other.mode_);
+}
+
 void NSROOT::CryptionConfig::swap(CryptionConfig& other)
 {
 	this->algorithm_.swap(other.algorithm_);
@@ -212,6 +224,20 @@ NSROOT::Cipher::Cipher(const algorithm::Algorithm& algorithm, const mode::Mode& 
 
 }
 
+NSROOT::Cipher::Cipher(const Cipher& other) : config_(other.config_)
+{
+	this->original_key_   = other.original_key_;
+	this->available_key_ = other.available_key_;
+	this->is_setting_key_ = other.is_setting_key_;
+}
+
+dog_torch::crypto::symmetric::Cipher::Cipher(Cipher&& other) : config_(std::move(other.config_))
+{
+	this->original_key_ = std::move(other.original_key_);
+	this->available_key_ = std::move(other.available_key_);
+	this->is_setting_key_ = other.is_setting_key_;
+}
+
 void NSROOT::Cipher::set_key(Data key)
 {
 	this->original_key_   = key;
@@ -228,14 +254,14 @@ bool NSROOT::Cipher::is_available() const
 }
 void NSROOT::Cipher::swap(Cipher& other)
 {
-	std::swap(this->config_, other.config_);
+	other.config_.swap(this->config_);
 	std::swap(this->original_key_, other.original_key_);
 	std::swap(this->available_key_, other.available_key_);
 	std::swap(this->is_setting_key_, other.is_setting_key_);
 }
 void NSROOT::Cipher::swap_config(Cipher& other)
 {
-	std::swap(this->config_, other.config_);
+	other.config_.swap(this->config_);
 	if (this->is_setting_key_)
 	{
 		this->available_key_ = this->config_.algorithm_->get_extend_key()(this->original_key_, this->config_.algorithm_->get_block_size(), this->config_.algorithm_->get_key_size());
@@ -320,6 +346,15 @@ NSROOT::algorithm::Algorithm& NSROOT::Cipher::get_algorithm()
 NSROOT::mode::Mode& NSROOT::Cipher::get_mode()
 {
 	return *this->config_.mode_;
+}
+
+DOG_DATA NSROOT::Cipher::encrypt(const Data& plain)
+{//only for test
+	return this->config_.mode_->get_mult_encrypt()(plain, *this);
+}
+DOG_DATA NSROOT::Cipher::decrypt(const Data& crypt)
+{//only for test
+	return this->config_.mode_->get_mult_decrypt()(crypt, *this);
 }
 
 

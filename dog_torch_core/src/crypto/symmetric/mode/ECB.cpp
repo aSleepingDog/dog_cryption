@@ -180,7 +180,7 @@ void NSROOT::mode::ECB::decrypt_streamp(std::istream& crypt, std::ostream& plain
  	progress_->store(1.0);
 }
 
-dog_torch::crypto::symmetric::mode::ECB::ECB(padding::Padding padding) : Mode("ECB")
+NSROOT::mode::ECB::ECB(const padding::Padding& padding) : Mode("ECB")
 {
     if (padding.get_name() == "None")
     {
@@ -189,7 +189,7 @@ dog_torch::crypto::symmetric::mode::ECB::ECB(padding::Padding padding) : Mode("E
     this->padding_ = padding.clone();
 }
 
-dog_torch::crypto::symmetric::mode::ECB::ECB(const ECB& other) : Mode("ECB")
+NSROOT::mode::ECB::ECB(const ECB& other) : Mode("ECB")
 {
     this->padding_ = other.padding_->clone();
 }

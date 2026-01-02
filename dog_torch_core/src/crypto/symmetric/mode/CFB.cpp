@@ -29,7 +29,7 @@ DOG_DATA NSROOT::mode::CFBB::encrypt(const Data& plain, const Cipher& cipher)
 	Data tempBlock1(nbyte);
 	Data tempBlock2(nbyte);
 	uint64_t i = 0;
-	for (i = 0; i < plain.size(); i += nbyte)
+	for (i = 0; i <= plain.size(); i += nbyte)
 	{
 		block_self_encryption(tempBlock0, block_size, key, key_size);
 		tempBlock1 = plain.sub_by_len(i, nbyte);
@@ -67,16 +67,21 @@ DOG_DATA NSROOT::mode::CFBB::decrypt(const Data& crypt, const Cipher& cipher)
 	Data tempBlock1(nbyte);
 	Data tempBlock2(nbyte);
 	uint64_t i = 0;
-	for (i = 0; i < crypt.size(); i += nbyte)
+	for (i = 0; (i + nbyte) < crypt.size(); i += nbyte)
 	{
 		block_self_encryption(tempBlock0, block_size, key, key_size);
 		tempBlock1 = crypt.sub_by_len(i, nbyte);
 		tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
-		tempBlock1 = NSROOT::utils::squareXOR(tempBlock1, tempBlock2, tempBlock1.size());
-		unpadding(tempBlock1, nbyte);
-		res += tempBlock1;
+		NSROOT::utils::squareXOR_self(tempBlock2, tempBlock1, tempBlock1.size());
 		tempBlock0 = tempBlock0.sub_by_len(nbyte, block_size - nbyte) + tempBlock1;
+		res += tempBlock2;
 	}
+	block_self_encryption(tempBlock0, block_size, key, key_size);
+	tempBlock1 = crypt.sub_by_len(i, nbyte);
+	tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
+	NSROOT::utils::squareXOR_self(tempBlock1, tempBlock2, tempBlock1.size());
+	unpadding(tempBlock1, nbyte);
+	res += tempBlock1;
 	return res;
 }
 void NSROOT::mode::CFBB::encrypt_stream(std::istream& plain, std::ostream& crypt, const NSROOT::Cipher& cipher)
@@ -326,7 +331,7 @@ DOG_DATA NSROOT::mode::CFBB::decrypt_CFB8(const Data& crypt, const Cipher& ciphe
 	const Data& key = cipher.get_available_key();
 	uint64_t key_size = cipher.get_key_size();
 	algorithm::block_self_cryption_func block_self_encryption = cipher.get_block_self_encryption();
-	uint8_t block_size = cipher.get_block_size();
+	uint64_t block_size = cipher.get_block_size();
 
 	Data res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
 	Data tempBlock1; tempBlock1.reserve(block_size);
@@ -564,16 +569,16 @@ DOG_DATA NSROOT::mode::CFBB::encrypt_CFB128(const Data& plain, const Cipher& cip
 }
 DOG_DATA NSROOT::mode::CFBB::decrypt_CFB128(const Data& crypt, const Cipher& cipher)
 {
-	padding::padding_func padding;
+	padding::padding_func unpadding;
 	Data tempBlock0;
 	if (typeid(cipher.get_mode()) == typeid(NSROOT::mode::CFBB))
 	{
-		padding = ((const CFBB&)cipher.get_mode()).get_padding().get_padding();
+		unpadding = ((const CFBB&)cipher.get_mode()).get_padding().get_unpadding();
 		tempBlock0 = ((const CFBB&)cipher.get_mode()).get_iv();
 	}
 	else if (typeid(cipher.get_mode()) == typeid(NSROOT::mode::CFBb))
 	{
-		padding = ((const CFBb&)cipher.get_mode()).get_padding().get_padding();
+		unpadding = ((const CFBb&)cipher.get_mode()).get_padding().get_unpadding();
 		tempBlock0 = ((const CFBb&)cipher.get_mode()).get_iv();
 	}
 	const Data& key = cipher.get_available_key();
@@ -594,7 +599,7 @@ DOG_DATA NSROOT::mode::CFBB::decrypt_CFB128(const Data& crypt, const Cipher& cip
 	block_self_encryption(tempBlock0, block_size, key, key_size);
 	tempBlock1 = crypt.sub_by_pos(i0, i0 + 16);
 	NSROOT::utils::squareXOR_self(tempBlock1, tempBlock0, tempBlock0.size());
-	padding(tempBlock1, 16);
+	unpadding(tempBlock1, 16);
 	res += tempBlock1;
 	return res;
 }
@@ -811,6 +816,11 @@ const DOG_DATA& NSROOT::mode::CFBB::get_iv() const
 const NSROOT::padding::Padding& NSROOT::mode::CFBB::get_padding() const
 {
 	return *this->padding_;
+}
+
+std::string NSROOT::mode::CFBB::fmt_config() const
+{
+	return this->name + std::to_string(this->shift_);
 }
 
 NSROOT::mode::crypt_func NSROOT::mode::CFBB::get_mult_encrypt() const
@@ -1444,7 +1454,7 @@ DOG_DATA NSROOT::mode::CFBb::encrypt_CFB1(const Data& plain, const Cipher& ciphe
 	algorithm::block_self_cryption_func block_self_encryption = cipher.get_block_self_encryption();
 	const Data& key = cipher.get_available_key();
 	uint64_t key_size = cipher.get_key_size();
-	uint8_t block_size = cipher.get_block_size();
+	uint64_t block_size = cipher.get_block_size();
 
 	Data res; res.reserve(((plain.size() / block_size) + 1) * block_size);
 	
@@ -1484,7 +1494,7 @@ DOG_DATA NSROOT::mode::CFBb::decrypt_CFB1(const Data& crypt, const Cipher& ciphe
 	algorithm::block_self_cryption_func block_self_encryption = cipher.get_block_self_encryption();
 	const Data& key = cipher.get_available_key();
 	uint64_t key_size = cipher.get_key_size();
-	uint8_t block_size = cipher.get_block_size();
+	uint64_t block_size = cipher.get_block_size();
 
 	Data res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
 	Data tempBlock1; tempBlock1.reserve(block_size);
@@ -1528,7 +1538,7 @@ void NSROOT::mode::CFBb::encrypt_CFB1_stream(std::istream& plain, std::ostream& 
 	algorithm::block_self_cryption_func block_self_encryption = cipher.get_block_self_encryption();
 	const Data& key = cipher.get_available_key();
 	uint64_t key_size = cipher.get_key_size();
-	uint8_t block_size = cipher.get_block_size();
+	uint64_t block_size = cipher.get_block_size();
 
 	Data tempBlock1(block_size);
 	while (plain.tellg() < file_size)
@@ -1574,7 +1584,7 @@ void NSROOT::mode::CFBb::decrypt_CFB1_stream(std::istream& crypt, std::ostream& 
 	algorithm::block_self_cryption_func block_self_encryption = cipher.get_block_self_encryption();
 	const Data& key = cipher.get_available_key();
 	uint64_t key_size = cipher.get_key_size();
-	uint8_t block_size = cipher.get_block_size();
+	uint64_t block_size = cipher.get_block_size();
 
 	Data tempBlock1; tempBlock1.reserve(block_size);
 	while (crypt.tellg() < file_size)
@@ -1621,7 +1631,7 @@ void NSROOT::mode::CFBb::encrypt_CFB1_streamp(std::istream& plain, std::ostream&
 	algorithm::block_self_cryption_func block_self_encryption = cipher.get_block_self_encryption();
 	const Data& key = cipher.get_available_key();
 	uint64_t key_size = cipher.get_key_size();
-	uint8_t block_size = cipher.get_block_size();
+	uint64_t block_size = cipher.get_block_size();
 
 	Data tempBlock1(block_size);
 	while (plain.tellg() < file_size)
@@ -1677,7 +1687,7 @@ void NSROOT::mode::CFBb::decrypt_CFB1_streamp(std::istream& crypt, std::ostream&
 	algorithm::block_self_cryption_func block_self_encryption = cipher.get_block_self_encryption();
 	const Data& key = cipher.get_available_key();
 	uint64_t key_size = cipher.get_key_size();
-	uint8_t block_size = cipher.get_block_size();
+	uint64_t block_size = cipher.get_block_size();
 
 	Data tempBlock1; tempBlock1.reserve(block_size);
 	while (crypt.tellg() < file_size)
@@ -1741,6 +1751,11 @@ const DOG_DATA& NSROOT::mode::CFBb::get_iv() const
 const NSROOT::padding::Padding& NSROOT::mode::CFBb::get_padding() const
 {
 	return *this->padding_;
+}
+
+std::string NSROOT::mode::CFBb::fmt_config() const
+{
+	return this->name + "_" + std::to_string(this->shift_);
 }
 
 std::unique_ptr<NSROOT::mode::Mode> NSROOT::mode::CFBb::clone() const

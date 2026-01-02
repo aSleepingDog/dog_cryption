@@ -81,6 +81,8 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 		const Data& get_iv() const;
 		const padding::Padding& get_padding() const;
 
+		std::string fmt_config() const override;
+
 		crypt_func get_mult_encrypt() const override;
 		crypt_func get_mult_decrypt() const override;
 
@@ -128,6 +130,8 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 
 		const Data& get_iv() const;
 		const padding::Padding& get_padding() const;
+
+		std::string fmt_config() const override;
 
 		std::unique_ptr<Mode> clone() const override;
 

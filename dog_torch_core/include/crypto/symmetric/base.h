@@ -190,6 +190,8 @@ namespace dog_torch { namespace crypto {namespace symmetric
 		std::unique_ptr<mode::Mode>             mode_;
 
 		CryptionConfig(const algorithm::Algorithm& algorithm, const mode::Mode& mode);
+		CryptionConfig(const CryptionConfig& other);
+		CryptionConfig(CryptionConfig&& other);
 		void swap(CryptionConfig& other);
 		Data to_data() const;
 		std::string to_string() const;
@@ -204,6 +206,8 @@ namespace dog_torch { namespace crypto {namespace symmetric
 		Data              available_key_;
 	public:
 		Cipher(const algorithm::Algorithm& algorithm, const mode::Mode& mode);
+		Cipher(const Cipher& other);
+		Cipher(Cipher&& other);
 		
 		void set_key(Data key);
 		bool is_available() const;

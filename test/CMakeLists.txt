@@ -59,13 +59,13 @@ target_link_libraries(cmd_test PRIVATE static_dog_torch_core)
 # )
 # target_link_libraries(hash_file_test PRIVATE dog_torch_core)
 
-# add_executable(crypt_text_test)
-# set_target_properties(crypt_text_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/crypt_text_test")
-# target_sources(crypt_text_test
-#     PRIVATE
-#         crypt_text/crypt_text_test.cpp
-# )
-# target_link_libraries(crypt_text_test PRIVATE dog_torch_core)
+add_executable(crypt_text_test)
+set_target_properties(crypt_text_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/crypt_text_test")
+target_sources(crypt_text_test
+    PRIVATE
+        crypt_text/crypt_text_test.cpp
+)
+target_link_libraries(crypt_text_test PRIVATE static_dog_torch_core)
 
 add_executable(json_test)
 set_target_properties(json_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/json_test")

@@ -42,7 +42,7 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 		static void decrypt_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
 			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
 		
-		ECB(padding::Padding padding);
+		ECB(const padding::Padding& padding);
 		ECB(const ECB& other);
 
 		std::unique_ptr<Mode> clone() const override;

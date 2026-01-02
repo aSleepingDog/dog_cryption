@@ -893,6 +893,11 @@ dog_torch::serialize::Data dog_torch::serialize::operator+(const Data& a, const 
     return res;
 }
 
+dog_torch::serialize::Data dog_torch::serialize::operator""_DogHexData(const char* str, size_t len)
+{
+    return Data(str, 2);
+}
+
 dog_torch::serialize::DataStream::DataStream(dog_torch::serialize::Data& data)
 {
     this->data_ = data;

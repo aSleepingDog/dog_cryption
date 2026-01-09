@@ -24,9 +24,9 @@
 #include "math/math.h"
 #include "crypto/symmetric/base.h"
 
-namespace dog_torch { namespace crypto {namespace symmetric { namespace algorithm
+namespace dog_torch::crypto::symmetric::algorithm
 {
-	using Data = dog_torch::serialize::Data;
+	using Data = dog_torch::serialize::BinaryData;
 
 	class DOG_CRYPTION_API Rijndael : public Algorithm
 	{
@@ -87,4 +87,4 @@ namespace dog_torch { namespace crypto {namespace symmetric { namespace algorith
 		block_self_cryption_func  get_decrypt_self()  const override;
 	};
 
-}}}}
+}

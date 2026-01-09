@@ -14,7 +14,8 @@
 #include "asyncion/container/deque.h"
 
 
-namespace dog_torch { namespace asyncion { namespace pool {
+namespace dog_torch::asyncion::pool 
+{
     class DOG_CRYPTION_API PollingTaskPool
     {
     private:
@@ -54,7 +55,7 @@ namespace dog_torch { namespace asyncion { namespace pool {
         dog_torch::asyncion::container::DequeMove<Work> threads_;
         dog_torch::asyncion::container::DequeCopy<task> tasks_;
         std::thread manager_;
-            public:
+    public:
         static void manage(PollingTaskPool& pool)
         {
             uint64_t task_num;
@@ -128,6 +129,7 @@ namespace dog_torch { namespace asyncion { namespace pool {
         PollingTaskPool& operator=(const PollingTaskPool&) = delete;
         PollingTaskPool(PollingTaskPool&& other) noexcept
         {
+            std::scoped_lock lock(other.mutex_, this->mutex_);
             this->status_ = other.status_.load();
             this->max_size_ = other.max_size_.load();
             this->threads_ = std::move(other.threads_);
@@ -136,6 +138,7 @@ namespace dog_torch { namespace asyncion { namespace pool {
         }
         PollingTaskPool& operator=(PollingTaskPool&& other) noexcept
         {
+            std::scoped_lock lock(other.mutex_, this->mutex_);
             this->status_ = other.status_.load();
             this->max_size_ = other.max_size_.load();
             this->threads_ = std::move(other.threads_);
@@ -157,10 +160,7 @@ namespace dog_torch { namespace asyncion { namespace pool {
         {
             while (true)
             {
-                if (threads_.empty() && tasks_.empty())
-                {
-                    break;
-                }
+                if (threads_.empty() && tasks_.empty()) break;
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
@@ -232,4 +232,4 @@ namespace dog_torch { namespace asyncion { namespace pool {
         }
     };
 
-}}}
+}

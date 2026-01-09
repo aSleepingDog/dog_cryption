@@ -1,6 +1,6 @@
 #include "crypto/symmetric/mode/CTR.h"
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root
-#define DOG_DATA dog_torch::serialize::Data
+#define DOG_DATA dog_torch::serialize::BinaryData
 
 DOG_DATA NSROOT::mode::CTR::encrypt(const Data& plain, const Cipher& cipher)
 {
@@ -25,7 +25,7 @@ DOG_DATA NSROOT::mode::CTR::encrypt(const Data& plain, const Cipher& cipher)
 		block_self_encryption(tempBlock0, block_size, key, key_size);
 		tempBlock1 = plain.sub_by_len(i0, block_size);
 		padding(tempBlock1, block_size);
-		res = res + NSROOT::utils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size());
+		res = res + dog_torch::serialize::BinaryData::XOR(tempBlock1, tempBlock0, tempBlock1.size());
 		tempBlock1.rm_pos();
 		endNum++;
 		for (int i1 = 0; i1 < 8; i1++)
@@ -58,7 +58,7 @@ DOG_DATA NSROOT::mode::CTR::decrypt(const Data& crypt, const Cipher& cipher)
 		tempBlock2 = tempBlock0;
 		block_self_encryption(tempBlock0, block_size, key, key_size);
 		tempBlock1 = crypt.sub_by_pos(i0, i0 + block_size);
-		res = res + NSROOT::utils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size());
+		res = res + dog_torch::serialize::BinaryData::XOR(tempBlock1, tempBlock0, tempBlock1.size());
 		endNum++;
 		for (int i1 = 0; i1 < 8; i1++)
 		{
@@ -94,7 +94,7 @@ void NSROOT::mode::CTR::encrypt_stream(std::istream& plain, std::ostream& crypt,
 		tempBlock2 = tempBlock0;
 		block_self_encryption(tempBlock0, block_size, key, key_size);
 		plain.read((char*)tempBlock1.data(), block_size);
-		crypt.write((char*)NSROOT::utils::squareXOR(tempBlock0, tempBlock1, block_size).data(), block_size);
+		crypt.write((char*)dog_torch::serialize::BinaryData::XOR(tempBlock0, tempBlock1, block_size).data(), block_size);
 		endNum++;
 		for (int i1 = 0; i1 < 8; i1++)
 		{
@@ -110,13 +110,13 @@ void NSROOT::mode::CTR::encrypt_stream(std::istream& plain, std::ostream& crypt,
 	{
 		padding(tempBlock1, block_size);
 	}
-	crypt.write((char*)NSROOT::utils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size()).data(), tempBlock1.size());
+	crypt.write((char*)dog_torch::serialize::BinaryData::XOR(tempBlock1, tempBlock0, tempBlock1.size()).data(), tempBlock1.size());
 	crypt.flush();
 }
 void NSROOT::mode::CTR::decrypt_stream(std::istream& crypt, std::ostream& plain, const Cipher& cipher)
 {
 	uint64_t now_pos = crypt.tellg();
-	crypt.seekg(now_pos, std::ios::end);
+	crypt.seekg(0, std::ios::end);
 	uint64_t file_size = crypt.tellg();
 	crypt.seekg(now_pos);
 
@@ -139,7 +139,7 @@ void NSROOT::mode::CTR::decrypt_stream(std::istream& crypt, std::ostream& plain,
 		tempBlock2 = tempBlock0;
 		block_self_encryption(tempBlock0, block_size, key, block_size);
 		crypt.read((char*)tempBlock1.data(), block_size);
-		plain.write((char*)NSROOT::utils::squareXOR(tempBlock1, tempBlock0, block_size).data(), block_size);
+		plain.write((char*)dog_torch::serialize::BinaryData::XOR(tempBlock1, tempBlock0, block_size).data(), block_size);
 		endNum++;
 		for (int i1 = 0; i1 < 8; i1++)
 		{
@@ -151,7 +151,7 @@ void NSROOT::mode::CTR::decrypt_stream(std::istream& crypt, std::ostream& plain,
 	block_self_encryption(tempBlock0, block_size, key, block_size);
 	crypt.read((char*)tempBlock1.data(), block_size);
 	for (uint64_t i = 0; i < block_size - crypt.gcount(); ++i) { tempBlock1.pop_back(); }
-	NSROOT::utils::squareXOR_self(tempBlock1, tempBlock0, tempBlock1.size());
+	dog_torch::serialize::BinaryData::XOR_self(tempBlock1, tempBlock0, tempBlock1.size());
 	unpadding(tempBlock1, block_size);
 	plain.write((char*)tempBlock1.data(), tempBlock1.size());
 	plain.flush();
@@ -182,7 +182,7 @@ void NSROOT::mode::CTR::encrypt_streamp(std::istream& plain, std::ostream& crypt
 		tempBlock2 = tempBlock0;
 		block_self_encryption(tempBlock0, block_size, key, key_size);
 		plain.read((char*)tempBlock1.data(), block_size);
-		crypt.write((char*)NSROOT::utils::squareXOR(tempBlock0, tempBlock1, block_size).data(), block_size);
+		crypt.write((char*)dog_torch::serialize::BinaryData::XOR(tempBlock0, tempBlock1, block_size).data(), block_size);
 		std::unique_lock<std::mutex> lock(*mutex_);
 		while (*paused_ && !*stop_) { cond_->wait(lock); }
 		if (*stop_) return;
@@ -202,7 +202,7 @@ void NSROOT::mode::CTR::encrypt_streamp(std::istream& plain, std::ostream& crypt
 	{
 		padding(tempBlock1, block_size);
 	}
-	crypt.write((char*)NSROOT::utils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size()).data(), tempBlock1.size());
+	crypt.write((char*)dog_torch::serialize::BinaryData::XOR(tempBlock1, tempBlock0, tempBlock1.size()).data(), tempBlock1.size());
 	crypt.flush();
 	progress_->store(1.0);
 }
@@ -210,7 +210,7 @@ void NSROOT::mode::CTR::decrypt_streamp(std::istream& crypt, std::ostream& plain
 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 {
 	uint64_t now_pos = crypt.tellg();
-	crypt.seekg(now_pos, std::ios::end);
+	crypt.seekg(0, std::ios::end);
 	uint64_t file_size = crypt.tellg();
 	crypt.seekg(now_pos);
 
@@ -233,7 +233,7 @@ void NSROOT::mode::CTR::decrypt_streamp(std::istream& crypt, std::ostream& plain
 		tempBlock2 = tempBlock0;
 		block_self_encryption(tempBlock0, block_size, key, key_size);
 		crypt.read((char*)tempBlock1.data(), block_size);
-		plain.write((char*)NSROOT::utils::squareXOR(tempBlock1, tempBlock0, block_size).data(), block_size);
+		plain.write((char*)dog_torch::serialize::BinaryData::XOR(tempBlock1, tempBlock0, block_size).data(), block_size);
 		std::unique_lock<std::mutex> lock(*mutex_);
 		while (*paused_ && !*stop_) { cond_->wait(lock); }
 		if (*stop_) return;
@@ -250,7 +250,7 @@ void NSROOT::mode::CTR::decrypt_streamp(std::istream& crypt, std::ostream& plain
 	block_self_encryption(tempBlock0, block_size, key, key_size);
 	crypt.read((char*)tempBlock1.data(), block_size);
 	for (uint64_t i = 0; i < block_size - crypt.gcount(); ++i) { tempBlock1.pop_back(); }
-	NSROOT::utils::squareXOR_self(tempBlock1, tempBlock0, tempBlock1.size());
+	dog_torch::serialize::BinaryData::XOR_self(tempBlock1, tempBlock0, tempBlock1.size());
 	unpadding(tempBlock1, block_size);
 	plain.write((char*)tempBlock1.data(), tempBlock1.size());
 	progress_->store(update_progress(progress_->load(), block_size, file_size));

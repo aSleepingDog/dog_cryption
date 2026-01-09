@@ -20,7 +20,8 @@
 #include <functional>
 
 #include "utils/Exception.h"
-namespace dog_torch {namespace math{ namespace region{
+namespace dog_torch::math::region
+{
 
 	using NumberException = dog_torch::utils::Exception;
 
@@ -58,4 +59,4 @@ namespace dog_torch {namespace math{ namespace region{
 		DOG_CRYPTION_API std::array<uint64_t, 3> get_list(std::string region_str);
 		DOG_CRYPTION_API bool is_fall(std::string region_str, uint64_t n);
 	}
-}}}
+}

@@ -23,28 +23,14 @@
 #include "serialize/serialize.h"
 #include "math/math.h"
 
-namespace dog_torch { namespace crypto {namespace symmetric
+namespace dog_torch::crypto::symmetric
 {
-    using Data = dog_torch::serialize::Data;
+    using Data = dog_torch::serialize::BinaryData;
 
 	namespace utils
 	{
 		DOG_CRYPTION_API uint8_t rand_byte();
 
-		/*
-		* @Params a: Data
-		* @Params b: Data
-		* @Params size: uint64_t
-		* @Return: Data = a[0 -> size-1] XOR b[0 -> size-1]
-		*/
-		DOG_CRYPTION_API Data squareXOR(const Data& a, const Data& b, uint64_t size);
-		/*
-		* @Params a: Data
-		* @Params b: Data
-		* @Params size: uint64_t
-		* @Return: a[0 -> size-1] = a[0 -> size-1] XOR b[0 -> size-1]
-		*/
-		DOG_CRYPTION_API void squareXOR_self(Data& a, Data& b, uint64_t size);
 		DOG_CRYPTION_API Data randiv(uint8_t block_size);
 
 		DOG_CRYPTION_API Data get_sequence(uint64_t lenght);
@@ -172,6 +158,11 @@ namespace dog_torch { namespace crypto {namespace symmetric
 			virtual std::string fmt_config() const;
 			virtual Data to_data() const;
 
+			virtual bool set_uint64_param(const std::string& param, uint64_t value);
+			virtual bool set_string_param(const std::string& param,const std::string& value);
+			virtual bool set_data_param(const std::string& param,const Data& value);
+			virtual bool set_Padding(const padding::Padding& value);
+
 			virtual crypt_func get_mult_encrypt() const;
 			virtual crypt_func get_mult_decrypt() const;
 
@@ -244,6 +235,11 @@ namespace dog_torch { namespace crypto {namespace symmetric
 		algorithm::Algorithm& get_algorithm();
 		mode::Mode& get_mode();
 
+		bool set_mode_uint64_param(const std::string& param, uint64_t value);
+		bool set_mode_string_param(const std::string& param, const std::string& value);
+		bool set_mode_data_param(const std::string& param, const Data& value);
+		bool set_mode_Padding(const padding::Padding& value);
+
  		Data encrypt(const Data& plain);
  		void encrypt(std::istream& plain, std::ostream& crypt);
  		void encryptp(std::istream& plain, std::ostream& crypt,
@@ -255,4 +251,4 @@ namespace dog_torch { namespace crypto {namespace symmetric
 
 	};
 
-}}}
+}

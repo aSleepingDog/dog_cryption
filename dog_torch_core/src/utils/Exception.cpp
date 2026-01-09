@@ -1,37 +1,37 @@
 #include "utils/Exception.h"
 
-#ifdef _MSC_VER
-#ifdef STACEKTRACE
-dog_torch::utils::Exception::Exception(
-	std::string msg, std::basic_stacktrace<std::allocator<std::stacktrace_entry>> stacktrace, std::thread::id thread_id,
-	std::string file, std::string func, uint64_t line)
+#ifdef STACKTACRE 
+
+dog_torch::utils::Exception::Exception(DOG_EXCEPTION_MSG_PARAMS)
 {
-	this->msg += std::format("{}\n[{}]\"{}\":{}->{}\n", msg, thread_id, file, line, func);
+    this->msg += std::format("{}\n[{}]\"{}\":{}->{}\n", msg, thread_id, file, line, func);
 	for (auto& stack : stacktrace)
 	{
 		this->msg += std::format("|---\"{}\":{}->{}\n", stack.source_file(), stack.source_line(), stack.description());
 	}
 }
+
+
 #else
-dog_torch::utils::Exception::Exception(
-	std::string msg, std::thread::id thread_id,
-	std::string file, std::string func, uint64_t line)
-{
-	this->msg += std::format("{}\n[{}]\"{}\":{}->{}\n", msg, thread_id, file, line, func);
-}
-#endif
-#endif
-#ifdef __GNUC__
-dog_torch::utils::Exception::Exception(
-        std::string msg, std::thread::id thread_id,
-        std::string file, std::string func, uint64_t line)
+
+dog_torch::utils::Exception::Exception(DOG_EXCEPTION_MSG_PARAMS)
 {
     this->msg += std::format("{}\n[{}]\"{}\":{}->{}\n", msg, thread_id, file, line, func);
 }
 
-#endif
+
+#endif // STACKTACRE 
+
 
 const char* dog_torch::utils::Exception::what() const noexcept
 {
     return this->msg.c_str();
 }
+
+constexpr std::string_view dog_torch::utils::Exception::get_abstract_path(std::string_view path)
+{
+    auto it = path.find("src");
+    it += 4;
+    return it != std::string_view::npos ? path.substr(it) : path;
+}
+

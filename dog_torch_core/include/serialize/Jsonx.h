@@ -16,9 +16,10 @@
 #include <unordered_map>
 
 #include "utils/Exception.h"
-#include "Data.h"
+#include "BinaryData.h"
 
-namespace dog_torch { namespace serialize {namespace jsonx {
+namespace dog_torch::serialize::jsonx
+{
 	using array = std::vector<std::any>;
 	using object = std::unordered_map<std::string, std::any>;
     namespace any
@@ -220,4 +221,4 @@ namespace dog_torch { namespace serialize {namespace jsonx {
 
 	};
 
-}}}
+}

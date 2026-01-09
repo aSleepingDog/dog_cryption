@@ -1,7 +1,7 @@
 #include "serialize/tlv.h"
 
 /*/
-void dog_data::print::block(dog_torch::serialize::Data data, uint64_t column)
+void dog_data::print::block(dog_torch::serialize::BinaryData data, uint64_t column)
 {
     printf("XX");
     for (uint64_t i = 0; i < column; ++i)
@@ -53,7 +53,7 @@ void dog_data::print::block(const char* data, uint64_t size, uint64_t column)
     }
     printf("\n");
 }
-void dog_data::print::space(dog_torch::serialize::Data data, uint64_t column)
+void dog_data::print::space(dog_torch::serialize::BinaryData data, uint64_t column)
 {
     if (data.size() == 0) { printf("\n"); return; }
     printf("%02X ", data[0] & 0xff);
@@ -112,9 +112,9 @@ uint64_t dog_data::buffer::get_buffer_size(uint64_t file_size)
     }
 }
 */
-dog_torch::serialize::Data dog_torch::serialize::tlv::boolean(bool b)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::boolean(bool b)
 {
-    dog_torch::serialize::Data res(1);
+    dog_torch::serialize::BinaryData res(1);
     //bool  -> 0010 (0000/1111=false/true)
     if (b)
     {
@@ -127,10 +127,10 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::boolean(bool b)
     return res;
 
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::integer_num(uint64_t num)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::integer_num(uint64_t num)
 {
     //int   -> 100 (0/1=+/-) 0001-1000(0-8):length
-    dog_torch::serialize::Data res(1);
+    dog_torch::serialize::BinaryData res(1);
     uint8_t az = dog_torch::math::integer::available_size(num);
     uint8_t sign = 0x80 | az;
     res[0] = sign;
@@ -140,14 +140,14 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::integer_num(uint64_t num)
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::integer_num(int64_t num)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::integer_num(int64_t num)
 {
     //int   -> 100 (0/1=+/-) 0001-1000(0-8):length
     if (num >= 0)
     {
         return dog_torch::serialize::tlv::integer_num((uint64_t)num);
     }
-    dog_torch::serialize::Data res(1);
+    dog_torch::serialize::BinaryData res(1);
     uint64_t num_ = (uint64_t)(-num);
     uint8_t az = dog_torch::math::integer::available_size(num_);
     uint8_t sign = 0x90 | az;
@@ -158,25 +158,25 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::integer_num(int64_t num)
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::float_num(float num)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::float_num(float num)
 {
     //float  -> 101X (4/8=float/double)
-    dog_torch::serialize::Data res(5);
+    dog_torch::serialize::BinaryData res(5);
     res[0] = 0b10100100;
     memcpy(res.data() + 1, &num, sizeof(float));
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::float_num(double num)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::float_num(double num)
 {
     //float  -> 101X (4/8=float/double)
-    dog_torch::serialize::Data res(9);
+    dog_torch::serialize::BinaryData res(9);
     res[0] = 0b10101000;
     memcpy(res.data() + 1, &num, sizeof(double));
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::bytes(const std::vector<uint8_t>& bytes)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::bytes(const std::vector<uint8_t>& bytes)
 {
-    dog_torch::serialize::Data res(1);
+    dog_torch::serialize::BinaryData res(1);
     uint64_t len = bytes.size();
     uint8_t az = dog_torch::math::integer::available_size(len);
     uint8_t sign = 0x40 | az;
@@ -190,9 +190,9 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::bytes(const std::vector<ui
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::bytes(const uint8_t* bytes, uint64_t size)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::bytes(const uint8_t* bytes, uint64_t size)
 {
-    dog_torch::serialize::Data res(1);
+    dog_torch::serialize::BinaryData res(1);
     uint64_t len = size;
     uint8_t az = dog_torch::math::integer::available_size(len);
     uint8_t sign = 0x40 | az;
@@ -206,9 +206,9 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::bytes(const uint8_t* bytes
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::bytes(std::istream& stream)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::bytes(std::istream& stream)
 {
-    dog_torch::serialize::Data res(1);
+    dog_torch::serialize::BinaryData res(1);
     stream.seekg(0, std::ios::end);
     uint64_t len = stream.tellg();
     stream.seekg(0, std::ios::beg);
@@ -224,10 +224,10 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::bytes(std::istream& stream
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::string(const char* str)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::string(const char* str)
 {
     //string  -> 01XX 0000-1000(0-8):length length + int(length) + bytes(utf8)
-    dog_torch::serialize::Data res(1);
+    dog_torch::serialize::BinaryData res(1);
     uint64_t len = strlen(str);
     uint8_t az = dog_torch::math::integer::available_size(len);
     uint8_t sign = 0x60 | az;
@@ -242,10 +242,10 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::string(const char* str)
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::string(std::string str)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::string(std::string str)
 {
     //string  -> 01XX 0000-1000(0-8):length length + int(length) + bytes(utf8)
-    dog_torch::serialize::Data res(1);
+    dog_torch::serialize::BinaryData res(1);
     uint64_t len = str.length();
     uint8_t az = dog_torch::math::integer::available_size(len);
     uint8_t sign = 0x60 | az;
@@ -260,10 +260,10 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::string(std::string str)
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::array(const std::vector<std::any>& arr)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::array(const std::vector<std::any>& arr)
 {
     //array  -> 110X 0000-1000(0-8):length length + int(length) + other
-    dog_torch::serialize::Data res(1);
+    dog_torch::serialize::BinaryData res(1);
     uint64_t len = arr.size();
     uint8_t az = dog_torch::math::integer::available_size(len);
     uint8_t sign = 0xC0 | az;
@@ -274,7 +274,7 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::array(const std::vector<st
     }
     for (auto& item : arr)
     {
-        dog_torch::serialize::Data single;
+        dog_torch::serialize::BinaryData single;
         if (item.type() == typeid(bool))
         {
             single = dog_torch::serialize::tlv::boolean(std::any_cast<bool>(item));
@@ -343,9 +343,9 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::array(const std::vector<st
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::object(const std::unordered_map<std::string, std::any>& obj)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::object(const std::unordered_map<std::string, std::any>& obj)
 {
-    dog_torch::serialize::Data res(1);
+    dog_torch::serialize::BinaryData res(1);
     uint64_t len = obj.size();
     uint8_t az = dog_torch::math::integer::available_size(len);
     uint8_t sign = 0xE0 | az;
@@ -356,7 +356,7 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::object(const std::unordere
     }
     for (auto& item_value : obj)
     {
-        dog_torch::serialize::Data single;
+        dog_torch::serialize::BinaryData single;
         std::string key = item_value.first;
         single = dog_torch::serialize::tlv::string(std::any_cast<std::string>(key));
         res += single;
@@ -429,9 +429,9 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::object(const std::unordere
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::tlv::object(const std::map<std::string, std::any>& obj)
+dog_torch::serialize::BinaryData dog_torch::serialize::tlv::object(const std::map<std::string, std::any>& obj)
 {
-    dog_torch::serialize::Data res(1);
+    dog_torch::serialize::BinaryData res(1);
     uint64_t len = obj.size();
     uint8_t az = dog_torch::math::integer::available_size(len);
     uint8_t sign = 0xE0 | az;
@@ -442,7 +442,7 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::object(const std::map<std:
     }
     for (auto& item_value : obj)
     {
-        dog_torch::serialize::Data single;
+        dog_torch::serialize::BinaryData single;
         std::string key = item_value.first;
         single = dog_torch::serialize::tlv::string(std::any_cast<std::string>(key));
         res += single;
@@ -516,12 +516,12 @@ dog_torch::serialize::Data dog_torch::serialize::tlv::object(const std::map<std:
     return res;
 }
 
-std::any dog_torch::serialize::tlv::read(dog_torch::serialize::Data data)
+std::any dog_torch::serialize::tlv::read_any(dog_torch::serialize::BinaryData data)
 {
     dog_torch::serialize::DataStream stream(data);
-    return read(stream);
+    return read_any(stream);
 }
-std::any dog_torch::serialize::tlv::read(std::istream& data)
+std::any dog_torch::serialize::tlv::read_any(std::istream& data)
 {
     uint8_t as = data.get();
     if ((as & 0xE0) == 0x00)
@@ -645,7 +645,7 @@ std::any dog_torch::serialize::tlv::read(std::istream& data)
         std::vector<std::any> value;
         for (uint64_t i = 0; i < length; i++)
         {
-            value.push_back(read(data));
+            value.push_back(read_any(data));
         }
         return value;
     }
@@ -662,15 +662,15 @@ std::any dog_torch::serialize::tlv::read(std::istream& data)
         std::unordered_map<std::string, std::any> res;
         for (uint64_t i = 0; i < length; i++)
         {
-            std::any key = read(data);
-            std::any value = read(data);
+            std::any key = read_any(data);
+            std::any value = read_any(data);
             std::string key_str = std::any_cast<std::string>(key);
             res[key_str] = value;
         }
         return res;
     }
 }
-std::any dog_torch::serialize::tlv::read(dog_torch::serialize::DataStream& data)
+std::any dog_torch::serialize::tlv::read_any(dog_torch::serialize::DataStream& data)
 {
     /*
 		   null  -> 0000 0000
@@ -792,7 +792,7 @@ std::any dog_torch::serialize::tlv::read(dog_torch::serialize::DataStream& data)
         std::vector<std::any> value;
         for (uint64_t i = 0; i < length; i++)
         {
-            value.push_back(read(data));
+            value.push_back(read_any(data));
         }
         return value;
     }
@@ -809,8 +809,8 @@ std::any dog_torch::serialize::tlv::read(dog_torch::serialize::DataStream& data)
         std::unordered_map<std::string, std::any> res;
         for (uint64_t i = 0; i < length; i++)
         {
-            std::any key = read(data);
-            std::any value = read(data);
+            std::any key = read_any(data);
+            std::any value = read_any(data);
             std::string key_str = std::any_cast<std::string>(key);
             res[key_str] = value;
         }

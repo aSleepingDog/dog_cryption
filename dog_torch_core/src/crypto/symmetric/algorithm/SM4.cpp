@@ -1,7 +1,7 @@
 #include "crypto/symmetric/algorithm/SM4.h"//SM4
 
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root
-#define DOG_DATA dog_torch::serialize::Data
+#define DOG_DATA dog_torch::serialize::BinaryData
 
 //unit单位:uint8_t字节
 const NSROOT::algorithm::Config NSROOT::algorithm::SM4::CONFIG = Config("SM4", "[16,16]0", "[16,16]0");

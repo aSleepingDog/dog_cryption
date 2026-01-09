@@ -14,25 +14,34 @@
 #include "asyncion/container/deque.h"
 
 
-namespace dog_torch { namespace asyncion { namespace pool {
+namespace dog_torch::asyncion::pool
+{
 
 	class ThreadPool
 	{
 	private:
         std::mutex mutex_;
-		std::atomic<bool> status_;
+		std::atomic<int8_t> status_;// 0:stop, 1:running -1:pause
 		std::atomic<uint64_t> worker_count_;
 		asyncion::container::VectorMove<std::thread> workers_;
 		asyncion::container::DequeCopy<std::function<void()>> tasks_;
 	public:
 		ThreadPool(uint64_t count)
 		{
-			status_.store(true);
 			worker_count_.store(count);
 			workers_.reserve(count);
+		}
+		~ThreadPool()
+		{
+			this->stop();
+		}
+
+		void start()
+		{
+			status_.store(1);
 			auto work = [this]()->void
 				{
-					while (this->status_.load())
+					while (this->status_.load() != 0)
 					{
 						std::unique_lock lock(this->mutex_);
 						if (this->tasks_.empty())
@@ -57,14 +66,26 @@ namespace dog_torch { namespace asyncion { namespace pool {
 						}
 					}
 				};
-			for (uint64_t i = 0; i < count; ++i)
+			for (uint64_t i = 0; i < worker_count_.load(); ++i)
 			{
 				workers_.emplace_back(std::move(std::thread(work)));
 			}
 		}
-		~ThreadPool()
+		void wait_complete()
 		{
-			status_.store(false);
+			while (true)
+			{
+				if (tasks_.empty()) break;
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			}
+		}
+		void pause()
+		{
+			status_.store(-1);
+		}
+		void stop()
+		{
+			status_.store(0);
 			auto waiting = [](std::vector<std::thread>& workers)-> void
 				{
 					for (auto& worker : workers)
@@ -73,18 +94,6 @@ namespace dog_torch { namespace asyncion { namespace pool {
 					}
 				};
 			workers_.doing(waiting);
-		}
-
-		void wait_complete()
-		{
-			while (true)
-			{
-				if (tasks_.empty())
-				{
-					break;
-				}
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
-			}
 		}
 
 		template<typename Func, typename... Args>
@@ -133,4 +142,4 @@ namespace dog_torch { namespace asyncion { namespace pool {
 
 	};
 
-}}}
+}

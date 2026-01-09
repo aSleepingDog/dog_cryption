@@ -24,11 +24,12 @@
 #include "math/math.h"
 #include "crypto/symmetric/base.h"
 
-namespace dog_torch { namespace crypto { namespace symmetric { namespace algorithm
+namespace dog_torch::crypto::symmetric::algorithm
 {
-	using Data = dog_torch::serialize::Data;
+	using Data = dog_torch::serialize::BinaryData;
 	class SM4 : public Algorithm
 	{
+	public:
 		//unit单位:uint8_t字节
 		static const Config CONFIG;
 
@@ -48,6 +49,8 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace algorit
 		static void encoding_self(Data& plain, uint64_t block_size, const Data& key, uint64_t key_size);
 		static void decoding_self(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size);
 
+		SM4(const uint64_t key_size) : Algorithm(CONFIG.name, 16, key_size) {}
+
 		std::unique_ptr<Algorithm> clone() const override;
 
 		extend_key_func           get_extend_key()    const override;
@@ -57,4 +60,4 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace algorit
 		block_self_cryption_func  get_decrypt_self()  const override;
 	};
 
-}}}}
+}

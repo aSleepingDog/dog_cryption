@@ -1,7 +1,7 @@
 #include "crypto/symmetric/base.h"
 
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root
-#define DOG_DATA dog_torch::serialize::Data
+#define DOG_DATA dog_torch::serialize::BinaryData
 
 //utils
 uint8_t NSROOT::utils::rand_byte()
@@ -9,28 +9,9 @@ uint8_t NSROOT::utils::rand_byte()
 	std::random_device rd;
 	return (uint8_t)rd() % 128;
 }
-DOG_DATA NSROOT::utils::squareXOR(const dog_torch::serialize::Data& a, const dog_torch::serialize::Data& b, uint64_t size)
-{
-	dog_torch::serialize::Data res;
-	res.reserve(size);
-	uint64_t n = a.size() < b.size() ? a.size() : b.size();
-	for (uint64_t i = 0; i < (n > size ? size : n); i++)
-	{
-		res.push_back(a.at(i) ^ b.at(i));
-	}
-	return res;
-}
-void NSROOT::utils::squareXOR_self(dog_torch::serialize::Data& a, dog_torch::serialize::Data& b, uint64_t size)
-{
-	uint64_t n = a.size() < b.size() ? a.size() : b.size();
-	for (uint64_t i = 0; i < (n > size ? size : n); i++)
-	{
-		a[i] ^= b[i];
-	}
-}
 DOG_DATA NSROOT::utils::randiv(uint8_t block_size)
 {
-	dog_torch::serialize::Data iv(block_size);
+	dog_torch::serialize::BinaryData iv(block_size);
 	for (int i = 0; i < block_size; i++)
 	{
 		iv[i] = NSROOT::utils::rand_byte();
@@ -39,7 +20,7 @@ DOG_DATA NSROOT::utils::randiv(uint8_t block_size)
 }
 DOG_DATA NSROOT::utils::get_sequence(uint64_t lenght)
 {
-	dog_torch::serialize::Data res(lenght);
+	dog_torch::serialize::BinaryData res(lenght);
 	uint8_t list[8] = { 0x01,0x23,0x45,0x67,0x89,0xAB,0xCD,0xEF };
 	for (uint64_t i = 0; i < lenght; i++)
 	{
@@ -154,6 +135,22 @@ DOG_DATA NSROOT::mode::Mode::to_data() const
 	Data res = tlv::integer_num(size);
 	res += tlv::string(this->name);
 	return res;
+}
+bool dog_torch::crypto::symmetric::mode::Mode::set_uint64_param(const std::string& param, uint64_t value)
+{
+	return false;
+}
+bool dog_torch::crypto::symmetric::mode::Mode::set_string_param(const std::string& param, const std::string& value)
+{
+	return false;
+}
+bool dog_torch::crypto::symmetric::mode::Mode::set_data_param(const std::string& param, const Data& value)
+{
+	return false;
+}
+bool dog_torch::crypto::symmetric::mode::Mode::set_Padding(const padding::Padding& value)
+{
+	return false;
 }
 NSROOT::mode::crypt_func NSROOT::mode::Mode::get_mult_encrypt() const
 {
@@ -347,6 +344,22 @@ NSROOT::mode::Mode& NSROOT::Cipher::get_mode()
 {
 	return *this->config_.mode_;
 }
+bool NSROOT::Cipher::set_mode_uint64_param(const std::string& param, uint64_t value)
+{
+	return this->config_.mode_->set_uint64_param(param, value);
+}
+bool NSROOT::Cipher::set_mode_string_param(const std::string& param, const std::string& value)
+{
+	return this->config_.mode_->set_string_param(param, value);
+}
+bool NSROOT::Cipher::set_mode_data_param(const std::string& param, const Data& value)
+{
+	return this->config_.mode_->set_data_param(param, value);
+}
+bool NSROOT::Cipher::set_mode_Padding(const padding::Padding& value)
+{
+	return this->config_.mode_->set_Padding(value);
+}
 
 DOG_DATA NSROOT::Cipher::encrypt(const Data& plain)
 {//only for test
@@ -357,8 +370,5 @@ DOG_DATA NSROOT::Cipher::decrypt(const Data& crypt)
 	return this->config_.mode_->get_mult_decrypt()(crypt, *this);
 }
 
-
 #undef NSROOT
 #undef DOG_DATA
-
-

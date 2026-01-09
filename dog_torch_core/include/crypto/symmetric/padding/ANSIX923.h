@@ -25,9 +25,9 @@
 #include "math/math.h"
 #include "crypto/symmetric/base.h"
 
-namespace dog_torch { namespace crypto { namespace symmetric { namespace padding
+namespace dog_torch::crypto::symmetric::padding
 {
-	using Data = dog_torch::serialize::Data;
+	using Data = dog_torch::serialize::BinaryData;
 
 	class ANSIX923 : public Padding
 	{
@@ -40,4 +40,4 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace padding
 		padding_func get_unpadding() const override;
 	};
 
-}}}}
+}

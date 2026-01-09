@@ -119,11 +119,11 @@ NSROOT::algorithm::Rijndael::Rijndael(const uint64_t block_size, const uint64_t 
 //AES
 const NSROOT::algorithm::Config NSROOT::algorithm::AES::CONFIG = Config("AES","[16,16]0","[16,32]8");
 
-dog_torch::serialize::Data NSROOT::algorithm::AES::extend_key(const Data& key, uint64_t block_size, uint64_t key_size)
+dog_torch::serialize::BinaryData NSROOT::algorithm::AES::extend_key(const Data& key, uint64_t block_size, uint64_t key_size)
 {
 	if (key_size == 16)
     {
-        dog_torch::serialize::Data res;
+        dog_torch::serialize::BinaryData res;
         res.reserve(176);
 
         if (key.size() < 16)
@@ -177,7 +177,7 @@ dog_torch::serialize::Data NSROOT::algorithm::AES::extend_key(const Data& key, u
     }
     else if (key_size == 24)
     {
-        dog_torch::serialize::Data res;
+        dog_torch::serialize::BinaryData res;
         res.reserve(208);
         if (key.size() < 24)
         {
@@ -230,7 +230,7 @@ dog_torch::serialize::Data NSROOT::algorithm::AES::extend_key(const Data& key, u
     }
 	else if (key_size == 32)
 	{
-        dog_torch::serialize::Data res;
+        dog_torch::serialize::BinaryData res;
         res.reserve(240);
         if (key.size() < 32)
         {
@@ -304,7 +304,7 @@ dog_torch::serialize::Data NSROOT::algorithm::AES::extend_key(const Data& key, u
 
 void NSROOT::algorithm::AES::middle_encryption(Data& datablock, uint64_t flag, uint64_t mode)
 {
-	dog_torch::serialize::Data res;
+	dog_torch::serialize::BinaryData res;
 	res.reserve(16);
 	//字节代换(00 04 08 12)
 	for (int i = 0; i < 16; i++)
@@ -367,7 +367,7 @@ void NSROOT::algorithm::AES::middle_encryption(Data& datablock, uint64_t flag, u
 }
 void NSROOT::algorithm::AES::middle_decryption(Data& datablock, uint64_t flag, uint64_t mode)
 {
-	dog_torch::serialize::Data res;
+	dog_torch::serialize::BinaryData res;
 	res.reserve(16);
 	//列混合
 	if (flag != 0)
@@ -432,50 +432,50 @@ void NSROOT::algorithm::AES::middle_decryption(Data& datablock, uint64_t flag, u
     std::copy(res.begin(), res.end(), datablock.begin());
 }
 
-dog_torch::serialize::Data NSROOT::algorithm::AES::encoding(const Data& plain, uint64_t block_size, const Data& key, uint64_t key_size)
+dog_torch::serialize::BinaryData NSROOT::algorithm::AES::encoding(const Data& plain, uint64_t block_size, const Data& key, uint64_t key_size)
 {
 	Data temp_key = key.sub_by_pos(0, 16);
-	Data mid_block = NSROOT::utils::squareXOR(plain, temp_key, 16);
+	Data mid_block = dog_torch::serialize::BinaryData::XOR(plain, temp_key, 16);
 	for (int i = 0; i < ((key_size / 4) + 6); i++)
 	{
 		AES::middle_encryption(mid_block, i, key_size << 3);
 		temp_key = key.sub_by_pos(16 * (i + 1), 16 * (i + 2));
-		mid_block = NSROOT::utils::squareXOR(mid_block, temp_key, 16);
+		mid_block = dog_torch::serialize::BinaryData::XOR(mid_block, temp_key, 16);
 	}
 	return mid_block;
 }
-dog_torch::serialize::Data NSROOT::algorithm::AES::decoding(const Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size)
+dog_torch::serialize::BinaryData NSROOT::algorithm::AES::decoding(const Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size)
 {
 	Data tempKey = key.sub_by_pos((key_size * 4) + 96, (key_size * 4) + 112);
-	Data mid_block = dog_torch::crypto::symmetric::utils::squareXOR(crypt, tempKey, 16);
+	Data mid_block = dog_torch::serialize::BinaryData::XOR(crypt, tempKey, 16);
 	for (int i = 0; i < ((key_size / 4) + 6); i++)
 	{
 		AES::middle_decryption(mid_block, i, key_size << 3);
 		tempKey = key.sub_by_pos(16 * ((key_size / 4) + 5 - i), 16 * ((key_size / 4) + 6 - i));
-		mid_block = NSROOT::utils::squareXOR(mid_block, tempKey, 16);
+		mid_block = dog_torch::serialize::BinaryData::XOR(mid_block, tempKey, 16);
 	}
 	return mid_block;
 }
 void NSROOT::algorithm::AES::encoding_self(Data& plain, uint64_t block_size, const Data& key, uint64_t key_size)
 {
 	Data tempKey = key.sub_by_pos(0, 16);
-	plain = dog_torch::crypto::symmetric::utils::squareXOR(plain, tempKey, 16);
+	plain = dog_torch::serialize::BinaryData::XOR(plain, tempKey, 16);
 	for (int i = 0; i < ((key_size / 4) + 6); i++)
 	{
 		AES::middle_encryption(plain, i, key_size << 3);
 		tempKey = key.sub_by_pos(16 * (i + 1), 16 * (i + 2));
-		plain = dog_torch::crypto::symmetric::utils::squareXOR(plain, tempKey, 16);
+		plain = dog_torch::serialize::BinaryData::XOR(plain, tempKey, 16);
 	}
 }
 void NSROOT::algorithm::AES::decoding_self(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size)
 {
-	dog_torch::serialize::Data tempKey = key.sub_by_pos((key_size * 4) + 96, (key_size * 4) + 112);
-	crypt = dog_torch::crypto::symmetric::utils::squareXOR(crypt, tempKey, 16);
+	dog_torch::serialize::BinaryData tempKey = key.sub_by_pos((key_size * 4) + 96, (key_size * 4) + 112);
+	crypt = dog_torch::serialize::BinaryData::XOR(crypt, tempKey, 16);
 	for (int i = 0; i < ((key_size / 4) + 6); i++)
 	{
 		middle_decryption(crypt, i, key_size << 3);
 		tempKey = key.sub_by_pos(16 * ((key_size / 4) + 5 - i), 16 * ((key_size / 4) + 6 - i));//取当前轮密钥
-		crypt = dog_torch::crypto::symmetric::utils::squareXOR(crypt, tempKey, 16);//轮密钥加
+		crypt = dog_torch::serialize::BinaryData::XOR(crypt, tempKey, 16);//轮密钥加
 	}
 }
 NSROOT::algorithm::AES::AES(const uint64_t key_size) : Rijndael(16, key_size)

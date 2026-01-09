@@ -24,7 +24,8 @@
 #include "math/math.h"
 #include "crypto/symmetric/base.h"
 
-namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
+namespace dog_torch::crypto::symmetric::mode
+{
 
 	class ECB : public Mode
 	{
@@ -48,6 +49,8 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 		std::unique_ptr<Mode> clone() const override;
 		const padding::Padding& get_padding() const;
 
+		bool set_Padding(const padding::Padding& value) override;
+
 		crypt_func get_mult_encrypt() const override;
 		crypt_func get_mult_decrypt() const override;
 
@@ -60,4 +63,4 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 
 
 
-}}}} 
+}

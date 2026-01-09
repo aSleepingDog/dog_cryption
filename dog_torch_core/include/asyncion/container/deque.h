@@ -10,8 +10,8 @@
 #include <shared_mutex>
 #include <functional>
 
-namespace dog_torch { namespace asyncion { namespace container {
-
+namespace dog_torch::asyncion::container 
+{
 	template <typename T, typename Alloc = std::allocator<T>>
 	class DequeCopy
 	{
@@ -331,4 +331,4 @@ namespace dog_torch { namespace asyncion { namespace container {
 			}
 		}
 	};
-}}}
+}

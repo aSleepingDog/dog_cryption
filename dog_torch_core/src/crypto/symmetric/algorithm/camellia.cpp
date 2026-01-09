@@ -1,6 +1,6 @@
 #include "crypto/symmetric/algorithm/camellia.h"//camellia
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root 
-#define DOG_DATA dog_torch::serialize::Data
+#define DOG_DATA dog_torch::serialize::BinaryData
 
 const NSROOT::algorithm::Config NSROOT::algorithm::camellia::CONFIG = Config("camellia", "[16,16]0", "[16,32]8");
 

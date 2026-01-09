@@ -20,7 +20,7 @@
 #include <functional>
 
 #include "utils/Exception.h"
-namespace dog_torch {namespace math {namespace galois_field
+namespace dog_torch::math::galois_field
 {
 	DOG_CRYPTION_API uint8_t GF2_mult(uint8_t a, uint8_t b, uint16_t n);
-}}}
+}

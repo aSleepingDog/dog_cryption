@@ -1,6 +1,8 @@
-#include "serialize/Data.h"
+#include "serialize/BinaryData.h"
 
-dog_torch::serialize::Data::Data(std::string str, const int type)
+#define NSROOT dog_torch::serialize
+
+NSROOT::BinaryData::BinaryData(std::string str, const int type)
 {
     if (type == 0)//常规字符串
     {
@@ -86,98 +88,106 @@ dog_torch::serialize::Data::Data(std::string str, const int type)
         }
     }
 }
-dog_torch::serialize::Data::Data(uint64_t size)
+NSROOT::BinaryData::BinaryData(const std::vector<uint8_t>& data)
+{
+    this->inside_data.reserve(data.size());
+    for (auto& i : data)
+    {
+        this->inside_data.push_back(i);
+    }
+}
+NSROOT::BinaryData::BinaryData(uint64_t size)
 {
     this->inside_data.resize(size);
 }
-dog_torch::serialize::Data::Data(const Data& other)
+NSROOT::BinaryData::BinaryData(const BinaryData& other)
 {
     this->inside_data = other.inside_data;
     //printf("copy data %lld=>%lld\n", (uint64_t)&other, (uint64_t)this);
 }
-void dog_torch::serialize::Data::operator=(const Data& other)
+void NSROOT::BinaryData::operator=(const BinaryData& other)
 {
     this->inside_data = other.inside_data;
     //printf("copy data %lld=>%lld\n", (uint64_t)&other, (uint64_t)this);
 }
-dog_torch::serialize::Data::Data(Data&& other) noexcept
+NSROOT::BinaryData::BinaryData(BinaryData&& other) noexcept
 {
     this->inside_data = std::move(other.inside_data);
     //printf("move data %lld->%lld\n", (uint64_t)&other, (uint64_t)this);
 }
-dog_torch::serialize::Data::~Data()
+NSROOT::BinaryData::~BinaryData()
 {
     //printf("delete data %lld\n", (uint64_t)this);
 }
-uint8_t& dog_torch::serialize::Data::at(uint64_t i)
+uint8_t& NSROOT::BinaryData::at(uint64_t i)
 {
     return this->inside_data.at(i);
 }
-uint8_t dog_torch::serialize::Data::at(uint64_t i) const
+uint8_t NSROOT::BinaryData::at(uint64_t i) const
 {
     return this->inside_data.at(i);
 }
-uint8_t& dog_torch::serialize::Data::operator[](uint64_t i)
+uint8_t& NSROOT::BinaryData::operator[](uint64_t i)
 {
     return this->inside_data[i];
 }
-uint8_t dog_torch::serialize::Data::operator[](uint64_t i) const
+uint8_t NSROOT::BinaryData::operator[](uint64_t i) const
 {
     return this->inside_data[i];
 }
-uint8_t& dog_torch::serialize::Data::front()
+uint8_t& NSROOT::BinaryData::front()
 {
     return this->inside_data.front();
 }
-uint8_t& dog_torch::serialize::Data::back()
+uint8_t& NSROOT::BinaryData::back()
 {
     return this->inside_data.back();
 }
-uint8_t* dog_torch::serialize::Data::data()
+uint8_t* NSROOT::BinaryData::data()
 {
     return this->inside_data.data();
 }
-const uint8_t* dog_torch::serialize::Data::data() const
+const uint8_t* NSROOT::BinaryData::data() const
 {
     return this->inside_data.data();
 }
-std::vector<uint8_t>::iterator dog_torch::serialize::Data::begin()
+std::vector<uint8_t>::iterator NSROOT::BinaryData::begin()
 {
     return this->inside_data.begin();
 }
-std::vector<uint8_t>::iterator dog_torch::serialize::Data::end()
+std::vector<uint8_t>::iterator NSROOT::BinaryData::end()
 {
     return this->inside_data.end();
 }
-std::vector<uint8_t>::const_iterator dog_torch::serialize::Data::cbegin() const
+std::vector<uint8_t>::const_iterator NSROOT::BinaryData::cbegin() const
 {
     return this->inside_data.cbegin();
 }
-std::vector<uint8_t>::const_iterator dog_torch::serialize::Data::cend() const
+std::vector<uint8_t>::const_iterator NSROOT::BinaryData::cend() const
 {
     return this->inside_data.cend();
 }
-std::reverse_iterator<std::vector<uint8_t>::iterator> dog_torch::serialize::Data::rbegin()
+std::reverse_iterator<std::vector<uint8_t>::iterator> NSROOT::BinaryData::rbegin()
 {
     return this->inside_data.rbegin();
 }
-std::reverse_iterator<std::vector<uint8_t>::iterator> dog_torch::serialize::Data::rend()
+std::reverse_iterator<std::vector<uint8_t>::iterator> NSROOT::BinaryData::rend()
 {
     return this->inside_data.rend();
 }
-std::reverse_iterator<std::vector<uint8_t>::const_iterator> dog_torch::serialize::Data::crbegin() const
+std::reverse_iterator<std::vector<uint8_t>::const_iterator> NSROOT::BinaryData::crbegin() const
 {
     return this->inside_data.crbegin();
 }
-std::reverse_iterator<std::vector<uint8_t>::const_iterator> dog_torch::serialize::Data::crend() const
+std::reverse_iterator<std::vector<uint8_t>::const_iterator> NSROOT::BinaryData::crend() const
 {
     return this->inside_data.crend();
 }
-std::vector<uint8_t> dog_torch::serialize::Data::to_byte_vector() const
+std::vector<uint8_t> NSROOT::BinaryData::to_byte_vector() const
 {
     return this->inside_data;
 }
-std::vector<char> dog_torch::serialize::Data::to_utf8_vector() const
+std::vector<char> NSROOT::BinaryData::to_utf8_vector() const
 {
     std::vector<char> res(this->inside_data.size());
     for (int i = 0; i < this->inside_data.size(); i++)
@@ -186,15 +196,15 @@ std::vector<char> dog_torch::serialize::Data::to_utf8_vector() const
     }
     return res;
 }
-std::vector<char> dog_torch::serialize::Data::to_base64_vector() const
+std::vector<char> NSROOT::BinaryData::to_base64_vector() const
 {
     return this->to_base64_vector('+', '/', '=');
 }
-std::vector<char> dog_torch::serialize::Data::to_base64_vector(char a, char b) const
+std::vector<char> NSROOT::BinaryData::to_base64_vector(char a, char b) const
 {
     return this->to_base64_vector(a, b, '=');
 }
-std::vector<char> dog_torch::serialize::Data::to_base64_vector(char a, char b, char c) const
+std::vector<char> NSROOT::BinaryData::to_base64_vector(char a, char b, char c) const
 {
     char tempList[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     tempList[62] = a; tempList[63] = b;
@@ -233,7 +243,7 @@ std::vector<char> dog_torch::serialize::Data::to_base64_vector(char a, char b, c
     }
     return res;
 }
-std::vector<char> dog_torch::serialize::Data::to_hex_vector(bool is_upper) const
+std::vector<char> NSROOT::BinaryData::to_hex_vector(bool is_upper) const
 {
     std::vector<char> res;
     std::string HexList;
@@ -253,143 +263,143 @@ std::vector<char> dog_torch::serialize::Data::to_hex_vector(bool is_upper) const
     }
     return res;
 }
-std::string dog_torch::serialize::Data::to_utf8_string() const
+std::string NSROOT::BinaryData::to_utf8_string() const
 {
     std::vector<char> res = this->to_utf8_vector();
     return std::string(res.begin(), res.end());
 }
-std::string dog_torch::serialize::Data::to_base64_string() const
+std::string NSROOT::BinaryData::to_base64_string() const
 {
     std::vector<char> res = this->to_base64_vector();
     return std::string(res.begin(), res.end());
 }
-std::string dog_torch::serialize::Data::to_base64_string(char a, char b) const
+std::string NSROOT::BinaryData::to_base64_string(char a, char b) const
 {
     std::vector<char> res = this->to_base64_vector(a, b);
     return std::string(res.begin(), res.end());
 }
-std::string dog_torch::serialize::Data::to_base64_string(char a, char b, char c) const
+std::string NSROOT::BinaryData::to_base64_string(char a, char b, char c) const
 {
     std::vector<char> res = this->to_base64_vector(a, b, c);
     return std::string(res.begin(), res.end());
 }
-std::string dog_torch::serialize::Data::to_hex_string(bool is_upper) const
+std::string NSROOT::BinaryData::to_hex_string(bool is_upper) const
 {
     std::vector<char> res = this->to_hex_vector(is_upper);
     return std::string(res.begin(), res.end());
 }
-dog_torch::serialize::Data dog_torch::serialize::Data::sub_by_pos(uint64_t start, uint64_t end) const
+NSROOT::BinaryData NSROOT::BinaryData::sub_by_pos(uint64_t start, uint64_t end) const
 {
     uint64_t size = end - start;
     uint64_t max_size = this->inside_data.size();
-    dog_torch::serialize::Data res; res.reserve(size);
+    NSROOT::BinaryData res; res.reserve(size);
     for (uint64_t i = start; i < end && i < max_size; i++)
     {
         res.push_back(this->inside_data[i]);
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::Data::sub_by_len(uint64_t start, uint64_t len) const
+NSROOT::BinaryData NSROOT::BinaryData::sub_by_len(uint64_t start, uint64_t len) const
 {
     uint64_t end = start + len;
     uint64_t max_size = this->inside_data.size();
-    dog_torch::serialize::Data res; res.reserve(len);
+    NSROOT::BinaryData res; res.reserve(len);
     for (uint64_t i = start; i < end && i < max_size; i++)
     {
         res.push_back(this->inside_data[i]);
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::Data::sub_by_pos(std::vector<uint8_t>::iterator start, std::vector<uint8_t>::iterator end) const
+NSROOT::BinaryData NSROOT::BinaryData::sub_by_pos(std::vector<uint8_t>::iterator start, std::vector<uint8_t>::iterator end) const
 {
     uint64_t size = end - start;
-    dog_torch::serialize::Data res; res.reserve(size);
+    NSROOT::BinaryData res; res.reserve(size);
     for (std::vector<uint8_t>::iterator i = start; i != end; i++)
     {
         res.push_back(*i);
     }
     return res;
 }
-dog_torch::serialize::Data dog_torch::serialize::Data::sub_by_len(std::vector<uint8_t>::iterator start, uint64_t len) const
+NSROOT::BinaryData NSROOT::BinaryData::sub_by_len(std::vector<uint8_t>::iterator start, uint64_t len) const
 {
     std::vector<uint8_t>::iterator end = start + len;
-    dog_torch::serialize::Data res; res.reserve(len);
+    NSROOT::BinaryData res; res.reserve(len);
     for (std::vector<uint8_t>::iterator i = start; i != end; i++)
     {
         res.push_back(*i);
     }
     return res;
 }
-bool dog_torch::serialize::Data::empty() const
+bool NSROOT::BinaryData::empty() const
 {
     return this->inside_data.empty();
 }
-uint64_t dog_torch::serialize::Data::size() const
+uint64_t NSROOT::BinaryData::size() const
 {
     return this->inside_data.size();
 }
-uint64_t dog_torch::serialize::Data::max_size() const
+uint64_t NSROOT::BinaryData::max_size() const
 {
     return this->inside_data.max_size();
 }
-void dog_torch::serialize::Data::reserve(uint64_t n)
+void NSROOT::BinaryData::reserve(uint64_t n)
 {
     return this->inside_data.reserve(n);
 }
-void dog_torch::serialize::Data::insert(const uint64_t i, uint8_t b)
+void NSROOT::BinaryData::insert(const uint64_t i, uint8_t b)
 {
     this->inside_data.insert(this->inside_data.begin() + i, b);
 }
-void dog_torch::serialize::Data::insert(const std::vector<uint8_t>::iterator pos, uint8_t b)
+void NSROOT::BinaryData::insert(const std::vector<uint8_t>::iterator pos, uint8_t b)
 {
     this->inside_data.insert(pos, b);
 }
-void dog_torch::serialize::Data::erase(const uint64_t i)
+void NSROOT::BinaryData::erase(const uint64_t i)
 {
     this->inside_data.erase(this->inside_data.begin() + i);
 }
-void dog_torch::serialize::Data::erase(const std::vector<uint8_t>::iterator pos)
+void NSROOT::BinaryData::erase(const std::vector<uint8_t>::iterator pos)
 {
     this->inside_data.erase(pos);
 }
-void dog_torch::serialize::Data::rm_pos()
+void NSROOT::BinaryData::rm_pos()
 {
     this->inside_data.clear();
 }
-void dog_torch::serialize::Data::set_zero()
+void NSROOT::BinaryData::set_zero()
 {
     for (auto it = this->inside_data.begin(); it != this->inside_data.end(); it++)
     {
         *it = '\0';
     }
 }
-void dog_torch::serialize::Data::push_back(uint8_t b)
+void NSROOT::BinaryData::push_back(uint8_t b)
 {
     this->inside_data.push_back(b);
 }
-void dog_torch::serialize::Data::pop_back()
+void NSROOT::BinaryData::pop_back()
 {
     this->inside_data.pop_back();
 }
-void dog_torch::serialize::Data::reverse()
+void NSROOT::BinaryData::reverse()
 {
     for (uint64_t i = 0; i < this->size() / 2; i++)
     {
         std::swap(this->inside_data[i], this->inside_data[this->size() - i - 1]);
     }
 }
-void dog_torch::serialize::Data::swap(Data& d)
+void NSROOT::BinaryData::swap(BinaryData& d)
 {
     this->inside_data.swap(d.inside_data);
 }
-void dog_torch::serialize::Data::swap(Data d)
+void NSROOT::BinaryData::swap(BinaryData d)
 {
     this->inside_data.swap(d.inside_data);
 }
-dog_torch::serialize::Data dog_torch::serialize::Data::bit_left_move_norise(uint64_t shift)
+NSROOT::BinaryData NSROOT::BinaryData::bit_left_move_norise(uint64_t shift)
 {
-    dog_torch::serialize::Data res; res.reserve(this->size());
-    dog_torch::serialize::Data mid;
+    NSROOT::BinaryData res; res.reserve(this->size());
+    NSROOT::BinaryData mid;
     uint64_t byte_shift = shift / 8;
     uint64_t bit_shift = shift % 8;
     uint8_t last = 0;
@@ -420,9 +430,9 @@ dog_torch::serialize::Data dog_torch::serialize::Data::bit_left_move_norise(uint
     }
     return res;
 }
-void dog_torch::serialize::Data::bit_left_move_norise_self(uint64_t shift)
+void NSROOT::BinaryData::bit_left_move_norise_self(uint64_t shift)
 {
-    dog_torch::serialize::Data mid;
+    NSROOT::BinaryData mid;
     uint64_t byte_shift = shift / 8;
     uint64_t bit_shift = shift % 8;
     uint8_t last = 0;
@@ -449,9 +459,9 @@ void dog_torch::serialize::Data::bit_left_move_norise_self(uint64_t shift)
         last = *rit >> (8 - bit_shift);
     }
 }
-dog_torch::serialize::Data dog_torch::serialize::Data::bit_left_move_rise(uint64_t shift)
+NSROOT::BinaryData NSROOT::BinaryData::bit_left_move_rise(uint64_t shift)
 {
-    dog_torch::serialize::Data res; res.reserve(this->size());
+    NSROOT::BinaryData res; res.reserve(this->size());
     uint64_t byte_shift = shift / 8;
     uint64_t bit_shift = shift % 8;
     uint8_t last = 0;
@@ -470,7 +480,7 @@ dog_torch::serialize::Data dog_torch::serialize::Data::bit_left_move_rise(uint64
     }
     return res;
 }
-void dog_torch::serialize::Data::bit_left_move_rise_self(uint64_t shift)
+void NSROOT::BinaryData::bit_left_move_rise_self(uint64_t shift)
 {
     uint64_t byte_shift = shift / 8;
     uint64_t bit_shift = shift % 8;
@@ -490,10 +500,10 @@ void dog_torch::serialize::Data::bit_left_move_rise_self(uint64_t shift)
         this->push_back(0x00);
     }
 }
-dog_torch::serialize::Data dog_torch::serialize::Data::bit_right_move_norise(uint64_t shift)
+NSROOT::BinaryData NSROOT::BinaryData::bit_right_move_norise(uint64_t shift)
 {
-    dog_torch::serialize::Data res; res.reserve(this->size());
-    dog_torch::serialize::Data mid;
+    NSROOT::BinaryData res; res.reserve(this->size());
+    NSROOT::BinaryData mid;
     uint64_t byte_shift = shift / 8;
     uint64_t bit_shift = shift % 8;
     uint8_t last = 0;
@@ -524,9 +534,9 @@ dog_torch::serialize::Data dog_torch::serialize::Data::bit_right_move_norise(uin
     }
     return res;
 }
-void dog_torch::serialize::Data::bit_right_move_norise_self(uint64_t shift)
+void NSROOT::BinaryData::bit_right_move_norise_self(uint64_t shift)
 {
-    dog_torch::serialize::Data mid;
+    NSROOT::BinaryData mid;
     uint64_t byte_shift = shift / 8;
     uint64_t bit_shift = shift % 8;
     uint8_t last = 0;
@@ -553,9 +563,9 @@ void dog_torch::serialize::Data::bit_right_move_norise_self(uint64_t shift)
         last = *it << (8 - bit_shift);
     }
 }
-dog_torch::serialize::Data dog_torch::serialize::Data::bit_right_move_rise(uint64_t shift)
+NSROOT::BinaryData NSROOT::BinaryData::bit_right_move_rise(uint64_t shift)
 {
-    dog_torch::serialize::Data res; res.reserve(this->size());
+    NSROOT::BinaryData res; res.reserve(this->size());
     uint64_t byte_shift = shift / 8;
     uint64_t bit_shift = shift % 8;
     uint8_t last = 0;
@@ -574,7 +584,7 @@ dog_torch::serialize::Data dog_torch::serialize::Data::bit_right_move_rise(uint6
     }
     return res;
 }
-void dog_torch::serialize::Data::bit_right_move_rise_self(uint64_t shift)
+void NSROOT::BinaryData::bit_right_move_rise_self(uint64_t shift)
 {
     uint64_t byte_shift = shift / 8;
     uint64_t bit_shift = shift % 8;
@@ -594,338 +604,228 @@ void dog_torch::serialize::Data::bit_right_move_rise_self(uint64_t shift)
         this->insert(this->begin(), 0x00);
     }
 }
-dog_torch::serialize::Data dog_torch::serialize::Data::bit_circle_left_move(uint64_t shift)
+NSROOT::BinaryData NSROOT::BinaryData::bit_circle_left_move(uint64_t shift)
 {
     return this->bit_left_move_norise(shift) | this->bit_right_move_norise(this->size() * 8 - shift);
 }
-dog_torch::serialize::Data dog_torch::serialize::Data::bit_circle_right_move(uint64_t shift)
+NSROOT::BinaryData NSROOT::BinaryData::bit_circle_right_move(uint64_t shift)
 {
     return this->bit_right_move_norise(shift) | this->bit_left_move_norise(this->size() * 8 - shift);
 }
-dog_torch::serialize::Data dog_torch::serialize::Data::operator~()
+bool NSROOT::BinaryData::is_equal(const BinaryData& d2) const
 {
-    dog_torch::serialize::Data res;
-    for (auto it = this->cbegin(); it != this->cend(); it++)
+    return *this == d2;
+}
+NSROOT::BinaryData NSROOT::BinaryData::AND(const BinaryData& d1, const BinaryData& d2, uint64_t size)
+{
+    BinaryData res; res.reserve(size);
+    for (uint64_t i = 0; i < size; i++)
+    {
+        res.push_back(d1[i] & d2[i]);
+    }
+    return res;
+}
+void NSROOT::BinaryData::AND_self(BinaryData& d1, const BinaryData& d2, uint64_t size)
+{
+    for (uint64_t i = 0; i < size; i++)
+    {
+        d1[i] &= d2[i];
+    }
+}
+NSROOT::BinaryData NSROOT::BinaryData::OR(const BinaryData& d1, const BinaryData& d2, uint64_t size)
+{
+    BinaryData res; res.reserve(size);
+    for (uint64_t i = 0; i < size; i++)
+    {
+        res.push_back(d1[i] | d2[i]);
+    }
+    return res;
+}
+void NSROOT::BinaryData::OR_self(BinaryData& d1, const BinaryData& d2, uint64_t size)
+{
+    for (uint64_t i = 0; i < size; i++)
+    {
+        d1[i] |= d2[i];
+    }
+}
+NSROOT::BinaryData NSROOT::BinaryData::XOR(const BinaryData& d1, const BinaryData& d2, uint64_t size)
+{
+    BinaryData res; res.reserve(size);
+    for (uint64_t i = 0; i < size; i++)
+    {
+        res.push_back(d1[i] ^ d2[i]);
+    }
+    return res;
+}
+void NSROOT::BinaryData::XOR_self(BinaryData& d1, const BinaryData& d2, uint64_t size)
+{
+    for (uint64_t i = 0; i < size; i++)
+    {
+        d1[i] ^= d2[i];
+    }
+}
+bool NSROOT::operator==(const BinaryData& d1, const BinaryData& d2)
+{
+    if (d1.size() != d2.size())
+    {
+        return false;
+    }
+    for (uint64_t i = 0; i < d1.size(); i++)
+    {
+        if (d1[i] != d2[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+bool NSROOT::operator!=(const BinaryData& d1, const BinaryData& d2)
+{
+    return !(d1 == d2);
+}
+NSROOT::BinaryData NSROOT::operator~(const BinaryData& d)
+{
+    BinaryData res; res.reserve(d.size());
+    for (auto it = d.cbegin(); it != d.cend(); it++)
     {
         res.push_back(~(*it));
     }
     return res;
 }
-bool dog_torch::serialize::Data::is_equal(const Data& d2) const
-{
-    return *this == d2;
-}
-dog_torch::serialize::Data dog_torch::serialize::Data::concat(const Data& b) const
-{
-    return *this + b;
-}
-/*
-bool DogData::operator==(const Data& d1, const Data& d2)
-{
-    if (d1.inside_data.size() != d2.inside_data.size())
-    {
-        return false;
-    }
-    else
-    {
-        auto it1 = d1.inside_data.begin();
-        auto it2 = d2.inside_data.begin();
-        while (true)
-        {
-            if (*it1 != *it2)
-            {
-                return false;
-            }
-            else
-            {
-                it1++;
-                it2++;
-            }
-        }
-        return true;
-    }
-}
-bool DogData::operator==(const Data d1, const Data& d2)
-{
-    if (d1.inside_data.size() != d2.inside_data.size())
-    {
-        return false;
-    }
-    else
-    {
-        auto it1 = d1.inside_data.begin();
-        auto it2 = d2.inside_data.begin();
-        while (true)
-        {
-            if (*it1 != *it2)
-            {
-                return false;
-            }
-            else
-            {
-                it1++;
-                it2++;
-            }
-        }
-        return true;
-    }
-}
-bool DogData::operator==(const Data& d1, const Data d2)
-{
-    if (d1.inside_data.size() != d2.inside_data.size())
-    {
-        return false;
-    }
-    else
-    {
-        auto it1 = d1.inside_data.begin();
-        auto it2 = d2.inside_data.begin();
-        while (true)
-        {
-            if (*it1 != *it2)
-            {
-                return false;
-            }
-            else
-            {
-                it1++;
-                it2++;
-            }
-        }
-        return true;
-    }
-}
-*/
-dog_torch::serialize::Data dog_torch::serialize::operator&(const Data d1, const Data d2)
+NSROOT::BinaryData NSROOT::operator&(const BinaryData& d1, const BinaryData& d2)
 {
     if (d1.size() != d2.size())
     {
-        throw dog_torch::utils::Exception(DOG_EXCEPTION_MSG_OPINION("Error:the size of two Datas must be equal when ther AND each other\n错误：按位与操作的Data长度必须相等"));
+        throw DOG_EXCEPTION("BinaryData size not equal");
     }
-    dog_torch::serialize::Data res; res.reserve(d1.size());
+    BinaryData res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
     {
         res.push_back(d1[i] & d2[i]);
     }
     return res;
-
 }
-dog_torch::serialize::Data dog_torch::serialize::operator|(const Data d1, const Data d2)
+void NSROOT::operator&=(BinaryData& d1, const BinaryData& d2)
 {
     if (d1.size() != d2.size())
     {
-        throw dog_torch::utils::Exception(DOG_EXCEPTION_MSG_OPINION("Error:the size of two Datas must be equal when ther OR each other\n错误：按位与操作的Data长度必须相等"));
+        throw DOG_EXCEPTION("BinaryData size not equal");
     }
-    dog_torch::serialize::Data res; res.reserve(d1.size());
+    BinaryData res; res.reserve(d1.size());
+    for (uint64_t i = 0; i < d1.size(); i++)
+    {
+        d1[i] &= d2[i];
+    }
+}
+NSROOT::BinaryData NSROOT::operator|(const BinaryData& d1, const BinaryData& d2)
+{
+    if (d1.size() != d2.size())
+    {
+        throw DOG_EXCEPTION("BinaryData size not equal");
+    }
+    BinaryData res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
     {
         res.push_back(d1[i] | d2[i]);
     }
     return res;
-
 }
-dog_torch::serialize::Data dog_torch::serialize::operator^(const Data d1, const Data d2)
+void NSROOT::operator|=(BinaryData& d1, const BinaryData& d2)
 {
     if (d1.size() != d2.size())
     {
-        throw dog_torch::utils::Exception(DOG_EXCEPTION_MSG_OPINION("Error:the size of two Datas must be equal when ther XOR each other\n错误：按位与操作的Data长度必须相等"));
+        throw DOG_EXCEPTION("BinaryData size not equal");
     }
-    dog_torch::serialize::Data res; res.reserve(d1.size());
+    BinaryData res; res.reserve(d1.size());
+    for (uint64_t i = 0; i < d1.size(); i++)
+    {
+        d1[i] |= d2[i];
+    }
+}
+NSROOT::BinaryData NSROOT::operator^(const BinaryData& d1, const BinaryData& d2)
+{
+    if (d1.size() != d2.size())
+    {
+        throw DOG_EXCEPTION("BinaryData size not equal");
+    }
+    BinaryData res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
     {
         res.push_back(d1[i] ^ d2[i]);
     }
     return res;
 }
-bool dog_torch::serialize::operator==(const Data d1, const Data d2)
+void NSROOT::operator^=(BinaryData& d1, const BinaryData& d2)
 {
-    if (d1.inside_data.size() != d2.inside_data.size())
+    if (d1.size() != d2.size())
     {
-        return false;
+        throw DOG_EXCEPTION("BinaryData size not equal");
     }
-    else
+    BinaryData res; res.reserve(d1.size());
+    for (uint64_t i = 0; i < d1.size(); i++)
     {
-        auto it1 = d1.cbegin();
-        auto it2 = d2.cbegin();
-        while (true)
-        {
-            if(it1 == d1.cend() || it2 == d2.cend())
-            {
-                break;
-            }
-            else if (*it1 != *it2)
-            {
-                return false;
-            }
-            else
-            {
-                it1++;
-                it2++;
-            }
-        }
-        return true;
+        d1[i] ^= d2[i];
     }
 }
-/*
-bool DogData::operator!=(const Data& d1, const Data& d2)
+NSROOT::BinaryData NSROOT::operator+(const BinaryData& d1, const BinaryData& d2)
 {
-    if (d1.inside_data.size() != d2.inside_data.size())
-    {
-        return true;
-    }
-    else
-    {
-        auto it1 = d1.inside_data.begin();
-        auto it2 = d2.inside_data.begin();
-        while (true)
-        {
-            if (*it1 != *it2)
-            {
-                return true;
-            }
-            else
-            {
-                it1++;
-                it2++;
-            }
-        }
-        return false;
-    }
-}
-bool DogData::operator!=(const Data d1, const Data& d2)
-{
-    if (d1.inside_data.size() != d2.inside_data.size())
-    {
-        return true;
-    }
-    else
-    {
-        auto it1 = d1.inside_data.begin();
-        auto it2 = d2.inside_data.begin();
-        while (true)
-        {
-            if (*it1 != *it2)
-            {
-                return true;
-            }
-            else
-            {
-                it1++;
-                it2++;
-            }
-        }
-        return false;
-    }
-}
-bool DogData::operator!=(const Data& d1, const Data d2)
-{
-    if (d1.inside_data.size() != d2.inside_data.size())
-    {
-        return true;
-    }
-    else
-    {
-        auto it1 = d1.inside_data.begin();
-        auto it2 = d2.inside_data.begin();
-        while (true)
-        {
-            if (*it1 != *it2)
-            {
-                return true;
-            }
-            else
-            {
-                it1++;
-                it2++;
-            }
-        }
-        return false;
-    }
-}
-*/
-bool dog_torch::serialize::operator!=(const Data d1, const Data d2)
-{
-    if (d1.inside_data.size() != d2.inside_data.size())
-    {
-        return true;
-    }
-    else
-    {
-        auto it1 = d1.inside_data.begin();
-        auto it2 = d2.inside_data.begin();
-        while (true)
-        {
-            if (it1 == d1.cend() || it2 == d2.cend())
-            {
-                break;
-            }
-            if (*it1 != *it2)
-            {
-                return true;
-            }
-            else
-            {
-                it1++;
-                it2++;
-            }
-        }
-        return false;
-    }
-}
-void dog_torch::serialize::operator+=(Data& d1, const Data& d2)
-{
-    for (uint8_t i : d2.inside_data)
-    {
-        d1.inside_data.push_back(i);
-    }
-}
-dog_torch::serialize::Data dog_torch::serialize::operator+(const Data& a, const Data b)
-{
-    dog_torch::serialize::Data res; res.reserve(a.size() + b.size());
-    for (auto it = a.cbegin(); it != a.cend(); ++it)
+    BinaryData res = d1;
+    for (auto it = d2.cbegin(); it != d2.cend(); it++)
     {
         res.push_back(*it);
     }
-    for (auto it = b.cbegin(); it != b.cend(); ++it)
+    return res;
+}
+void NSROOT::operator+=(BinaryData& d1, const BinaryData& d2)
+{
+    for (auto it = d2.cbegin(); it != d2.cend(); it++)
+    {
+        d1.push_back(*it);
+    }
+}
+NSROOT::BinaryData NSROOT::BinaryData::concat(const BinaryData& d) const
+{
+    BinaryData res; res.reserve(this->size() + d.size());
+    for (auto it = this->cbegin(); it != this->cend(); it++)
     {
         res.push_back(*it);
     }
     return res;
 }
 
-dog_torch::serialize::Data dog_torch::serialize::operator""_DogHexData(const char* str, size_t len)
+NSROOT::BinaryData NSROOT::operator""_DogHexData(const char* str, size_t len)
 {
-    return Data(str, 2);
+    return BinaryData(str, 2);
 }
 
-dog_torch::serialize::DataStream::DataStream(dog_torch::serialize::Data& data)
+NSROOT::DataStream::DataStream(NSROOT::BinaryData& data)
 {
     this->data_ = data;
 }
-uint8_t* dog_torch::serialize::DataStream::data()
+uint8_t* NSROOT::DataStream::data()
 {
     return (uint8_t*)this->data_.data();
 }
-uint8_t dog_torch::serialize::DataStream::get()
+uint8_t NSROOT::DataStream::get()
 {
     uint8_t res = data_[pos_];
     pos_++;
     return res;
 }
-uint8_t dog_torch::serialize::DataStream::peek()
+uint8_t NSROOT::DataStream::peek()
 {
     return data_[pos_];
 }
-void dog_torch::serialize::DataStream::unget()
+void NSROOT::DataStream::unget()
 {
     pos_--;
 }
-uint64_t dog_torch::serialize::DataStream::tellg() const
+uint64_t NSROOT::DataStream::tellg() const
 {
     return this->pos_;
 }
 
-std::string dog_torch::serialize::utf8::to_utf8(uint64_t code)
+std::string NSROOT::utf8::to_utf8(uint64_t code)
 {
     std::string result = "";
     if (code <= 0x7F)
@@ -969,7 +869,7 @@ std::string dog_torch::serialize::utf8::to_utf8(uint64_t code)
     }
     return result;
 }
-uint64_t dog_torch::serialize::utf8::utf8_size(std::string str)
+uint64_t NSROOT::utf8::utf8_size(std::string str)
 {
     uint64_t size = 0;
     for (auto it = str.begin(); it != str.end();)
@@ -992,11 +892,11 @@ uint64_t dog_torch::serialize::utf8::utf8_size(std::string str)
     }
     return size;
 }
-uint64_t dog_torch::serialize::utf8::utf8_size(const char* str)
+uint64_t NSROOT::utf8::utf8_size(const char* str)
 {
-    return dog_torch::serialize::utf8::utf8_size(std::string(str));
+    return NSROOT::utf8::utf8_size(std::string(str));
 }
-std::string dog_torch::serialize::utf8::get_utf8_char(std::string str, uint64_t offset)
+std::string NSROOT::utf8::get_utf8_char(std::string str, uint64_t offset)
 {
     uint64_t size = 0;
     std::string value = "";
@@ -1042,7 +942,116 @@ std::string dog_torch::serialize::utf8::get_utf8_char(std::string str, uint64_t 
     }
     throw DOG_EXCEPTION("Error:out of offset\n错误：偏移量超出范围");
 }
-std::string dog_torch::serialize::utf8::get_utf8_char(const char* str, uint64_t offset)
+std::string NSROOT::utf8::get_utf8_char(const char* str, uint64_t offset)
 {
-    return dog_torch::serialize::utf8::get_utf8_char(std::string(str), offset);
+    return NSROOT::utf8::get_utf8_char(std::string(str), offset);
+}
+
+#undef NSROOT
+
+void dog_torch::serialize::DataStreamBuf::imbue(const std::locale& loc)
+{
+}
+std::basic_streambuf<uint8_t>* dog_torch::serialize::DataStreamBuf::setbuf(char_type* s, std::streamsize n)
+{
+    this->rbuf_start_ = s;
+    this->rbuf_end_ = s + n;
+    this->rbuf_pos_ = this->rbuf_start_;
+
+    this->wbuf_start_ = s;
+    this->wbuf_end_ = s + n;
+    this->wbuf_pos_ = this->wbuf_start_;
+    return this;
+}
+dog_torch::serialize::DataStreamBuf::pos_type dog_torch::serialize::DataStreamBuf::seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which)
+{
+    if (which == std::ios_base::in)
+    {
+        switch (dir)
+        {
+        case std::ios_base::beg:
+        {
+            this->rbuf_pos_ = this->rbuf_start_ + off;
+            break;
+        }
+        case std::ios_base::cur:
+        {
+            this->rbuf_pos_ += off;
+            break;
+        }
+        case std::ios_base::end:
+        {
+            this->rbuf_pos_ = this->rbuf_end_ - off;
+            break;
+        }
+        }
+        return pos_type(this->rbuf_pos_ - this->rbuf_start_);
+    }
+    else if (which == std::ios_base::out)
+    {
+        switch (dir)
+        {
+        case std::ios_base::beg:
+        {
+            this->wbuf_pos_ = this->wbuf_start_ + off;
+            break;
+        }
+        case std::ios_base::cur:
+        {
+            this->wbuf_pos_ += off;
+            break;
+        }
+        case std::ios_base::end:
+        {
+            this->wbuf_pos_ = this->wbuf_end_ - off;
+            break;
+        }
+        }
+        return pos_type(this->wbuf_pos_ - this->wbuf_start_);
+    }
+}
+dog_torch::serialize::DataStreamBuf::pos_type dog_torch::serialize::DataStreamBuf::seekpos(pos_type pos, std::ios_base::openmode which)
+{
+    if (which == std::ios_base::in)
+    {
+        this->rbuf_pos_ = this->rbuf_start_ + pos;
+        return pos_type(this->rbuf_pos_ - this->rbuf_start_);
+    }
+    else if (which == std::ios_base::out)
+    {
+        this->wbuf_pos_ = this->wbuf_start_ + pos;
+        return pos_type(this->wbuf_pos_ - this->wbuf_start_);
+    }
+}
+int dog_torch::serialize::DataStreamBuf::sync()
+{
+    return 0;
+}
+std::streamsize dog_torch::serialize::DataStreamBuf::showmanyc()
+{
+    return std::streamsize();
+}
+dog_torch::serialize::DataStreamBuf::int_type dog_torch::serialize::DataStreamBuf::underflow()
+{
+    return int_type();
+}
+dog_torch::serialize::DataStreamBuf::int_type dog_torch::serialize::DataStreamBuf::uflow()
+{
+    return int_type();
+}
+std::streamsize dog_torch::serialize::DataStreamBuf::xsgetn(char_type* s, std::streamsize count)
+{
+    return std::streamsize();
+}
+std::streamsize dog_torch::serialize::DataStreamBuf::xsputn(const char_type* s, std::streamsize count)
+{
+    return std::streamsize();
+}
+dog_torch::serialize::DataStreamBuf::int_type dog_torch::serialize::DataStreamBuf::overflow(int_type ch)
+{
+    return int_type();
+}
+dog_torch::serialize::DataStreamBuf::int_type dog_torch::serialize::DataStreamBuf::pbackfail(int_type c)
+{
+    return int_type();
 }

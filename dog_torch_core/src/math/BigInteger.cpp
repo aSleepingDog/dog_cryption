@@ -1411,9 +1411,22 @@ std::string dog_torch::math::number::BigInteger::get_num(int radix, bool isUpper
 	}
 	return res;
 }
-std::vector<uint8_t> dog_torch::math::number::BigInteger::get_bytes()
+std::vector<uint8_t> dog_torch::math::number::BigInteger::get_bytes() const
 {
 	return this->num_;
+}
+uint64_t dog_torch::math::number::BigInteger::get_abs_uint64()
+{
+	if (this->num_.empty())
+	{
+		return 0;
+	}
+	uint64_t n = 0;
+	for (uint64_t i = 0; i < (8 > this->num_.size() ? this->num_.size() : 8); i++)
+	{
+		n |= ((uint64_t)this->num_[i]) << (56 - (i * 8));
+	}
+	return n >> ((8 - this->num_.size()) * 8);
 }
 uint64_t dog_torch::math::number::BigInteger::size()
 {
@@ -1942,6 +1955,11 @@ dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::add_oth
 void dog_torch::math::number::operator+=(BigInteger& a, BigInteger b)
 {
 	a.add_other(b);
+}
+
+void dog_torch::math::number::operator+=(BigInteger& a, uint64_t b)
+{
+	a.add_other(BigInteger::toBigInteger(b));
 }
 
 dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::subtract(BigInteger a, BigInteger b)
@@ -3257,7 +3275,7 @@ bool dog_torch::math::number::operator!=(BigInteger a, uint64_t b)
 	return a != BigInteger::toBigInteger(b);
 }
 
-const dog_torch::math::number::BigInteger ZERO = "0";
-const dog_torch::math::number::BigInteger BIG_UINT32_MAX = "4294967295";
-const dog_torch::math::number::BigInteger BIG_UINT64_MAX = "18446744073709551615";
-const dog_torch::math::number::BigInteger BIG_UINT128_MAX = "340282366920938463463374607431768211455";
+const dog_torch::math::number::BigInteger dog_torch::math::number::ZERO = "0";
+const dog_torch::math::number::BigInteger dog_torch::math::number::BIG_UINT32_MAX = "4294967295";
+const dog_torch::math::number::BigInteger dog_torch::math::number::BIG_UINT64_MAX = "18446744073709551615";
+const dog_torch::math::number::BigInteger dog_torch::math::number::BIG_UINT128_MAX = "340282366920938463463374607431768211455";

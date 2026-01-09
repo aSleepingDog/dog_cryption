@@ -1,7 +1,7 @@
 #include "crypto/symmetric/mode/ECB.h"
 
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root
-#define DOG_DATA dog_torch::serialize::Data
+#define DOG_DATA dog_torch::serialize::BinaryData
 
 DOG_DATA NSROOT::mode::ECB::encrypt(const Data& plain, const Cipher& cipher)
 {
@@ -20,7 +20,6 @@ DOG_DATA NSROOT::mode::ECB::encrypt(const Data& plain, const Cipher& cipher)
         padding(tempBlock, block_size);
   		block_self_encryption(tempBlock, block_size, key, key_size);
   		res += tempBlock;
-  		tempBlock.rm_pos();
   	}
   	return res;
 }
@@ -32,8 +31,8 @@ DOG_DATA NSROOT::mode::ECB::decrypt(const Data& crypt, const Cipher& cipher)
     padding::padding_func unpadding = ((const ECB&)cipher.get_mode()).get_padding().get_unpadding();
     algorithm::block_self_cryption_func block_self_decryption = cipher.get_block_self_decryption();
 
- 	dog_torch::serialize::Data res; res.reserve(crypt.size());
- 	dog_torch::serialize::Data tempBlock(block_size);
+ 	dog_torch::serialize::BinaryData res; res.reserve(crypt.size());
+ 	dog_torch::serialize::BinaryData tempBlock(block_size);
  	for (uint64_t i0 = 0; i0 < crypt.size(); i0 += block_size)
  	{
  		tempBlock = crypt.sub_by_pos(i0, i0 + block_size);
@@ -77,7 +76,7 @@ void NSROOT::mode::ECB::encrypt_stream(std::istream& plain, std::ostream& crypt,
 void NSROOT::mode::ECB::decrypt_stream(std::istream& crypt, std::ostream& plain, const Cipher& cipher)
 {
  	uint64_t now_pos = crypt.tellg();
- 	crypt.seekg(now_pos, std::ios::end);
+ 	crypt.seekg(0, std::ios::end);
  	uint64_t file_size = crypt.tellg();
  	crypt.seekg(now_pos);
 
@@ -146,7 +145,7 @@ void NSROOT::mode::ECB::decrypt_streamp(std::istream& crypt, std::ostream& plain
     std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 {
  	uint64_t now_pos = crypt.tellg();
- 	crypt.seekg(now_pos, std::ios::end);
+ 	crypt.seekg(0, std::ios::end);
  	uint64_t file_size = crypt.tellg();
  	crypt.seekg(now_pos);
 
@@ -201,6 +200,16 @@ std::unique_ptr<NSROOT::mode::Mode> NSROOT::mode::ECB::clone() const
 const NSROOT::padding::Padding& NSROOT::mode::ECB::get_padding() const
 {
     return *padding_;
+}
+
+bool dog_torch::crypto::symmetric::mode::ECB::set_Padding(const padding::Padding& value)
+{
+    if (value.get_name() == "None")
+    {
+        throw CryptionException(DOG_EXCEPTION_MSG_OPINION("ECB mode not support No padding"));
+    }
+    this->padding_ = value.clone();
+    return true;
 }
 
 NSROOT::mode::crypt_func NSROOT::mode::ECB::get_mult_encrypt() const

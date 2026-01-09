@@ -21,7 +21,7 @@
 
 #include "utils/Exception.h"
 
-namespace dog_torch {namespace math{namespace integer
+namespace dog_torch::math::integer
 {
 	using NumberException = dog_torch::utils::Exception;
 	/*
@@ -56,4 +56,4 @@ namespace dog_torch {namespace math{namespace integer
 	DOG_CRYPTION_API uint16_t CLMB(uint16_t n, uint32_t i);
 	DOG_CRYPTION_API uint8_t CLMB(uint8_t n, uint32_t i);
 
-}}}
+}

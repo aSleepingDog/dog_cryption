@@ -8,11 +8,11 @@
 // 
 
 // const NSROOT::mode::Config NSROOT::mode::ECB::CONFIG = Config("ECB", 0, false, true, false);
-// dog_torch::serialize::Data NSROOT::mode::ECB::encrypt(dog_torch::serialize::Data plain, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::ECB::encrypt(dog_torch::serialize::BinaryData plain, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
-// 	dog_torch::serialize::Data res; uint8_t block_size = cryptor.get_block_size();
+// 	dog_torch::serialize::BinaryData res; uint8_t block_size = cryptor.get_block_size();
 // 	res.reserve(((plain.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock;
+// 	dog_torch::serialize::BinaryData tempBlock;
 // 	for (uint64_t i0 = 0; i0 <= plain.size(); i0 += block_size)
 // 	{
 // 		tempBlock = plain.sub_by_pos(i0, i0 + block_size);
@@ -23,11 +23,11 @@
 // 	}
 // 	return res;
 // }
-// dog_torch::serialize::Data NSROOT::mode::ECB::decrypt(dog_torch::serialize::Data crypt, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::ECB::decrypt(dog_torch::serialize::BinaryData crypt, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(crypt.size());
-// 	dog_torch::serialize::Data tempBlock(block_size);
+// 	dog_torch::serialize::BinaryData res; res.reserve(crypt.size());
+// 	dog_torch::serialize::BinaryData tempBlock(block_size);
 // 	for (uint64_t i0 = 0; i0 < crypt.size(); i0 += block_size)
 // 	{
 // 		tempBlock = crypt.sub_by_pos(i0, i0 + block_size);
@@ -37,14 +37,14 @@
 // 	cryptor.get_unpadding()(res, block_size);
 // 	return res;
 // }
-// void NSROOT::mode::ECB::encrypt_stream(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::ECB::encrypt_stream(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	plain.seekg(0, std::ios::end);
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock(block_size);
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		plain.read((char*)tempBlock.data(), block_size);
@@ -64,7 +64,7 @@
 // 	crypt.flush();
 // 	//printf("100%%\r");
 // }
-// void NSROOT::mode::ECB::decrypt_stream(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::ECB::decrypt_stream(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	uint64_t now_pos = crypt.tellg();
@@ -72,7 +72,7 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock(block_size);
 
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
@@ -88,7 +88,7 @@
 // 	plain.flush();
 // 	//printf("100%%\r");
 // }
-// void NSROOT::mode::ECB::encrypt_streamp(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::ECB::encrypt_streamp(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -96,7 +96,7 @@
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock(block_size);
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		plain.read((char*)tempBlock.data(), block_size);
@@ -122,7 +122,7 @@
 // 	crypt.flush();
 // 	progress->store(1.0);
 // }
-// void NSROOT::mode::ECB::decrypt_streamp(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::ECB::decrypt_streamp(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -131,7 +131,7 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock(block_size);
 
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
@@ -155,12 +155,12 @@
 // }
 
 // const NSROOT::mode::Config NSROOT::mode::CBC::CONFIG = Config("CBC", 1, true, true, false);
-// dog_torch::serialize::Data NSROOT::mode::CBC::encrypt(dog_torch::serialize::Data plain, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CBC::encrypt(dog_torch::serialize::BinaryData plain, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((plain.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock; tempBlock.reserve(block_size);
-// 	dog_torch::serialize::Data tempKey = iv;
+// 	dog_torch::serialize::BinaryData res; res.reserve(((plain.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock; tempBlock.reserve(block_size);
+// 	dog_torch::serialize::BinaryData tempKey = iv;
 // 	for (uint64_t i0 = 0; i0 <= plain.size(); i0 += block_size)
 // 	{
 // 		tempBlock = plain.sub_by_pos(i0, i0 + block_size);
@@ -172,12 +172,12 @@
 // 	}
 // 	return res;
 // }
-// dog_torch::serialize::Data NSROOT::mode::CBC::decrypt(dog_torch::serialize::Data crypt, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CBC::decrypt(dog_torch::serialize::BinaryData crypt, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock(block_size);
-// 	dog_torch::serialize::Data tempKey = iv;
+// 	dog_torch::serialize::BinaryData res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock(block_size);
+// 	dog_torch::serialize::BinaryData tempKey = iv;
 // 	for (uint64_t i0 = 0; i0 < crypt.size(); i0 += block_size)
 // 	{
 // 		tempBlock = crypt.sub_by_pos(i0, i0 + block_size);
@@ -189,15 +189,15 @@
 // 	cryptor.get_unpadding()(res, block_size);
 // 	return res;
 // }
-// void NSROOT::mode::CBC::encrypt_stream(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CBC::encrypt_stream(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	plain.seekg(0, std::ios::end);
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock(block_size);
-// 	dog_torch::serialize::Data tempKey = iv;
+// 	dog_torch::serialize::BinaryData tempBlock(block_size);
+// 	dog_torch::serialize::BinaryData tempKey = iv;
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		plain.read((char*)tempBlock.data(), block_size);
@@ -217,7 +217,7 @@
 // 	crypt.write((char*)tempBlock.data(), block_size);
 // 	crypt.flush();
 // }
-// void NSROOT::mode::CBC::decrypt_stream(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CBC::decrypt_stream(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	uint64_t now_pos = crypt.tellg();
@@ -225,8 +225,8 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock(block_size);
-// 	dog_torch::serialize::Data tempKey = iv;
+// 	dog_torch::serialize::BinaryData tempBlock(block_size);
+// 	dog_torch::serialize::BinaryData tempKey = iv;
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
 // 		crypt.read((char*)tempBlock.data(), block_size);
@@ -243,7 +243,7 @@
 // 	plain.write((char*)tempBlock.data(), tempBlock.size());
 // 	plain.flush();
 // }
-// void NSROOT::mode::CBC::encrypt_streamp(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CBC::encrypt_streamp(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -251,8 +251,8 @@
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock(block_size);
-// 	dog_torch::serialize::Data tempKey = iv;
+// 	dog_torch::serialize::BinaryData tempBlock(block_size);
+// 	dog_torch::serialize::BinaryData tempKey = iv;
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		plain.read((char*)tempBlock.data(), block_size);
@@ -278,7 +278,7 @@
 // 	crypt.flush();
 // 	progress->store(1.0);
 // }
-// void NSROOT::mode::CBC::decrypt_streamp(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CBC::decrypt_streamp(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -287,8 +287,8 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock(block_size);
-// 	dog_torch::serialize::Data tempKey = iv;
+// 	dog_torch::serialize::BinaryData tempBlock(block_size);
+// 	dog_torch::serialize::BinaryData tempKey = iv;
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
 // 		crypt.read((char*)tempBlock.data(), block_size);
@@ -314,11 +314,11 @@
 // }
 
 // const NSROOT::mode::Config NSROOT::mode::PCBC::CONFIG = Config("PCBC", 2, true, true, false);
-// dog_torch::serialize::Data NSROOT::mode::PCBC::encrypt(dog_torch::serialize::Data plain, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::PCBC::encrypt(dog_torch::serialize::BinaryData plain, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((plain.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock0, tempBlock1 = iv, tempBlock2;
+// 	dog_torch::serialize::BinaryData res; res.reserve(((plain.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0, tempBlock1 = iv, tempBlock2;
 // 	for (uint64_t i0 = 0; i0 <= plain.size(); i0 += block_size)
 // 	{
 // 		tempBlock0 = plain.sub_by_len(i0, block_size);
@@ -330,11 +330,11 @@
 // 	}
 // 	return res;
 // }
-// dog_torch::serialize::Data NSROOT::mode::PCBC::decrypt(dog_torch::serialize::Data crypt, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::PCBC::decrypt(dog_torch::serialize::BinaryData crypt, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock0, tempBlock1 = iv, tempBlock2;
+// 	dog_torch::serialize::BinaryData res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0, tempBlock1 = iv, tempBlock2;
 // 	for (uint64_t i0 = 0; i0 < crypt.size(); i0 += block_size)
 // 	{
 // 		tempBlock0 = crypt.sub_by_len(i0, block_size);
@@ -346,14 +346,14 @@
 // 	cryptor.get_unpadding()(res, block_size);
 // 	return res;
 // }
-// void NSROOT::mode::PCBC::encrypt_stream(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::PCBC::encrypt_stream(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	plain.seekg(0, std::ios::end);
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock0(block_size), tempBlock1 = iv, tempBlock2(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0(block_size), tempBlock1 = iv, tempBlock2(block_size);
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		plain.read((char*)tempBlock0.data(), block_size);
@@ -373,7 +373,7 @@
 // 	crypt.write((char*)tempBlock2.data(), block_size);
 // 	tempBlock1 = NSROOT::algorithmutils::squareXOR(tempBlock2, tempBlock0, tempBlock0.size());
 // }
-// void NSROOT::mode::PCBC::decrypt_stream(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::PCBC::decrypt_stream(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	uint64_t now_pos = crypt.tellg();
@@ -381,7 +381,7 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0(block_size), tempBlock1 = iv, tempBlock2;
+// 	dog_torch::serialize::BinaryData tempBlock0(block_size), tempBlock1 = iv, tempBlock2;
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
 // 		crypt.read((char*)tempBlock0.data(), block_size);
@@ -397,7 +397,7 @@
 // 	plain.write((char*)tempBlock2.data(), tempBlock2.size());
 // 	plain.flush();
 // }
-// void NSROOT::mode::PCBC::encrypt_streamp(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::PCBC::encrypt_streamp(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 
 // {
@@ -406,7 +406,7 @@
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock0(block_size), tempBlock1 = iv, tempBlock2(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0(block_size), tempBlock1 = iv, tempBlock2(block_size);
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		plain.read((char*)tempBlock0.data(), block_size);
@@ -432,7 +432,7 @@
 // 	tempBlock1 = NSROOT::algorithmutils::squareXOR(tempBlock2, tempBlock0, tempBlock0.size());
 // 	progress->store(1.0);
 // }
-// void NSROOT::mode::PCBC::decrypt_streamp(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::PCBC::decrypt_streamp(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -441,7 +441,7 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0(block_size), tempBlock1 = iv, tempBlock2;
+// 	dog_torch::serialize::BinaryData tempBlock0(block_size), tempBlock1 = iv, tempBlock2;
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
 // 		crypt.read((char*)tempBlock0.data(), block_size);
@@ -466,12 +466,12 @@
 // }
 
 // const NSROOT::mode::Config NSROOT::mode::OFB::CONFIG = Config("OFB", 3, true, false, false);
-// dog_torch::serialize::Data NSROOT::mode::OFB::encrypt(dog_torch::serialize::Data plain, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::OFB::encrypt(dog_torch::serialize::BinaryData plain, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((plain.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1;
+// 	dog_torch::serialize::BinaryData res; res.reserve(((plain.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1;
 // 	for (uint64_t i0 = 0; i0 <= plain.size(); i0 += block_size)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -481,12 +481,12 @@
 // 	}
 // 	return res;
 // }
-// dog_torch::serialize::Data NSROOT::mode::OFB::decrypt(dog_torch::serialize::Data crypt, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::OFB::decrypt(dog_torch::serialize::BinaryData crypt, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(crypt.size());
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1; tempBlock1.reserve(block_size);
+// 	dog_torch::serialize::BinaryData res; res.reserve(crypt.size());
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1; tempBlock1.reserve(block_size);
 // 	for (uint64_t i0 = 0; i0 < crypt.size(); i0 += block_size)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -500,14 +500,14 @@
 // 	}
 // 	return res;
 // }
-// void NSROOT::mode::OFB::encrypt_stream(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::OFB::encrypt_stream(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	plain.seekg(0, std::ios::end);
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -524,7 +524,7 @@
 // 	crypt.write((char*)NSROOT::algorithmutils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size()).data(), tempBlock1.size());
 // 	crypt.flush();
 // }
-// void NSROOT::mode::OFB::decrypt_stream(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::OFB::decrypt_stream(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	uint64_t now_pos = crypt.tellg();
@@ -532,8 +532,8 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -552,15 +552,15 @@
 // 	plain.write((char*)tempBlock1.data(), tempBlock1.size());
 // 	plain.flush();
 // }
-// void NSROOT::mode::OFB::encrypt_streamp(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::OFB::encrypt_streamp(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	plain.seekg(0, std::ios::end);
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -583,7 +583,7 @@
 // 	crypt.flush();
 // 	progress->store(1.0);
 // }
-// void NSROOT::mode::OFB::decrypt_streamp(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::OFB::decrypt_streamp(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -592,8 +592,8 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -621,18 +621,18 @@
 // }
 
 // const NSROOT::mode::Config NSROOT::mode::CTR::CONFIG = Config("CTR", 4, true, false, false);
-// dog_torch::serialize::Data NSROOT::mode::CTR::encrypt(dog_torch::serialize::Data plain, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CTR::encrypt(dog_torch::serialize::BinaryData plain, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((plain.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData res; res.reserve(((plain.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
 // 	uint64_t endNum = 0;
 // 	for (uint64_t i0 = 0; i0 < 8; i0++)
 // 	{
 // 		endNum += (uint64_t)tempBlock0[i0 + 8] << (8 * (7 - i0));
 // 	}
-// 	dog_torch::serialize::Data tempBlock1;
-// 	dog_torch::serialize::Data tempBlock2;
+// 	dog_torch::serialize::BinaryData tempBlock1;
+// 	dog_torch::serialize::BinaryData tempBlock2;
 // 	for (uint64_t i0 = 0; i0 <= plain.size(); i0 += block_size)
 // 	{
 // 		tempBlock2 = tempBlock0;
@@ -650,18 +650,18 @@
 // 	}
 // 	return res;
 // }
-// dog_torch::serialize::Data NSROOT::mode::CTR::decrypt(dog_torch::serialize::Data crypt, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CTR::decrypt(dog_torch::serialize::BinaryData crypt, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
 // 	uint64_t endNum = 0;
 // 	for (uint64_t i0 = 0; i0 < 8; i0++)
 // 	{
 // 		endNum += (uint64_t)tempBlock0[i0 + 8] << (8 * (7 - i0));
 // 	}
-// 	dog_torch::serialize::Data tempBlock1;
-// 	dog_torch::serialize::Data tempBlock2;
+// 	dog_torch::serialize::BinaryData tempBlock1;
+// 	dog_torch::serialize::BinaryData tempBlock2;
 // 	for (uint64_t i0 = 0; i0 < crypt.size(); i0 += block_size)
 // 	{
 // 		tempBlock2 = tempBlock0;
@@ -678,21 +678,21 @@
 // 	if (cryptor.get_using_padding()) { cryptor.get_unpadding()(res, block_size); }
 // 	return res;
 // }
-// void NSROOT::mode::CTR::encrypt_stream(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CTR::encrypt_stream(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	plain.seekg(0, std::ios::end);
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
 // 	uint64_t endNum = 0;
 // 	for (uint64_t i0 = 0; i0 < 8; i0++)
 // 	{
 // 		endNum += (uint64_t)tempBlock0[i0 + 8] << (8 * (7 - i0));
 // 	}
-// 	dog_torch::serialize::Data tempBlock1(block_size);
-// 	dog_torch::serialize::Data tempBlock2(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock2(block_size);
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		tempBlock2 = tempBlock0;
@@ -717,7 +717,7 @@
 // 	crypt.write((char*)NSROOT::algorithmutils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size()).data(), tempBlock1.size());
 // 	crypt.flush();
 // }
-// void NSROOT::mode::CTR::decrypt_stream(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CTR::decrypt_stream(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	uint64_t now_pos = crypt.tellg();
@@ -725,14 +725,14 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
 // 	uint64_t endNum = 0;
 // 	for (uint64_t i0 = 0; i0 < 8; i0++)
 // 	{
 // 		endNum += (uint64_t)tempBlock0[i0 + 8] << (8 * (7 - i0));
 // 	}
-// 	dog_torch::serialize::Data tempBlock1(block_size);
-// 	dog_torch::serialize::Data tempBlock2(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock2(block_size);
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
 // 		tempBlock2 = tempBlock0;
@@ -758,7 +758,7 @@
 // 	plain.write((char*)tempBlock1.data(), tempBlock1.size());
 // 	plain.flush();
 // }
-// void NSROOT::mode::CTR::encrypt_streamp(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CTR::encrypt_streamp(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -766,14 +766,14 @@
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
 // 	uint64_t endNum = 0;
 // 	for (uint64_t i0 = 0; i0 < 8; i0++)
 // 	{
 // 		endNum += (uint64_t)tempBlock0[i0 + 8] << (8 * (7 - i0));
 // 	}
-// 	dog_torch::serialize::Data tempBlock1(block_size);
-// 	dog_torch::serialize::Data tempBlock2(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock2(block_size);
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		tempBlock2 = tempBlock0;
@@ -804,7 +804,7 @@
 // 	crypt.flush();
 // 	progress->store(1.0);
 // }
-// void NSROOT::mode::CTR::decrypt_streamp(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CTR::decrypt_streamp(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -813,14 +813,14 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
 // 	uint64_t endNum = 0;
 // 	for (uint64_t i0 = 0; i0 < 8; i0++)
 // 	{
 // 		endNum += (uint64_t)tempBlock0[i0 + 8] << (8 * (7 - i0));
 // 	}
-// 	dog_torch::serialize::Data tempBlock1(block_size);
-// 	dog_torch::serialize::Data tempBlock2(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock2(block_size);
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
 // 		tempBlock2 = tempBlock0;
@@ -855,16 +855,16 @@
 // }
 
 // const NSROOT::mode::Config NSROOT::mode::CFBB::CONFIG = Config("CFBB", 5, true, false, true);
-// dog_torch::serialize::Data NSROOT::mode::CFBB::encrypt(dog_torch::serialize::Data plain, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CFBB::encrypt(dog_torch::serialize::BinaryData plain, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	//反馈字节数
 // 	uint64_t nbyte = cryptor.get_reback_size();
 
-// 	dog_torch::serialize::Data res; res.reserve(((plain.size() / nbyte) + 1) * nbyte);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(nbyte);
-// 	dog_torch::serialize::Data tempBlock2(nbyte);
+// 	dog_torch::serialize::BinaryData res; res.reserve(((plain.size() / nbyte) + 1) * nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock2(nbyte);
 // 	uint64_t i = 0;
 // 	for (i = 0; i < plain.size(); i += nbyte)
 // 	{
@@ -877,15 +877,15 @@
 // 	}
 // 	return res;
 // }
-// dog_torch::serialize::Data NSROOT::mode::CFBB::decrypt(dog_torch::serialize::Data crypt, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CFBB::decrypt(dog_torch::serialize::BinaryData crypt, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	uint64_t nbyte = cryptor.get_reback_size();
 
-// 	dog_torch::serialize::Data res; res.reserve(((crypt.size() / nbyte) + 1) * nbyte);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(nbyte);
-// 	dog_torch::serialize::Data tempBlock2(nbyte);
+// 	dog_torch::serialize::BinaryData res; res.reserve(((crypt.size() / nbyte) + 1) * nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock2(nbyte);
 // 	uint64_t i = 0;
 // 	for (i = 0; i < crypt.size(); i += nbyte)
 // 	{
@@ -897,7 +897,7 @@
 // 	}
 // 	return res;
 // }
-// void NSROOT::mode::CFBB::encrypt_stream(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CFBB::encrypt_stream(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	plain.seekg(0, std::ios::end);
@@ -906,9 +906,9 @@
 // 	//反馈字节数
 // 	uint64_t nbyte = cryptor.get_reback_size();
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(nbyte);
-// 	dog_torch::serialize::Data tempBlock2(nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock2(nbyte);
 // 	while (plain.tellg() <= file_size - nbyte)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -927,7 +927,7 @@
 // 	crypt.write((char*)tempBlock1.data(), nbyte);
 // 	crypt.flush();
 // }
-// void NSROOT::mode::CFBB::decrypt_stream(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CFBB::decrypt_stream(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	uint64_t now_pos = crypt.tellg();
@@ -938,9 +938,9 @@
 // 	//反馈字节数
 // 	uint64_t nbyte = cryptor.get_reback_size();
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(nbyte);
-// 	dog_torch::serialize::Data tempBlock2(nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock2(nbyte);
 // 	while (crypt.tellg() < file_size - nbyte)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -957,7 +957,7 @@
 // 	plain.write((char*)tempBlock2.data(), nbyte);
 // 	plain.flush();
 // }
-// void NSROOT::mode::CFBB::encrypt_streamp(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CFBB::encrypt_streamp(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -967,9 +967,9 @@
 // 	//反馈字节数
 // 	uint64_t nbyte = cryptor.get_reback_size();
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(nbyte);
-// 	dog_torch::serialize::Data tempBlock2(nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock2(nbyte);
 // 	while (plain.tellg() <= file_size - nbyte)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -995,7 +995,7 @@
 // 	crypt.flush();
 // 	progress->store(1.0);
 // }
-// void NSROOT::mode::CFBB::decrypt_streamp(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CFBB::decrypt_streamp(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -1007,9 +1007,9 @@
 // 	//反馈字节数
 // 	uint64_t nbyte = cryptor.get_reback_size();
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(nbyte);
-// 	dog_torch::serialize::Data tempBlock2(nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(nbyte);
+// 	dog_torch::serialize::BinaryData tempBlock2(nbyte);
 // 	while (crypt.tellg() < file_size - nbyte)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -1035,12 +1035,12 @@
 // 	progress->store(1.0);
 // }
 
-// dog_torch::serialize::Data NSROOT::mode::CFBB::encrypt_CFB8(dog_torch::serialize::Data plain, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CFBB::encrypt_CFB8(dog_torch::serialize::BinaryData plain, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((plain.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1; tempBlock1.reserve(block_size);
+// 	dog_torch::serialize::BinaryData res; res.reserve(((plain.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1; tempBlock1.reserve(block_size);
 // 	for (uint64_t i0 = 0; i0 < plain.size(); i0++)
 // 	{
 // 		tempBlock1 = tempBlock0;
@@ -1051,12 +1051,12 @@
 // 	}
 // 	return res;
 // }
-// dog_torch::serialize::Data NSROOT::mode::CFBB::decrypt_CFB8(dog_torch::serialize::Data crypt, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CFBB::decrypt_CFB8(dog_torch::serialize::BinaryData crypt, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1; tempBlock1.reserve(block_size);
+// 	dog_torch::serialize::BinaryData res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1; tempBlock1.reserve(block_size);
 // 	for (uint64_t i0 = 0; i0 < crypt.size(); i0++)
 // 	{
 // 		tempBlock1 = tempBlock0;
@@ -1067,16 +1067,16 @@
 // 	}
 // 	return res;
 // }
-// void NSROOT::mode::CFBB::encrypt_CFB8_stream(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CFBB::encrypt_CFB8_stream(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	plain.seekg(0, std::ios::end);
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
-// 	dog_torch::serialize::Data middleResult; middleResult.reserve(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData middleResult; middleResult.reserve(block_size);
 // 	while (plain.tellg() < file_size)
 // 	{
 // 		tempBlock1 = tempBlock0;
@@ -1093,7 +1093,7 @@
 // 	crypt.write((char*)middleResult.data(), middleResult.size());
 // 	crypt.flush();
 // }
-// void NSROOT::mode::CFBB::decrypt_CFB8_stream(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CFBB::decrypt_CFB8_stream(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	uint64_t now_pos = crypt.tellg();
@@ -1101,9 +1101,9 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1; tempBlock1.reserve(block_size);
-// 	dog_torch::serialize::Data middleResult; middleResult.reserve(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1; tempBlock1.reserve(block_size);
+// 	dog_torch::serialize::BinaryData middleResult; middleResult.reserve(block_size);
 // 	while (crypt.tellg() < file_size)
 // 	{
 // 		tempBlock1 = tempBlock0;
@@ -1122,7 +1122,7 @@
 // 	//DogData::print::block(middleResult);
 // 	plain.flush();
 // }
-// void NSROOT::mode::CFBB::encrypt_CFB8_streamp(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CFBB::encrypt_CFB8_streamp(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -1130,9 +1130,9 @@
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
-// 	dog_torch::serialize::Data middleResult; middleResult.reserve(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData middleResult; middleResult.reserve(block_size);
 // 	while (plain.tellg() < file_size)
 // 	{
 // 		tempBlock1 = tempBlock0;
@@ -1156,7 +1156,7 @@
 // 	crypt.flush();
 // 	progress->store(1.0);
 // }
-// void NSROOT::mode::CFBB::decrypt_CFB8_streamp(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CFBB::decrypt_CFB8_streamp(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -1165,9 +1165,9 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1; tempBlock1.reserve(block_size);
-// 	dog_torch::serialize::Data middleResult; middleResult.reserve(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1; tempBlock1.reserve(block_size);
+// 	dog_torch::serialize::BinaryData middleResult; middleResult.reserve(block_size);
 // 	while (crypt.tellg() < file_size)
 // 	{
 // 		tempBlock1 = tempBlock0;
@@ -1193,15 +1193,15 @@
 // }
 
 // const NSROOT::mode::Config NSROOT::mode::CFBb::CONFIG = Config("CFBb", 6, true, false, true);
-// dog_torch::serialize::Data NSROOT::mode::CFBb::encrypt(dog_torch::serialize::Data plain, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CFBb::encrypt(dog_torch::serialize::BinaryData plain, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
-// 	dog_torch::serialize::Data crypt; crypt.reserve(plain.size());
+// 	dog_torch::serialize::BinaryData crypt; crypt.reserve(plain.size());
 // 	uint64_t shift = cryptor.get_reback_size(), read_byte_pos = 0;
 // 	int8_t read_bit_pos = 0;
-// 	dog_torch::serialize::Data tempBlock0 = iv, tempBlock1;
-// 	auto pick_shift = [&plain, &shift, &read_byte_pos, &read_bit_pos]()->dog_torch::serialize::Data
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv, tempBlock1;
+// 	auto pick_shift = [&plain, &shift, &read_byte_pos, &read_bit_pos]()->dog_torch::serialize::BinaryData
 // 		{
-// 			dog_torch::serialize::Data res; res.reserve((shift / 8) + 1);
+// 			dog_torch::serialize::BinaryData res; res.reserve((shift / 8) + 1);
 // 			uint8_t fill_byte = 0x00;
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1231,7 +1231,7 @@
 // 			return res;
 // 		};
 // 	int8_t waiting_byte = 0x00; int8_t write_bit_pos = 0;
-// 	auto add_block = [&plain, &crypt, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::Data& tempBlock)->void
+// 	auto add_block = [&plain, &crypt, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::BinaryData& tempBlock)->void
 // 		{
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1260,15 +1260,15 @@
 // 	}
 // 	return crypt;
 // }
-// dog_torch::serialize::Data NSROOT::mode::CFBb::decrypt(dog_torch::serialize::Data crypt, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CFBb::decrypt(dog_torch::serialize::BinaryData crypt, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
-// 	dog_torch::serialize::Data plain; crypt.reserve(crypt.size());
+// 	dog_torch::serialize::BinaryData plain; crypt.reserve(crypt.size());
 // 	uint64_t shift = cryptor.get_reback_size(), read_byte_pos = 0;
 // 	int8_t read_bit_pos = 0;
-// 	dog_torch::serialize::Data tempBlock0 = iv, tempBlock1, tempBlock2;
-// 	auto pick_shift = [&crypt, &shift, &read_byte_pos, &read_bit_pos]()->dog_torch::serialize::Data
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv, tempBlock1, tempBlock2;
+// 	auto pick_shift = [&crypt, &shift, &read_byte_pos, &read_bit_pos]()->dog_torch::serialize::BinaryData
 // 		{
-// 			dog_torch::serialize::Data res; res.reserve((shift / 8) + 1);
+// 			dog_torch::serialize::BinaryData res; res.reserve((shift / 8) + 1);
 // 			uint8_t fill_byte = 0x00;
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1298,7 +1298,7 @@
 // 			return res;
 // 		};
 // 	int8_t waiting_byte = 0x00; int8_t write_bit_pos = 0;
-// 	auto add_block = [&crypt, &plain, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::Data& tempBlock)->void
+// 	auto add_block = [&crypt, &plain, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::BinaryData& tempBlock)->void
 // 		{
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1327,15 +1327,15 @@
 // 	}
 // 	return plain;
 // }
-// void NSROOT::mode::CFBb::encrypt_stream(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CFBb::encrypt_stream(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	//throw CryptionException(DOG_EXCEPTION_MSG_OPINION("not using"));
 // 	uint64_t shift = cryptor.get_reback_size();
 // 	int8_t read_bit_pos = 0;
-// 	dog_torch::serialize::Data tempBlock0 = iv, tempBlock1;
-// 	auto pick_shift = [&plain, &shift, &read_bit_pos]()->dog_torch::serialize::Data
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv, tempBlock1;
+// 	auto pick_shift = [&plain, &shift, &read_bit_pos]()->dog_torch::serialize::BinaryData
 // 		{
-// 			dog_torch::serialize::Data res; res.reserve((shift / 8) + 1);
+// 			dog_torch::serialize::BinaryData res; res.reserve((shift / 8) + 1);
 // 			uint8_t fill_byte = 0x00;
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1365,7 +1365,7 @@
 // 			return res;
 // 		};
 // 	int8_t waiting_byte = 0x00; int8_t write_bit_pos = 0;
-// 	auto add_block = [&crypt, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::Data& tempBlock)->void
+// 	auto add_block = [&crypt, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::BinaryData& tempBlock)->void
 // 		{
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1393,14 +1393,14 @@
 // 	}
 // 	crypt.flush();
 // }
-// void NSROOT::mode::CFBb::decrypt_stream(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CFBb::decrypt_stream(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint64_t shift = cryptor.get_reback_size();
 // 	int8_t read_bit_pos = 0;
-// 	dog_torch::serialize::Data tempBlock0 = iv, tempBlock1, tempBlock2;
-// 	auto pick_shift = [&crypt, &shift, &read_bit_pos]()->dog_torch::serialize::Data
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv, tempBlock1, tempBlock2;
+// 	auto pick_shift = [&crypt, &shift, &read_bit_pos]()->dog_torch::serialize::BinaryData
 // 		{
-// 			dog_torch::serialize::Data res; res.reserve((shift / 8) + 1);
+// 			dog_torch::serialize::BinaryData res; res.reserve((shift / 8) + 1);
 // 			uint8_t fill_byte = 0x00;
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1430,7 +1430,7 @@
 // 			return res;
 // 		};
 // 	int8_t waiting_byte = 0x00; int8_t write_bit_pos = 0;
-// 	auto add_block = [&plain, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::Data& tempBlock)->void
+// 	auto add_block = [&plain, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::BinaryData& tempBlock)->void
 // 		{
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1458,7 +1458,7 @@
 // 	}
 // 	plain.flush();
 // }
-// void NSROOT::mode::CFBb::encrypt_streamp(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CFBb::encrypt_streamp(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint64_t shift = cryptor.get_reback_size();
@@ -1466,10 +1466,10 @@
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 // 	int8_t read_bit_pos = 0;
-// 	dog_torch::serialize::Data tempBlock0 = iv, tempBlock1;
-// 	auto pick_shift = [&plain, &shift, &read_bit_pos]()->dog_torch::serialize::Data
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv, tempBlock1;
+// 	auto pick_shift = [&plain, &shift, &read_bit_pos]()->dog_torch::serialize::BinaryData
 // 		{
-// 			dog_torch::serialize::Data res; res.reserve((shift / 8) + 1);
+// 			dog_torch::serialize::BinaryData res; res.reserve((shift / 8) + 1);
 // 			uint8_t fill_byte = 0x00;
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1499,7 +1499,7 @@
 // 			return res;
 // 		};
 // 	int8_t waiting_byte = 0x00; int8_t write_bit_pos = 0;
-// 	auto add_block = [&crypt, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::Data& tempBlock)->void
+// 	auto add_block = [&crypt, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::BinaryData& tempBlock)->void
 // 		{
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1535,7 +1535,7 @@
 // 	}
 // 	crypt.flush();
 // }
-// void NSROOT::mode::CFBb::decrypt_streamp(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CFBb::decrypt_streamp(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint64_t shift = cryptor.get_reback_size();
@@ -1544,10 +1544,10 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 // 	int8_t read_bit_pos = 0;
-// 	dog_torch::serialize::Data tempBlock0 = iv, tempBlock1, tempBlock2;
-// 	auto pick_shift = [&crypt, &shift, &read_bit_pos]()->dog_torch::serialize::Data
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv, tempBlock1, tempBlock2;
+// 	auto pick_shift = [&crypt, &shift, &read_bit_pos]()->dog_torch::serialize::BinaryData
 // 		{
-// 			dog_torch::serialize::Data res; res.reserve((shift / 8) + 1);
+// 			dog_torch::serialize::BinaryData res; res.reserve((shift / 8) + 1);
 // 			uint8_t fill_byte = 0x00;
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1577,7 +1577,7 @@
 // 			return res;
 // 		};
 // 	int8_t waiting_byte = 0x00; int8_t write_bit_pos = 0;
-// 	auto add_block = [&plain, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::Data& tempBlock)->void
+// 	auto add_block = [&plain, &shift, &waiting_byte, &write_bit_pos](dog_torch::serialize::BinaryData& tempBlock)->void
 // 		{
 // 			uint8_t temp_byte = 0x00;
 // 			for (uint64_t i = 0; i < shift; i++)
@@ -1611,12 +1611,12 @@
 // 	plain.flush();
 // }
 
-// dog_torch::serialize::Data NSROOT::mode::CFBb::encrypt_CFB1(dog_torch::serialize::Data plain, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CFBb::encrypt_CFB1(dog_torch::serialize::BinaryData plain, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((plain.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1; tempBlock1.reserve(block_size);
+// 	dog_torch::serialize::BinaryData res; res.reserve(((plain.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1; tempBlock1.reserve(block_size);
 // 	for (uint64_t i0 = 0; i0 < plain.size(); i0++)
 // 	{
 // 		uint8_t B = 0x00;
@@ -1638,12 +1638,12 @@
 // 	}
 // 	return res;
 // }
-// dog_torch::serialize::Data NSROOT::mode::CFBb::decrypt_CFB1(dog_torch::serialize::Data crypt, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CFBb::decrypt_CFB1(dog_torch::serialize::BinaryData crypt, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1; tempBlock1.reserve(block_size);
+// 	dog_torch::serialize::BinaryData res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1; tempBlock1.reserve(block_size);
 // 	for (uint64_t i0 = 0; i0 < crypt.size(); i0++)
 // 	{
 // 		uint8_t B = 0x00;
@@ -1666,15 +1666,15 @@
 // 	return res;
 
 // }
-// void NSROOT::mode::CFBb::encrypt_CFB1_stream(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CFBb::encrypt_CFB1_stream(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	plain.seekg(0, std::ios::end);
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	while (plain.tellg() < file_size)
 // 	{
 // 		//uint64_t s = plain.tellg();
@@ -1699,7 +1699,7 @@
 // 	}
 // 	crypt.flush();
 // }
-// void NSROOT::mode::CFBb::decrypt_CFB1_stream(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CFBb::decrypt_CFB1_stream(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	uint64_t now_pos = crypt.tellg();
@@ -1707,8 +1707,8 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1; tempBlock1.reserve(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1; tempBlock1.reserve(block_size);
 // 	while (crypt.tellg() < file_size)
 // 	{
 // 		//uint64_t s = crypt.tellg();
@@ -1734,7 +1734,7 @@
 // 	}
 // 	plain.flush();
 // }
-// void NSROOT::mode::CFBb::encrypt_CFB1_streamp(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CFBb::encrypt_CFB1_streamp(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -1742,8 +1742,8 @@
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	while (plain.tellg() < file_size)
 // 	{
 // 		//uint64_t s = plain.tellg();
@@ -1777,7 +1777,7 @@
 // 	crypt.flush();
 // 	progress->store(1.0);
 // }
-// void NSROOT::mode::CFBb::decrypt_CFB1_streamp(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CFBb::decrypt_CFB1_streamp(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -1786,8 +1786,8 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1; tempBlock1.reserve(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1; tempBlock1.reserve(block_size);
 // 	while (crypt.tellg() < file_size)
 // 	{
 // 		//uint64_t s = crypt.tellg();
@@ -1820,12 +1820,12 @@
 // 	progress->store(1.0);
 // }
 
-// dog_torch::serialize::Data NSROOT::mode::CFBB::encrypt_CFB128(dog_torch::serialize::Data plain, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CFBB::encrypt_CFB128(dog_torch::serialize::BinaryData plain, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((plain.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData res; res.reserve(((plain.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	uint64_t i0 = 0;
 // 	for (i0 = 0; i0 <= plain.size() - 16 && plain.size() >= 16; i0 += 16)
 // 	{
@@ -1842,12 +1842,12 @@
 // 	res += tempBlock1;
 // 	return res;
 // }
-// dog_torch::serialize::Data NSROOT::mode::CFBB::decrypt_CFB128(dog_torch::serialize::Data crypt, dog_torch::serialize::Data iv, NSROOT::algorithmCryptor& cryptor)
+// dog_torch::serialize::BinaryData NSROOT::mode::CFBB::decrypt_CFB128(dog_torch::serialize::BinaryData crypt, dog_torch::serialize::BinaryData iv, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
-// 	dog_torch::serialize::Data res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData res; res.reserve(((crypt.size() / block_size) + 1) * block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	uint64_t i0 = 0;
 // 	for (i0 = 0; i0 < crypt.size() - 16 && crypt.size() > 16; i0 += 16)
 // 	{
@@ -1866,15 +1866,15 @@
 // 	res += tempBlock1;
 // 	return res;
 // }
-// void NSROOT::mode::CFBB::encrypt_CFB128_stream(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CFBB::encrypt_CFB128_stream(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	plain.seekg(0, std::ios::end);
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -1890,7 +1890,7 @@
 // 	crypt.write((char*)tempBlock1.data(), tempBlock1.size());
 // 	crypt.flush();
 // }
-// void NSROOT::mode::CFBB::decrypt_CFB128_stream(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
+// void NSROOT::mode::CFBB::decrypt_CFB128_stream(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
 // 	uint64_t now_pos = crypt.tellg();
@@ -1898,8 +1898,8 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -1915,7 +1915,7 @@
 // 	plain.write((char*)tempBlock1.data(), tempBlock1.size());
 // 	plain.flush();
 // }
-// void NSROOT::mode::CFBB::encrypt_CFB128_streamp(std::istream& plain, dog_torch::serialize::Data iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CFBB::encrypt_CFB128_streamp(std::istream& plain, dog_torch::serialize::BinaryData iv, std::ostream& crypt, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -1923,8 +1923,8 @@
 // 	uint64_t file_size = plain.tellg();
 // 	plain.seekg(0, std::ios::beg);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	while (plain.tellg() <= file_size - block_size)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -1951,7 +1951,7 @@
 // 	progress->store(1.0);
 
 // }
-// void NSROOT::mode::CFBB::decrypt_CFB128_streamp(std::istream& crypt, dog_torch::serialize::Data iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
+// void NSROOT::mode::CFBB::decrypt_CFB128_streamp(std::istream& crypt, dog_torch::serialize::BinaryData iv, std::ostream& plain, NSROOT::algorithmCryptor& cryptor,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	uint8_t block_size = cryptor.get_block_size();
@@ -1960,8 +1960,8 @@
 // 	uint64_t file_size = crypt.tellg();
 // 	crypt.seekg(now_pos);
 
-// 	dog_torch::serialize::Data tempBlock0 = iv;
-// 	dog_torch::serialize::Data tempBlock1(block_size);
+// 	dog_torch::serialize::BinaryData tempBlock0 = iv;
+// 	dog_torch::serialize::BinaryData tempBlock1(block_size);
 // 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -2053,9 +2053,9 @@
 // 	this->shift = shift;
 // 	this->extra_config = extra_config;
 // }
-// dog_torch::serialize::Data NSROOT::algorithmCryptionConfig::to_data() const
+// dog_torch::serialize::BinaryData NSROOT::algorithmCryptionConfig::to_data() const
 // {
-// 	dog_torch::serialize::Data data;
+// 	dog_torch::serialize::BinaryData data;
 // 	data += dog_torch::serialize::tlv::string(this->cryption_algorithm);
 // 	data += dog_torch::serialize::tlv::integer_num(this->block_size);
 // 	data += dog_torch::serialize::tlv::integer_num(this->key_size);
@@ -2237,7 +2237,7 @@
 // 		throw DOG_EXCEPTION("Error:wrong in reading config\n错误：配置读取错误");
 // 	}
 // }
-// NSROOT::algorithmCryptionConfig NSROOT::algorithmCryptionConfig::get_cryption_config(dog_torch::serialize::Data& config_data, bool is_cut)
+// NSROOT::algorithmCryptionConfig NSROOT::algorithmCryptionConfig::get_cryption_config(dog_torch::serialize::BinaryData& config_data, bool is_cut)
 // {
 // 	try
 // 	{
@@ -2652,7 +2652,7 @@
 // 	}
 // }
 
-// void NSROOT::algorithmCryptor::set_key(dog_torch::serialize::Data key)
+// void NSROOT::algorithmCryptor::set_key(dog_torch::serialize::BinaryData key)
 // {
 // 	this->original_key_ = key;
 // 	this->key_ = this->extend_key_(key, this->config_.block_size, this->config_.key_size);
@@ -2717,11 +2717,11 @@
 // {
 // 	return this->config_.using_padding;
 // }
-// dog_torch::serialize::Data NSROOT::algorithmCryptor::get_original_key() const
+// dog_torch::serialize::BinaryData NSROOT::algorithmCryptor::get_original_key() const
 // {
 // 	return this->original_key_;
 // }
-// dog_torch::serialize::Data NSROOT::algorithmCryptor::get_available_key() const
+// dog_torch::serialize::BinaryData NSROOT::algorithmCryptor::get_available_key() const
 // {
 // 	return this->key_;
 // }
@@ -2774,20 +2774,20 @@
 // 	return true;
 // }
 
-// dog_torch::serialize::Data NSROOT::algorithmCryptor::encrypt(dog_torch::serialize::Data plain, bool with_config, bool with_iv, dog_torch::serialize::Data iv, bool with_check)
+// dog_torch::serialize::BinaryData NSROOT::algorithmCryptor::encrypt(dog_torch::serialize::BinaryData plain, bool with_config, bool with_iv, dog_torch::serialize::BinaryData iv, bool with_check)
 // {
 // 	if (!this->is_available())
 // 	{
 // 		throw CryptionException(DOG_EXCEPTION_MSG_OPINION("Error:Cryptor config is invalid\n错误：Cryptor加密器配置无效"));
 // 	}
-// 	dog_torch::serialize::Data res;
+// 	dog_torch::serialize::BinaryData res;
 // 	if (with_config)
 // 	{
 // 		res += this->config_.to_data();
 // 	}
 // 	if (with_check)
 // 	{
-// 		dog_torch::serialize::Data check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
+// 		dog_torch::serialize::BinaryData check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
 // 		this->get_block_self_encryption()(check, this->config_.block_size, this->get_available_key(), this->get_key_size());
 // 		res += check;
 // 	}
@@ -2798,7 +2798,7 @@
 // 	res += this->mult_encrypt_(plain, iv, *this);
 // 	return res;
 // }
-// void NSROOT::algorithmCryptor::encrypt(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, dog_torch::serialize::Data iv, bool with_check)
+// void NSROOT::algorithmCryptor::encrypt(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, dog_torch::serialize::BinaryData iv, bool with_check)
 // {
 // 	if (!this->is_available())
 // 	{
@@ -2806,12 +2806,12 @@
 // 	}
 // 	if (with_config)
 // 	{
-// 		dog_torch::serialize::Data config_data = this->config_.to_data();
+// 		dog_torch::serialize::BinaryData config_data = this->config_.to_data();
 // 		crypt.write((char*)config_data.data(), config_data.size());
 // 	}
 // 	if (with_check)
 // 	{
-// 		dog_torch::serialize::Data check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
+// 		dog_torch::serialize::BinaryData check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
 // 		this->get_block_self_encryption()(check, this->config_.block_size, this->get_available_key(), this->get_key_size());
 // 		crypt.write((char*)check.data(), check.size());
 // 	}
@@ -2821,7 +2821,7 @@
 // 	}
 // 	this->stream_encrypt_(plain, iv, crypt, *this);
 // }
-// void NSROOT::algorithmCryptor::encryptp(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, dog_torch::serialize::Data iv, bool with_check,
+// void NSROOT::algorithmCryptor::encryptp(std::istream& plain, std::ostream& crypt, bool with_config, bool with_iv, dog_torch::serialize::BinaryData iv, bool with_check,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	if (!this->is_available())
@@ -2830,12 +2830,12 @@
 // 	}
 // 	if (with_config)
 // 	{
-// 		dog_torch::serialize::Data config_data = this->config_.to_data();
+// 		dog_torch::serialize::BinaryData config_data = this->config_.to_data();
 // 		crypt.write((char*)config_data.data(), config_data.size());
 // 	}
 // 	if (with_check)
 // 	{
-// 		dog_torch::serialize::Data check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
+// 		dog_torch::serialize::BinaryData check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
 // 		this->get_block_self_encryption()(check, this->config_.block_size, this->get_available_key(), this->get_key_size());
 // 		crypt.write((char*)check.data(), check.size());
 // 	}
@@ -2846,7 +2846,7 @@
 // 	this->stream_encryptp_(plain, iv, crypt, *this, mutex_, cond_, progress, running_, paused_, stop_);
 // }
 
-// dog_torch::serialize::Data NSROOT::algorithmCryptor::decrypt(dog_torch::serialize::Data crypt, bool with_config, bool with_iv, dog_torch::serialize::Data iv, bool with_check)
+// dog_torch::serialize::BinaryData NSROOT::algorithmCryptor::decrypt(dog_torch::serialize::BinaryData crypt, bool with_config, bool with_iv, dog_torch::serialize::BinaryData iv, bool with_check)
 // {
 // 	std::unique_ptr<NSROOT::algorithmCryptor> ori_cryptor;
 // 	if (with_config)
@@ -2861,17 +2861,17 @@
 // 	}
 // 	if (with_check)
 // 	{
-// 		dog_torch::serialize::Data crypt_check = crypt.sub_by_len(0, this->config_.block_size);
+// 		dog_torch::serialize::BinaryData crypt_check = crypt.sub_by_len(0, this->config_.block_size);
 // 		crypt = crypt.sub_by_pos(this->config_.block_size, crypt.size());
 // 		this->get_block_self_decryption()(crypt_check, this->config_.block_size, this->get_available_key(), this->get_key_size());
-// 		dog_torch::serialize::Data plain_check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
+// 		dog_torch::serialize::BinaryData plain_check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
 // 		if (plain_check != crypt_check)
 // 		{
 // 			//throw CryptionException(DOG_EXCEPTION_MSG_OPINION("wrong key"));
 // 			throw WrongKeyException(DOG_EXCEPTION_OPINION);
 // 		}
 // 	}
-// 	dog_torch::serialize::Data res, iv_;
+// 	dog_torch::serialize::BinaryData res, iv_;
 // 	if (with_iv)
 // 	{
 // 		iv_ = crypt.sub_by_len(0, this->config_.block_size);
@@ -2888,7 +2888,7 @@
 // 	}
 // 	return res;
 // }
-// void NSROOT::algorithmCryptor::decrypt(std::istream& crypt, std::ostream& plain, bool with_config, bool with_iv, dog_torch::serialize::Data iv, bool with_check)
+// void NSROOT::algorithmCryptor::decrypt(std::istream& crypt, std::ostream& plain, bool with_config, bool with_iv, dog_torch::serialize::BinaryData iv, bool with_check)
 // {
 // 	std::unique_ptr<NSROOT::algorithmCryptionConfig> ori_config;
 // 	if (with_config)
@@ -2903,17 +2903,17 @@
 // 	}
 // 	if (with_check)
 // 	{
-// 		dog_torch::serialize::Data crypt_check(config_.block_size);
+// 		dog_torch::serialize::BinaryData crypt_check(config_.block_size);
 // 		crypt.read((char*)crypt_check.data(), crypt_check.size());
 // 		this->get_block_self_decryption()(crypt_check, this->config_.block_size, this->get_available_key(), this->get_key_size());
-// 		dog_torch::serialize::Data plain_check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
+// 		dog_torch::serialize::BinaryData plain_check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
 // 		if (plain_check != crypt_check)
 // 		{
 // 			//throw CryptionException(DOG_EXCEPTION_MSG_OPINION("wrong key"));
 // 			throw WrongKeyException(DOG_EXCEPTION_OPINION);
 // 		}
 // 	}
-// 	dog_torch::serialize::Data iv_(this->config_.block_size);
+// 	dog_torch::serialize::BinaryData iv_(this->config_.block_size);
 // 	if (with_iv)
 // 	{
 // 		crypt.read((char*)iv_.data(), this->config_.block_size);
@@ -2928,7 +2928,7 @@
 // 		this->config_ = *ori_config;
 // 	}
 // }
-// void NSROOT::algorithmCryptor::decryptp(std::istream& crypt, std::ostream& plain, bool with_config, bool with_iv, dog_torch::serialize::Data iv, bool with_check,
+// void NSROOT::algorithmCryptor::decryptp(std::istream& crypt, std::ostream& plain, bool with_config, bool with_iv, dog_torch::serialize::BinaryData iv, bool with_check,
 // 	std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
 // {
 // 	std::unique_ptr<NSROOT::algorithmCryptionConfig> ori_config;
@@ -2944,16 +2944,16 @@
 // 	}
 // 	if (with_check)
 // 	{
-// 		dog_torch::serialize::Data crypt_check(config_.block_size);
+// 		dog_torch::serialize::BinaryData crypt_check(config_.block_size);
 // 		crypt.read((char*)crypt_check.data(), crypt_check.size());
 // 		this->get_block_self_decryption()(crypt_check, this->config_.block_size, this->get_available_key(), this->get_key_size());
-// 		dog_torch::serialize::Data plain_check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
+// 		dog_torch::serialize::BinaryData plain_check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
 // 		if (plain_check != crypt_check)
 // 		{
 // 			throw WrongKeyException(DOG_EXCEPTION_OPINION);
 // 		}
 // 	}
-// 	dog_torch::serialize::Data iv_(this->config_.block_size);
+// 	dog_torch::serialize::BinaryData iv_(this->config_.block_size);
 // 	if (with_iv)
 // 	{
 // 		crypt.read((char*)iv_.data(), this->config_.block_size);

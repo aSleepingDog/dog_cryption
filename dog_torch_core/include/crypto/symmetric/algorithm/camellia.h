@@ -24,9 +24,9 @@
 #include "math/math.h"
 #include "crypto/symmetric/base.h"
 
-namespace dog_torch { namespace crypto { namespace symmetric { namespace algorithm
+namespace dog_torch::crypto::symmetric::algorithm
 {
-	using Data = dog_torch::serialize::Data;
+	using Data = dog_torch::serialize::BinaryData;
 
 	class DOG_CRYPTION_API camellia : public Algorithm
 	{
@@ -55,7 +55,7 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace algorit
 		static void decoding_self(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size);
 
 
-		camellia(const uint64_t block_size, const uint64_t key_size) : Algorithm(CONFIG.name, block_size, key_size) {};
+		camellia(const uint64_t key_size) : Algorithm(CONFIG.name, 16, key_size) {};
 
 		std::unique_ptr<Algorithm> clone() const override;
 
@@ -65,4 +65,4 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace algorit
 		block_self_cryption_func  get_encrypt_self()  const override;
 		block_self_cryption_func  get_decrypt_self()  const override;
 	};
-}}}}
+}

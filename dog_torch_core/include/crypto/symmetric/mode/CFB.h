@@ -24,7 +24,8 @@
 #include "math/math.h"
 #include "crypto/symmetric/base.h"
 
-namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
+namespace dog_torch::crypto::symmetric::mode
+{
 	/*
 	* CFB模式默认不使用填充 只有处于CFBB(按字节分组)且反馈长度大于1时才使用填充
 	*/
@@ -81,6 +82,10 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 		const Data& get_iv() const;
 		const padding::Padding& get_padding() const;
 
+		bool set_uint64_param(const std::string& param, uint64_t value) override;
+		bool set_data_param(const std::string& param, const Data& value) override;
+		bool set_Padding(const padding::Padding& value) override;
+		
 		std::string fmt_config() const override;
 
 		crypt_func get_mult_encrypt() const override;
@@ -134,6 +139,10 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 		std::string fmt_config() const override;
 
 		std::unique_ptr<Mode> clone() const override;
+		
+		bool set_uint64_param(const std::string& param, uint64_t value) override;
+		bool set_data_param(const std::string& param, const Data& value) override;
+		bool set_Padding(const padding::Padding& value) override;
 
 		crypt_func get_mult_encrypt() const override;
 		crypt_func get_mult_decrypt() const override;
@@ -145,4 +154,4 @@ namespace dog_torch { namespace crypto { namespace symmetric { namespace mode {
 		stream_cryptp_func get_stream_decryptp() const override;
 	};
 
-}}}} 
+}

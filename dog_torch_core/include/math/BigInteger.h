@@ -21,7 +21,7 @@
 
 #include "utils/Exception.h"
 
-namespace dog_torch {namespace math { namespace number
+namespace dog_torch::math::number
 {
 	using NumberException = dog_torch::utils::Exception;
 
@@ -100,7 +100,9 @@ namespace dog_torch {namespace math { namespace number
 	public:
 		std::string get_num(int radix = 10, bool isUpper = true);
 
-		std::vector<uint8_t> get_bytes();
+		std::vector<uint8_t> get_bytes() const;
+
+		uint64_t get_abs_uint64();
 
 		//基本操作
 		/*
@@ -275,6 +277,7 @@ namespace dog_torch {namespace math { namespace number
 
 		BigInteger add_other(BigInteger n);
 		friend void operator+=(BigInteger& a, BigInteger b);
+		friend void operator+=(BigInteger& a, uint64_t b);
 
 		static BigInteger subtract(BigInteger a, BigInteger b);
 		friend BigInteger operator-(BigInteger a, BigInteger b);
@@ -318,4 +321,4 @@ namespace dog_torch {namespace math { namespace number
 	DOG_CRYPTION_API extern const BigInteger BIG_UINT32_MAX;
 	DOG_CRYPTION_API extern const BigInteger BIG_UINT64_MAX;
 	DOG_CRYPTION_API extern const BigInteger BIG_UINT128_MAX;
-}}}
+}

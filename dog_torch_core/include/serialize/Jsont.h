@@ -16,11 +16,12 @@
 #include <unordered_map>
 
 #include "utils/Exception.h"
-#include "Data.h"
+#include "BinaryData.h"
 #include "Json.h"
 #include "Jsonx.h"
 
-namespace dog_torch { namespace serialize {namespace jsont {
+namespace dog_torch::serialize::jsont
+{
 
 	DOG_CRYPTION_API enum class Type
 	{
@@ -193,4 +194,4 @@ namespace dog_torch { namespace serialize {namespace jsont {
 
 	};
 
-}}}
+}

@@ -14,7 +14,8 @@
 #include "asyncion/container/deque.h"
 
 
-namespace dog_torch { namespace asyncion { namespace pool {
+namespace dog_torch::asyncion::pool 
+{
 
     class DOG_CRYPTION_API PollingPriorityTaskPool
     {
@@ -137,6 +138,7 @@ namespace dog_torch { namespace asyncion { namespace pool {
         PollingPriorityTaskPool& operator=(const PollingPriorityTaskPool&) = delete;
         PollingPriorityTaskPool(PollingPriorityTaskPool&& other) noexcept
         {
+            std::scoped_lock lock(other.mutex_, this->mutex_);
             this->status_ = other.status_.load();
             this->max_size_ = other.max_size_.load();
             this->threads_ = std::move(other.threads_);
@@ -145,6 +147,7 @@ namespace dog_torch { namespace asyncion { namespace pool {
         }
         PollingPriorityTaskPool& operator=(PollingPriorityTaskPool&& other) noexcept
         {
+            std::scoped_lock lock(other.mutex_, this->mutex_);
             this->status_ = other.status_.load();
             this->max_size_ = other.max_size_.load();
             this->threads_ = std::move(other.threads_);
@@ -166,10 +169,7 @@ namespace dog_torch { namespace asyncion { namespace pool {
         {
             while (true)
             {
-                if (threads_.empty() && tasks_.empty())
-                {
-                    break;
-                }
+                if (threads_.empty() && tasks_.empty()) break;
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
@@ -262,4 +262,4 @@ namespace dog_torch { namespace asyncion { namespace pool {
         }
     };
 
-}}}
+}

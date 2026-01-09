@@ -10,7 +10,8 @@
 #include <shared_mutex>
 #include <functional>
 
-namespace dog_torch { namespace asyncion { namespace container {
+namespace dog_torch::asyncion::container
+{
 
     template <typename T, typename Alloc = std::allocator<T>>
 	class VectorCopy
@@ -40,12 +41,12 @@ namespace dog_torch { namespace asyncion { namespace container {
 		}
 		VectorCopy(selfVec&& other) noexcept
 		{
-			std::scoped_lock(mutex_, other.mutex_);
+			std::scoped_lock lock(mutex_, other.mutex_);
 			this->vec_ = std::move(other.vec_);
 		}
 		VectorCopy& operator=(selfVec&& other) noexcept
 		{
-			std::scoped_lock(mutex_, other.mutex_);
+			std::scoped_lock lock(mutex_, other.mutex_);
 			this->vec_ = std::move(other.vec_);
 			return *this;
 		}
@@ -284,4 +285,4 @@ namespace dog_torch { namespace asyncion { namespace container {
 			}
 		}
 	};
-}}}
+}

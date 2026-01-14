@@ -140,7 +140,7 @@ DOG_DATA NSROOT::SM3::next_block(const Data& data, BigInt& pos, const BigInt& to
 	{
 		throw HashException(DOG_EXCEPTION_MSG_OPINION("data size is too large"));
 	}
-	auto res = data.sub_by_len(pos.get_abs_uint64(), 64);
+	auto res = data.sub_by_len(pos.to_abs_uint64(), 64);
 	pos += res.size();
 	if (res.size() >= 64)
 	{
@@ -163,7 +163,7 @@ DOG_DATA NSROOT::SM3::next_block(const Data& data, BigInt& pos, const BigInt& to
 			{
 				res.push_back(0x00);
 			}
-			Data num = (total * 8).get_bytes();
+			Data num = (total * 8).to_byte_vector();
 			this->is_padding_ = true;
 			for (uint64_t i = 0; i < (8 - num.size()); i++)
 			{
@@ -207,7 +207,7 @@ DOG_DATA NSROOT::SM3::next_block(std::istream& data, BigInt& pos, const BigInt& 
 			{
 				res.push_back(0x00);
 			}
-			Data num = (total * 8).get_bytes();
+			Data num = (total * 8).to_byte_vector();
 			this->is_padding_ = true;
 			return res + num;
 		}

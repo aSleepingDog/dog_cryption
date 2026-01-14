@@ -109,7 +109,7 @@ namespace dog_torch::serialize::json
 		Object();
 		Object(object value);
 		Object(std::string::const_iterator& now, std::string::const_iterator end);
-		Object(std::string str) : Object((std::string::const_iterator&)str.cbegin(), str.cend()) {}
+		Object(std::string str);
 		Object(std::istream& input);
 
 		object to_std_map();
@@ -153,7 +153,7 @@ namespace dog_torch::serialize::json
 		Array();
 		Array(array value);
 		Array(std::string::const_iterator& now, std::string::const_iterator end);
-		Array(std::string str) : Array((std::string::const_iterator&)str.cbegin(), str.cend()) {}
+		Array(std::string str);
 		Array(std::istream& input);
 
 		array to_std_vector();

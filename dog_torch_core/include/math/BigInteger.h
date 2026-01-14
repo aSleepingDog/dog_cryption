@@ -81,6 +81,8 @@ namespace dog_torch::math::number
 		BigInteger(int32_t n);
 		BigInteger(int64_t n);
 
+		static BigInteger from_vector(const std::vector<uint8_t>& v, char sign = 1);
+
 		void swap(BigInteger& b);
 
 	private:
@@ -98,11 +100,11 @@ namespace dog_torch::math::number
 		*/
 		std::string getDEC();
 	public:
-		std::string get_num(int radix = 10, bool isUpper = true);
+		std::string to_num_string(int radix = 10, bool isUpper = true);
 
-		std::vector<uint8_t> get_bytes() const;
+		std::vector<uint8_t> to_byte_vector() const;
 
-		uint64_t get_abs_uint64();
+		uint64_t to_abs_uint64();
 
 		//基本操作
 		/*

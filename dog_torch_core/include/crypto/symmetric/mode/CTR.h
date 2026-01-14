@@ -30,40 +30,34 @@ namespace dog_torch::crypto::symmetric::mode
 	class CTR : public Mode
 	{
 	private:
+		static void update_counter(Data& counter, uint64_t value = 1);
 		std::unique_ptr<padding::Padding>  padding_;
 		Data                               iv_;
 	public:
-		static Data encrypt(const Data& plain, const Cipher& cipher);
-		static Data decrypt(const Data& crypt, const Cipher& cipher);
+		static Data encrypt(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
+		static Data decrypt(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
 
-		static void encrypt_stream(std::istream& plain, std::ostream& crypt, const Cipher& cipher);
-		static void decrypt_stream(std::istream& crypt, std::ostream& plain, const Cipher& cipher);
-
-		static void encrypt_streamp(std::istream& plain, std::ostream& crypt, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-		static void decrypt_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		static void encrypt_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
+		static void decrypt_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
 
 		CTR(const padding::Padding& padding, const Data& iv);
-		CTR(const Data& iv) : CTR(padding::Padding(), iv) {}
+		CTR(const Data& iv) : CTR(padding::None(), iv) {}
 		CTR(const CTR& other);
 
 		std::unique_ptr<Mode> clone() const override;
+		bool check(const algorithm::Algorithm& algorithm) const override;
 
 		const Data& get_iv() const;
 		const padding::Padding& get_padding() const;
-		bool set_uint64_param(const std::string& param, uint64_t value) override;
-		bool set_string_param(const std::string& param, const std::string& value) override;
+
 		bool set_data_param(const std::string& param, const Data& value) override;
 		bool set_Padding(const padding::Padding& value) override;
+
 		crypt_func get_mult_encrypt() const override;
 		crypt_func get_mult_decrypt() const override;
 
 		stream_crypt_func get_stream_encrypt() const override;
 		stream_crypt_func get_stream_decrypt() const override;
-
-		stream_cryptp_func get_stream_encryptp() const override;
-		stream_cryptp_func get_stream_decryptp() const override;
 	};
 
 

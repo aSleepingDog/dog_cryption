@@ -38,41 +38,26 @@ namespace dog_torch::crypto::symmetric::mode
 		Data iv_;
 		uint64_t shift_;
 	public:
-		static Data encrypt(const Data& plain, const Cipher& cipher);
-		static Data decrypt(const Data& crypt, const Cipher& cipher);
+		static Data encrypt(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func padding);
+		static Data decrypt(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding);
 
-		static void encrypt_stream(std::istream& plain, std::ostream& crypt, const Cipher& cipher);
-		static void decrypt_stream(std::istream& crypt, std::ostream& plain, const Cipher& cipher);
+		static void encrypt_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func padding);
+		static void decrypt_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding);
 
-		static void encrypt_streamp(std::istream& plain, std::ostream& crypt, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-		static void decrypt_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		static Data encrypt_CFB8(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
+		static Data decrypt_CFB8(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
 
-		static Data encrypt_CFB8(const Data& plain, const Cipher& cipher);
-		static Data decrypt_CFB8(const Data& crypt, const Cipher& cipher);
+		static void encrypt_CFB8_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
+		static void decrypt_CFB8_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
 
-		static void encrypt_CFB8_stream(std::istream& plain, std::ostream& crypt, const Cipher& cipher);
-		static void decrypt_CFB8_stream(std::istream& crypt, std::ostream& plain, const Cipher& cipher);
+		static Data encrypt_CFB128(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
+		static Data decrypt_CFB128(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
 
-		static void encrypt_CFB8_streamp(std::istream& plain, std::ostream& crypt, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-		static void decrypt_CFB8_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-
-		static Data encrypt_CFB128(const Data& plain, const Cipher& cipher);
-		static Data decrypt_CFB128(const Data& crypt, const Cipher& cipher);
-
-		static void encrypt_CFB128_stream(std::istream& plain, std::ostream& crypt, const Cipher& cipher);
-		static void decrypt_CFB128_stream(std::istream& crypt, std::ostream& plain, const Cipher& cipher);
-
-		static void encrypt_CFB128_streamp(std::istream& plain, std::ostream& crypt, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-		static void decrypt_CFB128_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		static void encrypt_CFB128_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
+		static void decrypt_CFB128_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
 
 		CFBB(const padding::Padding& padding, const Data& iv, uint64_t shift);
-		CFBB(const Data& iv, uint64_t shift) : CFBB(padding::Padding(), iv, shift) {}
+		CFBB(const Data& iv, uint64_t shift) : CFBB(padding::None(), iv, shift) {}
 		CFBB(const CFBB& other);
 
 		std::unique_ptr<Mode> clone() const override;
@@ -81,6 +66,7 @@ namespace dog_torch::crypto::symmetric::mode
 
 		const Data& get_iv() const;
 		const padding::Padding& get_padding() const;
+		bool check(const algorithm::Algorithm& algorithm) const override;
 
 		bool set_uint64_param(const std::string& param, uint64_t value) override;
 		bool set_data_param(const std::string& param, const Data& value) override;
@@ -93,9 +79,6 @@ namespace dog_torch::crypto::symmetric::mode
 
 		stream_crypt_func get_stream_encrypt() const override;
 		stream_crypt_func get_stream_decrypt() const override;
-
-		stream_cryptp_func get_stream_encryptp() const override;
-		stream_cryptp_func get_stream_decryptp() const override;
 	};
 
 	class CFBb : public Mode
@@ -105,36 +88,27 @@ namespace dog_torch::crypto::symmetric::mode
 		Data iv_;
 		uint64_t shift_;
 	public:
-		static Data encrypt(const Data& plain, const Cipher& cipher);
-		static Data decrypt(const Data& crypt, const Cipher& cipher);
+		static Data encrypt(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func padding);
+		static Data decrypt(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding);
 
-		static void encrypt_stream(std::istream& plain, std::ostream& crypt, const Cipher& cipher);
-		static void decrypt_stream(std::istream& crypt, std::ostream& plain, const Cipher& cipher);
+		static void encrypt_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func padding);
+		static void decrypt_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding);
 
-		static void encrypt_streamp(std::istream& plain, std::ostream& crypt, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-		static void decrypt_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		static Data encrypt_CFB1(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
+		static Data decrypt_CFB1(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
 
-		static Data encrypt_CFB1(const Data& plain, const Cipher& cipher);
-		static Data decrypt_CFB1(const Data& crypt, const Cipher& cipher);
-
-		static void encrypt_CFB1_stream(std::istream& plain, std::ostream& crypt, const Cipher& cipher);
-		static void decrypt_CFB1_stream(std::istream& crypt, std::ostream& plain, const Cipher& cipher);
-
-		static void encrypt_CFB1_streamp(std::istream& plain, std::ostream& crypt, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
-		static void decrypt_CFB1_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
-			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		static void encrypt_CFB1_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
+		static void decrypt_CFB1_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
 
 		CFBb(const padding::Padding& padding, const Data& iv, uint64_t shift);
-		CFBb(const Data& iv, uint64_t shift) : CFBb(padding::Padding(), iv, shift) {}
+		CFBb(const Data& iv, uint64_t shift) : CFBb(padding::None(), iv, shift) {}
 		CFBb(const CFBb& other);
-
+		
 		uint64_t get_shift() const;
 
 		const Data& get_iv() const;
 		const padding::Padding& get_padding() const;
+		bool check(const algorithm::Algorithm& algorithm) const override;
 
 		std::string fmt_config() const override;
 
@@ -149,9 +123,6 @@ namespace dog_torch::crypto::symmetric::mode
 
 		stream_crypt_func get_stream_encrypt() const override;
 		stream_crypt_func get_stream_decrypt() const override;
-
-		stream_cryptp_func get_stream_encryptp() const override;
-		stream_cryptp_func get_stream_decryptp() const override;
 	};
 
 }

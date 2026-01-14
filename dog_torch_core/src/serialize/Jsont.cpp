@@ -705,6 +705,11 @@ dog_torch::serialize::jsont::Value::Value(std::string::const_iterator& now, std:
         *this = Value(dog_torch::serialize::jsont::any::to_type(now, end));
     }
 }
+dog_torch::serialize::jsont::Value::Value(std::string str)
+{
+    auto now = str.cbegin();
+    *this = Value(now, str.cend());
+}
 dog_torch::serialize::jsont::Value::Value(std::istream& input)
 {
     *this = Value(dog_torch::serialize::jsont::any::to_string(input));
@@ -882,6 +887,11 @@ dog_torch::serialize::jsont::Object::Object(std::string::const_iterator& now, st
 
     }
     now++;
+}
+dog_torch::serialize::jsont::Object::Object(std::string str)
+{
+    auto now = str.cbegin();
+    *this = Object(now, str.cend());
 }
 dog_torch::serialize::jsont::Object::Object(std::istream& input)
 {
@@ -1127,6 +1137,11 @@ dog_torch::serialize::jsont::Array::Array(std::string::const_iterator& now, std:
         }
     }
     now++;
+}
+dog_torch::serialize::jsont::Array::Array(std::string str)
+{
+    auto now = str.cbegin();
+    *this = Array(now, str.cend());
 }
 std::vector<dog_torch::serialize::jsont::Value> dog_torch::serialize::jsont::Array::to_std_vector()
 {

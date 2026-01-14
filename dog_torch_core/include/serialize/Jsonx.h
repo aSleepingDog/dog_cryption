@@ -120,7 +120,7 @@ namespace dog_torch::serialize::jsonx
 		Object();
 		Object(std::unordered_map<std::string, Value> value);
 		Object(std::string::const_iterator& now, std::string::const_iterator end);
-		Object(std::string str) : Object((std::string::const_iterator&)str.cbegin(), str.cend()) {}
+		Object(std::string str);
 		Object(std::istream& input);
 
 		std::unordered_map<std::string, Value> to_std_map();
@@ -164,7 +164,7 @@ namespace dog_torch::serialize::jsonx
 		Array();
 		Array(std::vector<Value> value);
 		Array(std::string::const_iterator& now, std::string::const_iterator end);
-		Array(std::string str) : Array((std::string::const_iterator&)str.cbegin(), str.cend()) {}
+		Array(std::string str);
 		Array(std::istream& input);
 
 		std::vector<Value> to_std_vector();

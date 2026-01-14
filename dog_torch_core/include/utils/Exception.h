@@ -14,94 +14,6 @@
 #include<stacktrace>
 #include<exception>
 
-
-//#ifdef _MSC_VER
-//
-//#ifdef STACEKTRACE
-//
-//#define DOG_EXCEPTION_MSG_PARAMS std::string msg, std::basic_stacktrace<std::allocator<std::stacktrace_entry>> stacktrace, std::thread::id thread_id, std::string file, std::string func, uint64_t line
-//#define DOG_EXCEPTION_PARAMS std::basic_stacktrace<std::allocator<std::stacktrace_entry>> stacktrace, std::thread::id thread_id, std::string file, std::string func, uint64_t line
-//
-//#define DOG_EXCEPTION_MSG_OPINION(msg) \
-//std::string(msg),std::stacktrace::current(),std::this_thread::get_id(),\
-//std::string(__FILE__), std::string(__FUNCTION__), __LINE__
-//
-//#define DOG_EXCEPTION_OPINION \
-//std::stacktrace::current(),std::this_thread::get_id(),\
-//std::string(__FILE__), std::string(__FUNCTION__), __LINE__
-//
-//#define DOG_EXCEPTION(msg) dog_torch::utils::Exception(DOG_EXCEPTION_MSG_OPINION(msg))
-//
-//namespace dog_torch::utils
-//{
-//	class DOG_CRYPTION_API Exception : public std::exception
-//	{
-//	protected:
-//		std::string msg;
-//	public:
-//		Exception(std::string msg, std::basic_stacktrace<std::allocator<std::stacktrace_entry>> stacktrace, std::thread::id thread_id, 
-//			std::string file, std::string func, uint64_t line);
-//		const char* what() const noexcept override;
-//	};
-//}
-//#else
-//#define DOG_EXCEPTION_MSG_PARAMS std::string msg, std::thread::id thread_id, std::string file, std::string func, uint64_t line
-//#define DOG_EXCEPTION_PARAMS std::thread::id thread_id, std::string file, std::string func, uint64_t line
-//
-//#define DOG_EXCEPTION_MSG_OPINION(msg) \
-//std::string(msg),std::this_thread::get_id(),\
-//std::string(__FILE__), std::string(__FUNCTION__), __LINE__
-//
-//#define DOG_EXCEPTION_OPINION \
-//std::this_thread::get_id(),\
-//std::string(__FILE__), std::string(__FUNCTION__), __LINE__
-//
-//#define DOG_EXCEPTION(msg) dog_torch::utils::Exception(DOG_EXCEPTION_MSG_OPINION(msg))
-//
-//namespace dog_torch::utils
-//{
-//	class DOG_CRYPTION_API Exception : public std::exception
-//	{
-//	protected:
-//		std::string msg;
-//	public:
-//		Exception(std::string msg, std::thread::id thread_id,
-//			std::string file, std::string func, uint64_t line);
-//		const char* what() const noexcept override;
-//	};
-//}
-//#endif
-//#endif
-//
-//#ifdef __GNUC__
-//#define DOG_EXCEPTION_MSG_PARAMS std::string msg, std::thread::id thread_id, std::string file, std::string func, uint64_t line
-//#define DOG_EXCEPTION_PARAMS std::thread::id thread_id, std::string file, std::string func, uint64_t line
-//
-//#define DOG_EXCEPTION_MSG_OPINION(msg) \
-//std::string(msg),std::this_thread::get_id(),\
-//std::string(__FILE__), std::string(__FUNCTION__), __LINE__
-//
-//#define DOG_EXCEPTION_OPINION \
-//std::this_thread::get_id(),\
-//std::string(__FILE__), std::string(__FUNCTION__), __LINE__
-//
-//#define DOG_EXCEPTION(msg) dog_torch::utils::Exception(DOG_EXCEPTION_MSG_OPINION(msg))
-//
-//namespace dog_torch::utils
-//{
-//	class DOG_CRYPTION_API Exception : public std::exception
-//	{
-//	protected:
-//		std::string msg;
-//	public:
-//		Exception(std::string msg, std::thread::id thread_id,
-//			std::string file, std::string func, uint64_t line);
-//		const char* what() const noexcept override;
-//	};
-//}
-//
-//#endif
-
 #ifdef STACKTACRE 
 
 	#define DOG_EXCEPTION_MSG_PARAMS \
@@ -119,20 +31,16 @@
 	std::string func,\
 	uint64_t line
 
-	#define DOG_EXCEPTION_MSG_OPINION(msg) \
-	std::string(msg),\
-	std::stacktrace::current(),\
-	std::this_thread::get_id(),\
-	std::string(__FILE__),\
-	std::string(__FUNCTION__),\
-	__LINE__
-
 	#define DOG_EXCEPTION_OPINION \
 	std::stacktrace::current(),\
 	std::this_thread::get_id(),\
-	std::string(__FILE__),\
+	dog_torch::utils::Exception::get_abstract_path(__FILE__),\
 	std::string(__FUNCTION__),\
 	__LINE__
+
+	#define DOG_EXCEPTION_MSG_OPINION(msg) \
+	std::string(msg),DOG_EXCEPTION_OPINION
+
 
 	#define DOG_EXCEPTION(msg) dog_torch::utils::Exception(DOG_EXCEPTION_MSG_OPINION(msg))
 
@@ -151,18 +59,14 @@
 	std::string func, \
 	uint64_t line
 
-	#define DOG_EXCEPTION_MSG_OPINION(msg) \
-	std::string(msg),\
+	#define DOG_EXCEPTION_OPINION \
 	std::this_thread::get_id(),\
-	std::string(__FILE__),\
+	dog_torch::utils::Exception::get_abstract_path(__FILE__),\
 	std::string(__FUNCTION__),\
 	__LINE__
 
-	#define DOG_EXCEPTION_OPINION \
-	std::this_thread::get_id(),\
-	std::string(__FILE__),\
-	std::string(__FUNCTION__),\
-	__LINE__
+	#define DOG_EXCEPTION_MSG_OPINION(msg) \
+	std::string(msg), DOG_EXCEPTION_OPINION
 
 	#define DOG_EXCEPTION(msg) dog_torch::utils::Exception(DOG_EXCEPTION_MSG_OPINION(msg))
 
@@ -177,9 +81,18 @@ namespace dog_torch::utils
 	public:
 		Exception(DOG_EXCEPTION_MSG_PARAMS);
 		const char* what() const noexcept override;
-		/*
-		* 请勿手动调用
-		*/
-		static constexpr std::string_view get_abstract_path(std::string_view path);
+
+		constexpr static const char* get_abstract_path(const char* path)
+		{
+			std::string_view sv_path(path);
+			constexpr std::string_view target = "dog_torch_core";
+
+			size_t pos = sv_path.find(target);
+			if (pos != std::string_view::npos)
+			{
+				return path + pos;
+			}
+			return nullptr;
+		}
 	};
 }

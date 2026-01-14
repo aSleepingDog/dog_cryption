@@ -29,11 +29,11 @@ DOG_DATA NSROOT::utils::get_sequence(uint64_t lenght)
 	return res;
 }
 
+//Algorithm
 std::unique_ptr<NSROOT::algorithm::Algorithm> NSROOT::algorithm::Algorithm::clone() const
 {
 	return std::move(std::make_unique<Algorithm>(*this));
 }
-
 DOG_DATA NSROOT::algorithm::Algorithm::to_data() const
 {
 	using namespace dog_torch::serialize;
@@ -44,7 +44,6 @@ DOG_DATA NSROOT::algorithm::Algorithm::to_data() const
 	res += tlv::integer_num(this->key_size);
 	return res;
 }
-
 std::string NSROOT::algorithm::Algorithm::fmt_config() const
 {
 	return std::format("{}_{}_{}", name, key_size, block_size);
@@ -82,6 +81,7 @@ NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::Algorithm::get_de
 	return [](Data&, uint64_t, const Data&, uint64_t) -> void {};
 }
 
+//Padding
 NSROOT::padding::Padding::Padding(const std::string& name)
 {
 	this->name = name;
@@ -90,9 +90,9 @@ NSROOT::padding::Padding::Padding()
 {
 	this->name = "None";
 }
-std::unique_ptr<NSROOT::padding::Padding> NSROOT::padding::Padding::clone() const
+std::unique_ptr<NSROOT::padding::Padding> dog_torch::crypto::symmetric::padding::Padding::clone() const
 {
-	return std::move(std::make_unique<Padding>(*this));
+	return std::make_unique<Padding>(*this);
 }
 DOG_DATA NSROOT::padding::Padding::to_data() const
 {
@@ -119,11 +119,40 @@ NSROOT::padding::padding_func NSROOT::padding::Padding::get_unpadding() const
 	return [](Data&, uint64_t) -> void {};
 }
 
+//None
+NSROOT::padding::None::None() : Padding("None")
+{
+}
+std::unique_ptr<NSROOT::padding::Padding> NSROOT::padding::None::clone() const
+{
+	return std::make_unique<Padding>(*this);
+}
+DOG_DATA NSROOT::padding::None::to_data() const
+{
+	return Data();
+}
+std::string NSROOT::padding::None::fmt_config() const
+{
+	return std::string();
+}
+std::string NSROOT::padding::None::get_name() const
+{
+	return std::string();
+}
+NSROOT::padding::padding_func NSROOT::padding::None::get_padding() const
+{
+	return padding_func();
+}
+NSROOT::padding::padding_func NSROOT::padding::None::get_unpadding() const
+{
+	return padding_func();
+}
+
+//Mode
 std::unique_ptr<NSROOT::mode::Mode> NSROOT::mode::Mode::clone() const
 {
 	return std::move(std::make_unique<Mode>(*this));
 }
-
 std::string NSROOT::mode::Mode::fmt_config() const
 {
 	return this->name;
@@ -136,19 +165,23 @@ DOG_DATA NSROOT::mode::Mode::to_data() const
 	res += tlv::string(this->name);
 	return res;
 }
-bool dog_torch::crypto::symmetric::mode::Mode::set_uint64_param(const std::string& param, uint64_t value)
+bool NSROOT::mode::Mode::set_uint64_param(const std::string& param, uint64_t value)
 {
 	return false;
 }
-bool dog_torch::crypto::symmetric::mode::Mode::set_string_param(const std::string& param, const std::string& value)
+bool NSROOT::mode::Mode::set_string_param(const std::string& param, const std::string& value)
 {
 	return false;
 }
-bool dog_torch::crypto::symmetric::mode::Mode::set_data_param(const std::string& param, const Data& value)
+bool NSROOT::mode::Mode::set_data_param(const std::string& param, const Data& value)
 {
 	return false;
 }
-bool dog_torch::crypto::symmetric::mode::Mode::set_Padding(const padding::Padding& value)
+bool NSROOT::mode::Mode::set_Padding(const padding::Padding& value)
+{
+	return false;
+}
+bool NSROOT::mode::Mode::check(const algorithm::Algorithm& algorithm) const
 {
 	return false;
 }
@@ -168,13 +201,16 @@ NSROOT::mode::stream_crypt_func NSROOT::mode::Mode::get_stream_decrypt() const
 {
 	return stream_crypt_func();
 }
-NSROOT::mode::stream_cryptp_func NSROOT::mode::Mode::get_stream_encryptp() const
+uint64_t NSROOT::mode::read_byte_size(std::istream& input, Data& buf, uint64_t size, uint64_t& total)
 {
-	return stream_cryptp_func();
-}
-NSROOT::mode::stream_cryptp_func NSROOT::mode::Mode::get_stream_decryptp() const
-{
-	return stream_cryptp_func();
+	input.read((char*)buf.data(), size);
+	uint64_t read_byte_size = input.gcount();
+	total += read_byte_size;
+	for (uint64_t i = read_byte_size; i < size; i++)
+	{
+		buf.pop_back();
+	}
+	return read_byte_size;
 }
 double NSROOT::mode::update_progress(double progress, double progress_step, double progress_max)
 {
@@ -187,25 +223,21 @@ NSROOT::CryptionConfig::CryptionConfig(const algorithm::Algorithm& algorithm, co
 {
 	//2025.12.28 20:57 发现加密模式是空指针 一看构造函数没有构造 给我气笑了
 }
-
 NSROOT::CryptionConfig::CryptionConfig(const CryptionConfig& other)
 {
 	this->algorithm_ = other.algorithm_->clone();
 	this->mode_      = other.mode_->clone();
 }
-
 NSROOT::CryptionConfig::CryptionConfig(CryptionConfig&& other)
 {
 	this->algorithm_ = std::move(other.algorithm_);
 	this->mode_      = std::move(other.mode_);
 }
-
 void NSROOT::CryptionConfig::swap(CryptionConfig& other)
 {
 	this->algorithm_.swap(other.algorithm_);
 	this->mode_.swap(other.mode_);
 }
-
 DOG_DATA NSROOT::CryptionConfig::to_data() const
 {
 	return this->algorithm_->to_data() + this->mode_->to_data();
@@ -220,21 +252,18 @@ NSROOT::Cipher::Cipher(const algorithm::Algorithm& algorithm, const mode::Mode& 
 {
 
 }
-
 NSROOT::Cipher::Cipher(const Cipher& other) : config_(other.config_)
 {
 	this->original_key_   = other.original_key_;
 	this->available_key_ = other.available_key_;
 	this->is_setting_key_ = other.is_setting_key_;
 }
-
-dog_torch::crypto::symmetric::Cipher::Cipher(Cipher&& other) : config_(std::move(other.config_))
+NSROOT::Cipher::Cipher(Cipher&& other) : config_(std::move(other.config_))
 {
 	this->original_key_ = std::move(other.original_key_);
 	this->available_key_ = std::move(other.available_key_);
 	this->is_setting_key_ = other.is_setting_key_;
 }
-
 void NSROOT::Cipher::set_key(Data key)
 {
 	this->original_key_   = key;
@@ -320,11 +349,11 @@ NSROOT::algorithm::block_cryption_func NSROOT::Cipher::get_block_decryption()
 {
 	return this->config_.algorithm_->get_decrypt();
 }
-DOG_DATA dog_torch::crypto::symmetric::Cipher::to_data() const
+DOG_DATA NSROOT::Cipher::to_data() const
 {
 	return this->config_.to_data();
 }
-std::string dog_torch::crypto::symmetric::Cipher::to_string() const
+std::string NSROOT::Cipher::to_string() const
 {
 	return this->config_.to_string();
 }
@@ -363,11 +392,32 @@ bool NSROOT::Cipher::set_mode_Padding(const padding::Padding& value)
 
 DOG_DATA NSROOT::Cipher::encrypt(const Data& plain)
 {//only for test
-	return this->config_.mode_->get_mult_encrypt()(plain, *this);
+	return this->config_.mode_->get_mult_encrypt()(plain, this->get_available_key(), this->get_algorithm());
 }
+void NSROOT::Cipher::encrypt(std::filesystem::path plain, std::filesystem::path crypt)
+{
+	std::ifstream is(plain, std::ios::binary);
+	uint64_t max = std::filesystem::file_size(plain);
+
+	std::ofstream os(crypt, std::ios::binary);
+	this->config_.mode_->get_stream_encrypt()(is, max, os, this->get_available_key(), this->get_algorithm());
+	is.close();
+	os.close();
+}
+
 DOG_DATA NSROOT::Cipher::decrypt(const Data& crypt)
 {//only for test
-	return this->config_.mode_->get_mult_decrypt()(crypt, *this);
+	return this->config_.mode_->get_mult_decrypt()(crypt, this->get_available_key(), this->get_algorithm());
+}
+void NSROOT::Cipher::decrypt(std::filesystem::path crypt, std::filesystem::path plain)
+{
+	std::ifstream is(crypt, std::ios::binary);
+	uint64_t max = std::filesystem::file_size(crypt);
+
+	std::ofstream os(plain, std::ios::binary);
+	this->config_.mode_->get_stream_decrypt()(is, max, os, this->get_available_key(), this->get_algorithm());
+	is.close();
+	os.close();
 }
 
 #undef NSROOT

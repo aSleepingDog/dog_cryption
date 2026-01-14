@@ -1154,6 +1154,19 @@ dog_torch::math::number::BigInteger::BigInteger(int64_t n)
 	BigInteger::toBigInteger(n).swap(*this);
 }
 
+dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::from_vector(const std::vector<uint8_t>& v, char sign)
+{
+	if (v.empty()) return BigInteger(0);
+	BigInteger res;
+	res.sign_ = sign;
+	for (auto& b : v)
+	{
+		res.num_.push_back(b);
+	}
+	res.reverse();
+	return res;
+}
+
 void dog_torch::math::number::BigInteger::swap(BigInteger& b)
 {
 	std::swap(this->num_, b.num_);
@@ -1312,7 +1325,7 @@ std::string dog_torch::math::number::BigInteger::getDEC()
 	}
 	return res;
 }
-std::string dog_torch::math::number::BigInteger::get_num(int radix, bool isUpper)
+std::string dog_torch::math::number::BigInteger::to_num_string(int radix, bool isUpper)
 {
 	if (this->get_sign() == 0)
 	{
@@ -1411,11 +1424,11 @@ std::string dog_torch::math::number::BigInteger::get_num(int radix, bool isUpper
 	}
 	return res;
 }
-std::vector<uint8_t> dog_torch::math::number::BigInteger::get_bytes() const
+std::vector<uint8_t> dog_torch::math::number::BigInteger::to_byte_vector() const
 {
 	return this->num_;
 }
-uint64_t dog_torch::math::number::BigInteger::get_abs_uint64()
+uint64_t dog_torch::math::number::BigInteger::to_abs_uint64()
 {
 	if (this->num_.empty())
 	{

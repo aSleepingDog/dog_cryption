@@ -286,7 +286,7 @@ DOG_DATA NSROOT::SHA2::next_block(const Data& data, BigInt& pos, const BigInt& t
 	}
 	if (this->effective_ == 32 || this->effective_ == 28)
 	{
-		auto res = data.sub_by_len(pos.get_abs_uint64(), 64);
+		auto res = data.sub_by_len(pos.to_abs_uint64(), 64);
 		pos += res.size();
 		if (res.size() >= 64)
 		{
@@ -309,7 +309,7 @@ DOG_DATA NSROOT::SHA2::next_block(const Data& data, BigInt& pos, const BigInt& t
 				{
 					res.push_back(0x00);
 				}
-				Data num = (total * 8).get_bytes();
+				Data num = (total * 8).to_byte_vector();
 				this->is_padding_ = true;
 				for (uint64_t i = 0; i < (8 - num.size()); i++)
 				{
@@ -321,7 +321,7 @@ DOG_DATA NSROOT::SHA2::next_block(const Data& data, BigInt& pos, const BigInt& t
 	}
 	else if (this->effective_ == 64 || this->effective_ == 48)
 	{
-		auto res = data.sub_by_len(pos.get_abs_uint64(), 128);
+		auto res = data.sub_by_len(pos.to_abs_uint64(), 128);
 		pos += res.size();
 		if (res.size() >= 128)
 		{
@@ -344,7 +344,7 @@ DOG_DATA NSROOT::SHA2::next_block(const Data& data, BigInt& pos, const BigInt& t
 				{
 					res.push_back(0x00);
 				}
-				Data num = (total * 8).get_bytes();
+				Data num = (total * 8).to_byte_vector();
 				this->is_padding_ = true;
 				for (uint64_t i = 0; i < (16 - num.size()); i++)
 				{
@@ -396,7 +396,7 @@ DOG_DATA NSROOT::SHA2::next_block(std::istream& data, BigInt& pos, const BigInt&
 				{
 					res.push_back(0x00);
 				}
-				Data num = (total * 8).get_bytes();
+				Data num = (total * 8).to_byte_vector();
 				this->is_padding_ = true;
 				return res + num;
 			}
@@ -432,7 +432,7 @@ DOG_DATA NSROOT::SHA2::next_block(std::istream& data, BigInt& pos, const BigInt&
 				{
 					res.push_back(0x00);
 				}
-				Data num = (total * 8).get_bytes();
+				Data num = (total * 8).to_byte_vector();
 				this->is_padding_ = true;
 				for (uint64_t i = 0; i < (16 - num.size()); i++)
 				{

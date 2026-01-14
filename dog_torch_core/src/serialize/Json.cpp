@@ -1284,6 +1284,11 @@ dog_torch::serialize::json::Object::Object(std::string::const_iterator& now, std
     }
     now++;
 }
+dog_torch::serialize::json::Object::Object(std::string str)
+{
+    auto now = str.cbegin();
+    *this = Object(now, str.cend());
+}
 dog_torch::serialize::json::Object::Object(std::istream& input)
 {
     CHECK_SEND;
@@ -1461,6 +1466,11 @@ dog_torch::serialize::json::Array::Array(std::string::const_iterator& now, std::
         }
     }
     now++;
+}
+dog_torch::serialize::json::Array::Array(std::string str)
+{
+    auto now = str.cbegin();
+    *this = Array(now, str.cend());
 }
 dog_torch::serialize::json::Array::Array(std::istream& input)
 {

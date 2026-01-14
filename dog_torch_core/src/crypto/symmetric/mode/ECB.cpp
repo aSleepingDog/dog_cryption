@@ -3,180 +3,87 @@
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root
 #define DOG_DATA dog_torch::serialize::BinaryData
 
-DOG_DATA NSROOT::mode::ECB::encrypt(const Data& plain, const Cipher& cipher)
-{
-    uint64_t block_size = cipher.get_block_size();
-    uint64_t key_size = cipher.get_key_size();
-    const Data& key = cipher.get_available_key();
-    padding::padding_func padding = ((const ECB&)cipher.get_mode()).get_padding().get_padding();
-    algorithm::block_self_cryption_func block_self_encryption = cipher.get_block_self_encryption();
+#define ECB_ENCRYPT_INIT \
+uint64_t block_size = algorithm.get_block_size(); \
+uint64_t key_size = algorithm.get_key_size(); \
+const Data& key = available_key; \
+algorithm::block_self_cryption_func block_self_encryption = algorithm.get_encrypt_self();
 
-    Data res;
-  	res.reserve(((plain.size() / block_size) + 1) * block_size);
-  	Data tempBlock;
-  	for (uint64_t i0 = 0; i0 <= plain.size(); i0 += block_size)
-  	{
-  		tempBlock = plain.sub_by_pos(i0, i0 + block_size);
-        padding(tempBlock, block_size);
-  		block_self_encryption(tempBlock, block_size, key, key_size);
-  		res += tempBlock;
-  	}
-  	return res;
+#define ECB_DECRYPT_INIT \
+uint64_t block_size = algorithm.get_block_size(); \
+uint64_t key_size = algorithm.get_key_size(); \
+const Data& key = available_key; \
+algorithm::block_self_cryption_func block_self_decryption = algorithm.get_decrypt_self();
+
+DOG_DATA NSROOT::mode::ECB::encrypt(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, padding::padding_func padding)
+{
+    ECB_ENCRYPT_INIT;
+
+    Data temp_block(block_size), crypt; crypt.reserve(((plain.size() / block_size) + 1) * block_size);
+    uint64_t i = 0;
+    for (; block_size <= plain.size() - i; i += block_size)
+    {
+        temp_block = plain.sub_by_len(i, block_size);
+        block_self_encryption(temp_block, block_size, key, key_size);
+        crypt += temp_block;
+    }
+    temp_block = plain.sub_by_len(i, block_size);
+    padding(temp_block, block_size);
+    block_self_encryption(temp_block, block_size, key, key_size);
+    crypt += temp_block;
+    return crypt;
 }
-DOG_DATA NSROOT::mode::ECB::decrypt(const Data& crypt, const Cipher& cipher)
+DOG_DATA NSROOT::mode::ECB::decrypt(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, padding::padding_func unpadding)
 {
-    uint64_t block_size = cipher.get_block_size();
-    uint64_t key_size = cipher.get_key_size();
-    const Data& key = cipher.get_available_key();
-    padding::padding_func unpadding = ((const ECB&)cipher.get_mode()).get_padding().get_unpadding();
-    algorithm::block_self_cryption_func block_self_decryption = cipher.get_block_self_decryption();
+    ECB_DECRYPT_INIT;
 
- 	dog_torch::serialize::BinaryData res; res.reserve(crypt.size());
- 	dog_torch::serialize::BinaryData tempBlock(block_size);
- 	for (uint64_t i0 = 0; i0 < crypt.size(); i0 += block_size)
- 	{
- 		tempBlock = crypt.sub_by_pos(i0, i0 + block_size);
-        block_self_decryption(tempBlock, block_size, key, key_size);
- 		res += tempBlock;
- 	}
- 	unpadding(res, block_size);
- 	return res;
+    Data temp_block(block_size), plain; plain.reserve(((crypt.size() / block_size) + 1) * block_size);
+    uint64_t i = 0;
+    for (; block_size < crypt.size() - i; i += block_size)
+    {
+        temp_block = crypt.sub_by_len(i, block_size);
+        block_self_decryption(temp_block, block_size, key, key_size);
+        plain += temp_block;
+    }
+    temp_block = crypt.sub_by_len(i, block_size);
+    block_self_decryption(temp_block, block_size, key, key_size);
+    unpadding(temp_block, block_size);
+    plain += temp_block;
+    return plain;
 }
-void NSROOT::mode::ECB::encrypt_stream(std::istream& plain, std::ostream& crypt, const Cipher& cipher)
+void NSROOT::mode::ECB::encrypt_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, padding::padding_func padding)
 {
- 	plain.seekg(0, std::ios::end);
- 	uint64_t file_size = plain.tellg();
- 	plain.seekg(0, std::ios::beg);
+    ECB_ENCRYPT_INIT;
 
-    uint64_t block_size = cipher.get_block_size();
-    uint64_t key_size = cipher.get_key_size();
-    const Data& key = cipher.get_available_key();
-    padding::padding_func padding = ((const ECB&)cipher.get_mode()).get_padding().get_padding();
-    algorithm::block_self_cryption_func block_self_encryption = cipher.get_block_self_encryption();
-
- 	Data tempBlock(block_size);
- 	while (plain.tellg() <= file_size - block_size)
- 	{
- 		plain.read((char*)tempBlock.data(), block_size);
- 		block_self_encryption(tempBlock, block_size, key, key_size);
- 		crypt.write((char*)tempBlock.data(), block_size);
- 		//printf("%03ull%%\r", plain.tellg() * 100 / file_size);
- 	}
- 	plain.read((char*)tempBlock.data(), block_size);
- 	if (plain.gcount() < block_size)
- 	{
- 		for (uint64_t i = 0; i < block_size - plain.gcount(); ++i) { tempBlock.pop_back(); }
- 	}
-    padding(tempBlock, block_size);
-    block_self_encryption(tempBlock, block_size, key, key_size);
- 	crypt.write((char*)tempBlock.data(), block_size);
- 	crypt.flush();
- 	//printf("100%%\r");
+    Data temp_block(block_size);
+    uint64_t total = 0;
+    while (max - total >= block_size && read_byte_size(plain, temp_block, block_size, total) == block_size)
+    {
+        block_self_encryption(temp_block, block_size, key, key_size);
+        crypt.write((char*)temp_block.data(), block_size);
+    }
+    read_byte_size(plain, temp_block, block_size, total);
+    padding(temp_block, block_size);
+    block_self_encryption(temp_block, block_size, key, key_size);
+    crypt.write((char*)temp_block.data(), block_size);
+    crypt.flush();
 }
-void NSROOT::mode::ECB::decrypt_stream(std::istream& crypt, std::ostream& plain, const Cipher& cipher)
+void NSROOT::mode::ECB::decrypt_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, padding::padding_func unpadding)
 {
- 	uint64_t now_pos = crypt.tellg();
- 	crypt.seekg(0, std::ios::end);
- 	uint64_t file_size = crypt.tellg();
- 	crypt.seekg(now_pos);
+    ECB_DECRYPT_INIT;
 
-    uint64_t block_size = cipher.get_block_size();
-    uint64_t key_size = cipher.get_key_size();
-    const Data& key = cipher.get_available_key();
-    padding::padding_func unpadding = ((const ECB&)cipher.get_mode()).get_padding().get_padding();
-    algorithm::block_self_cryption_func block_self_decryption = cipher.get_block_self_decryption();
-
- 	Data tempBlock(block_size);
-
- 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
- 	{
- 		crypt.read((char*)tempBlock.data(), block_size);
- 		block_self_decryption(tempBlock, block_size, key, key_size);
- 		plain.write((char*)tempBlock.data(), block_size);
- 		//printf("%03ull%%\r", crypt.tellg() * 100 / file_size);
- 	}
- 	crypt.read((char*)tempBlock.data(), block_size);
-    block_self_decryption(tempBlock, block_size, key, key_size);
- 	unpadding(tempBlock, block_size);
- 	plain.write((char*)tempBlock.data(), tempBlock.size());
- 	plain.flush();
- 	//printf("100%%\r");
-}
-void NSROOT::mode::ECB::encrypt_streamp(std::istream& plain, std::ostream& crypt, const Cipher& cipher,
-    std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
-{
- 	plain.seekg(0, std::ios::end);
- 	uint64_t file_size = plain.tellg();
- 	plain.seekg(0, std::ios::beg);
-
-    uint64_t block_size = cipher.get_block_size();
-    uint64_t key_size = cipher.get_key_size();
-    const Data& key = cipher.get_available_key();
-    padding::padding_func padding = ((const ECB&)cipher.get_mode()).get_padding().get_padding();
-    algorithm::block_self_cryption_func block_self_encryption = cipher.get_block_self_encryption();
-
- 	Data tempBlock(block_size);
- 	while (plain.tellg() <= file_size - block_size)
- 	{
- 		plain.read((char*)tempBlock.data(), block_size);
-        block_self_encryption(tempBlock, block_size, key, key_size);
- 		crypt.write((char*)tempBlock.data(), block_size);
-
- 		std::unique_lock<std::mutex> lock(*mutex_);
- 		while (*paused_ && !*stop_) { cond_->wait(lock); }
- 		if (*stop_) return;
- 		lock.unlock();
-
- 		progress_->store(NSROOT::mode::update_progress(progress_->load(), block_size, file_size));
- 	}
- 	plain.read((char*)tempBlock.data(), block_size);
- 	if (plain.gcount() < block_size)
- 	{
- 		for (uint64_t i = 0; i < block_size - plain.gcount(); ++i) { tempBlock.pop_back(); }
- 	}
-    padding(tempBlock, block_size);
-    block_self_encryption(tempBlock, block_size, key, key_size);
-    progress_->store(NSROOT::mode::update_progress(progress_->load(), block_size, file_size));
- 	crypt.write((char*)tempBlock.data(), block_size);
- 	crypt.flush();
- 	progress_->store(1.0);
-}
-void NSROOT::mode::ECB::decrypt_streamp(std::istream& crypt, std::ostream& plain, const Cipher& cipher,
-    std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_)
-{
- 	uint64_t now_pos = crypt.tellg();
- 	crypt.seekg(0, std::ios::end);
- 	uint64_t file_size = crypt.tellg();
- 	crypt.seekg(now_pos);
-
-    uint64_t block_size = cipher.get_block_size();
-    uint64_t key_size = cipher.get_key_size();
-    const Data& key = cipher.get_available_key();
-    padding::padding_func unpadding = ((const ECB&)cipher.get_mode()).get_padding().get_padding();
-    algorithm::block_self_cryption_func block_self_decryption = cipher.get_block_self_decryption();
-
-
- 	Data tempBlock(block_size);
-
- 	for (uint64_t i = 0; i < (file_size - now_pos - 1) / block_size; ++i)
- 	{
- 		crypt.read((char*)tempBlock.data(), block_size);
-        block_self_decryption(tempBlock, block_size, key, key_size);
- 		plain.write((char*)tempBlock.data(), block_size);
-
- 		std::unique_lock<std::mutex> lock(*mutex_);
- 		while (*paused_ && !*stop_) { cond_->wait(lock); }
- 		if (*stop_) return;
- 		lock.unlock();
- 		progress_->store(NSROOT::mode::update_progress(progress_->load(), block_size, file_size));
- 	}
- 	crypt.read((char*)tempBlock.data(), block_size);
-    block_self_decryption(tempBlock, block_size, key, key_size);
-    unpadding(tempBlock, block_size);
- 	plain.write((char*)tempBlock.data(), tempBlock.size());
- 	progress_->store(update_progress(progress_->load(), block_size, file_size));
- 	plain.flush();
- 	progress_->store(1.0);
+    Data temp_block(block_size);
+    uint64_t total = 0;
+    while (max - total > block_size && read_byte_size(crypt, temp_block, block_size, total) == block_size)
+    {
+        block_self_decryption(temp_block, block_size, key, key_size);
+        plain.write((char*)temp_block.data(), block_size);
+    }
+    if (read_byte_size(crypt, temp_block, block_size, total) < block_size) throw CryptionException(DOG_EXCEPTION_MSG_OPINION("The data is not encrypted by ECB mode"));
+    block_self_decryption(temp_block, block_size, key, key_size);
+    unpadding(temp_block, block_size);
+    plain.write((char*)temp_block.data(), temp_block.size());
+    plain.flush();
 }
 
 NSROOT::mode::ECB::ECB(const padding::Padding& padding) : Mode("ECB")
@@ -201,8 +108,12 @@ const NSROOT::padding::Padding& NSROOT::mode::ECB::get_padding() const
 {
     return *padding_;
 }
+bool NSROOT::mode::ECB::check(const algorithm::Algorithm& algorithm) const
+{
+    return true;
+}
 
-bool dog_torch::crypto::symmetric::mode::ECB::set_Padding(const padding::Padding& value)
+bool NSROOT::mode::ECB::set_Padding(const padding::Padding& value)
 {
     if (value.get_name() == "None")
     {
@@ -214,28 +125,34 @@ bool dog_torch::crypto::symmetric::mode::ECB::set_Padding(const padding::Padding
 
 NSROOT::mode::crypt_func NSROOT::mode::ECB::get_mult_encrypt() const
 {
-    return encrypt;
+    return [this](const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm) -> Data
+        {
+            return encrypt(plain, available_key, algorithm, this->padding_->get_padding());
+        };
 }
 NSROOT::mode::crypt_func NSROOT::mode::ECB::get_mult_decrypt() const
 {
-    return decrypt;
+    return [this](const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm) -> Data
+        {
+            return decrypt(crypt, available_key, algorithm, this->padding_->get_unpadding());
+        };
 }
 NSROOT::mode::stream_crypt_func NSROOT::mode::ECB::get_stream_encrypt() const
 {
-    return encrypt_stream;
+    return [this](std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm) -> void
+        {
+            return encrypt_stream(plain, max, crypt, available_key, algorithm, this->padding_->get_padding());
+        };
 }
 NSROOT::mode::stream_crypt_func NSROOT::mode::ECB::get_stream_decrypt() const
 {
-    return decrypt_stream;
-}
-NSROOT::mode::stream_cryptp_func NSROOT::mode::ECB::get_stream_encryptp() const
-{
-    return encrypt_streamp;
-}
-NSROOT::mode::stream_cryptp_func NSROOT::mode::ECB::get_stream_decryptp() const
-{
-    return decrypt_streamp;
+    return [this](std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm) -> void
+        {
+            return decrypt_stream(crypt, max, plain, available_key, algorithm, this->padding_->get_unpadding());
+        };
 }
 
 #undef NSROOT
 #undef DOG_DATA
+#undef ECB_ENCRYPT_INIT
+#undef ECB_DECRYPT_INIT

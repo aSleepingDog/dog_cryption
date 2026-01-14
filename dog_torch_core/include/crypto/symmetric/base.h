@@ -17,7 +17,9 @@
 #include <cstdlib>
 #include <exception>
 #include <functional>
+#include <fstream>
 #include <unordered_map>
+#include <filesystem>
 #include <condition_variable>
 
 #include "serialize/serialize.h"
@@ -40,18 +42,6 @@ namespace dog_torch::crypto::symmetric
 	{
 	public:
 		CryptionException(DOG_EXCEPTION_MSG_PARAMS) : dog_torch::utils::Exception(DOG_EXCEPTION_MSG_OPINION(msg)) {}
-	};
-
-	class DOG_CRYPTION_API WrongKeyException : public dog_torch::utils::Exception
-	{
-	public:
-		WrongKeyException(DOG_EXCEPTION_PARAMS) : dog_torch::utils::Exception(DOG_EXCEPTION_MSG_OPINION("wrong key")) {}
-	};
-
-	class DOG_CRYPTION_API WrongConfigException : public dog_torch::utils::Exception
-	{
-	public:
-		WrongConfigException(DOG_EXCEPTION_PARAMS) : dog_torch::utils::Exception(DOG_EXCEPTION_MSG_OPINION("invalid cryption algorithm")) {}
 	};
 
 	namespace algorithm
@@ -134,14 +124,27 @@ namespace dog_torch::crypto::symmetric
 			virtual padding_func get_padding() const;
 			virtual padding_func get_unpadding() const;
 		};
+
+		class DOG_CRYPTION_API None : public Padding
+		{
+		public:
+			None();
+			~None() = default;
+			std::unique_ptr<Padding> clone() const override;
+			Data to_data() const override;
+			std::string fmt_config() const override;
+			std::string get_name() const override;
+			padding_func get_padding() const override;
+			padding_func get_unpadding() const override;
+		};
 	}
-	class Cipher;
+
 	namespace mode
 	{
-		using crypt_func           =    std::function<Data(const Data&, const Cipher&)>;
-		using stream_crypt_func    =    std::function<void(std::istream&, std::ostream&, const Cipher&)>;
-		using stream_cryptp_func   =    std::function<void(std::istream&, std::ostream&, const Cipher&,
-			std::mutex*, std::condition_variable*, std::atomic<double>*, std::atomic<bool>*, std::atomic<bool>*, std::atomic<bool>*)>;
+		uint64_t read_byte_size(std::istream& input, Data& buf, uint64_t size, uint64_t& total);
+		
+		using crypt_func           =    std::function<Data(const Data&, const Data&, const algorithm::Algorithm&)>;
+		using stream_crypt_func    =    std::function<void(std::istream&, uint64_t, std::ostream&, const Data&, const algorithm::Algorithm&)>;
 
 		double update_progress(double progress, double progress_step, double progress_max);
 
@@ -163,14 +166,13 @@ namespace dog_torch::crypto::symmetric
 			virtual bool set_data_param(const std::string& param,const Data& value);
 			virtual bool set_Padding(const padding::Padding& value);
 
+			virtual bool check(const algorithm::Algorithm& algorithm) const;
+
 			virtual crypt_func get_mult_encrypt() const;
 			virtual crypt_func get_mult_decrypt() const;
 
 			virtual stream_crypt_func get_stream_encrypt() const;
 			virtual stream_crypt_func get_stream_decrypt() const;
-
-			virtual stream_cryptp_func get_stream_encryptp() const;
-			virtual stream_cryptp_func get_stream_decryptp() const;
 		};
 	}
 
@@ -241,14 +243,12 @@ namespace dog_torch::crypto::symmetric
 		bool set_mode_Padding(const padding::Padding& value);
 
  		Data encrypt(const Data& plain);
- 		void encrypt(std::istream& plain, std::ostream& crypt);
- 		void encryptp(std::istream& plain, std::ostream& crypt,
- 			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
- 		Data decrypt(const Data& crypt);
- 		void decrypt(std::istream& crypt, std::ostream& plain);
- 		void decryptp(std::istream& plain, std::ostream& crypt,
- 			std::mutex* mutex_, std::condition_variable* cond_, std::atomic<double>* progress_, std::atomic<bool>* running_, std::atomic<bool>* paused_, std::atomic<bool>* stop_);
+		void encrypt(std::istream& plain, std::ostream& crypt);
+		void encrypt(std::filesystem::path plain, std::filesystem::path crypt);
 
+		Data decrypt(const Data& crypt);
+ 		void decrypt(std::istream& crypt, std::ostream& plain);
+		void decrypt(std::filesystem::path crypt, std::filesystem::path plain);
 	};
 
 }

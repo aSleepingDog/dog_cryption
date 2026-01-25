@@ -15,7 +15,7 @@
 #include "asyncion/thread/thread.h"
 #include "math/math.h"
 #include "serialize/serialize.h"
-#include "utils/exception.h"
+#include "utils/Exception.h"
 
 namespace dog_torch::crypto::hash
 {

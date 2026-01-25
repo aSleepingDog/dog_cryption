@@ -12,7 +12,7 @@
 
 #include "math/math.h"
 #include "serialize/serialize.h"
-#include "utils/exception.h"
+#include "utils/Exception.h"
 #include "crypto/hash/hash.h"
 
 namespace dog_torch::crypto::hash::algorithm

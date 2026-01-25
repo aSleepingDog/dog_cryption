@@ -20,9 +20,10 @@
 #include <unordered_map>
 #include <condition_variable>
 
+#include "math/GaloisField.h"
 #include "serialize/serialize.h"
 #include "math/math.h"
-#include "crypto/symmetric/base.h"
+#include "crypto/symmetric/symmetric.h"
 
 namespace dog_torch::crypto::symmetric::algorithm
 {
@@ -31,7 +32,7 @@ namespace dog_torch::crypto::symmetric::algorithm
 	class DOG_CRYPTION_API Rijndael : public Algorithm
 	{
 	public:
-		static const Config CONFIG;
+		static const Config get_config();
 
 		static const uint8_t SBox[16][16];
 		static const uint8_t InvSBox[16][16];
@@ -63,7 +64,7 @@ namespace dog_torch::crypto::symmetric::algorithm
 	class DOG_CRYPTION_API AES : public Rijndael
 	{
 	public:
-		static const Config CONFIG;
+		static const Config get_config();
 
 		static void middle_encryption(Data& datablock, uint64_t flag, uint64_t mode);
 		static void middle_decryption(Data& datablock, uint64_t flag, uint64_t mode);

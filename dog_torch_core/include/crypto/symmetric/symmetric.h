@@ -22,6 +22,7 @@
 #include <filesystem>
 #include <condition_variable>
 
+#include "asyncion/thread/thread.h"
 #include "serialize/serialize.h"
 #include "math/math.h"
 
@@ -50,9 +51,8 @@ namespace dog_torch::crypto::symmetric
 		using block_self_cryption_func = std::function<void(Data&, uint64_t, const Data&, uint64_t)>;
 		using block_cryption_func = std::function<Data(const Data&, uint64_t, const Data&, uint64_t)>;
 
-		class DOG_CRYPTION_API Config
+		struct DOG_CRYPTION_API Config
 		{
-		public:
 			std::string name;
 			std::string block_size_region;
 			std::string key_size_region;
@@ -116,6 +116,12 @@ namespace dog_torch::crypto::symmetric
 			*/
 			Padding(const std::string& name);
 			Padding();
+			
+			Padding(const Padding& padding);
+			Padding operator=(const Padding& padding);
+			Padding(Padding&& padding) noexcept;
+			Padding operator=(Padding&& padding) noexcept;
+
 			virtual ~Padding() = default;
 			virtual std::unique_ptr<Padding> clone() const;
 			virtual Data to_data() const;
@@ -141,12 +147,19 @@ namespace dog_torch::crypto::symmetric
 
 	namespace mode
 	{
-		uint64_t read_byte_size(std::istream& input, Data& buf, uint64_t size, uint64_t& total);
-		
+		using dog_torch::asyncion::thread::PauseableChannel;
 		using crypt_func           =    std::function<Data(const Data&, const Data&, const algorithm::Algorithm&)>;
+		using streamp_crypt_func   =    std::function<void(PauseableChannel&, std::istream&, uint64_t, std::ostream&, const Data&, const algorithm::Algorithm&)>;
 		using stream_crypt_func    =    std::function<void(std::istream&, uint64_t, std::ostream&, const Data&, const algorithm::Algorithm&)>;
 
 		double update_progress(double progress, double progress_step, double progress_max);
+
+		struct DOG_CRYPTION_API Config
+		{
+			std::string name;
+			std::unordered_map<std::string, std::string> params;
+			Config(const std::string& name, const std::unordered_map<std::string, std::string> params);
+		};
 
 		class DOG_CRYPTION_API Mode
 		{
@@ -173,6 +186,9 @@ namespace dog_torch::crypto::symmetric
 
 			virtual stream_crypt_func get_stream_encrypt() const;
 			virtual stream_crypt_func get_stream_decrypt() const;
+
+			virtual streamp_crypt_func get_streamp_encrypt() const;
+			virtual streamp_crypt_func get_streamp_decrypt() const;
 		};
 	}
 
@@ -183,6 +199,7 @@ namespace dog_torch::crypto::symmetric
 		std::unique_ptr<mode::Mode>             mode_;
 
 		CryptionConfig(const algorithm::Algorithm& algorithm, const mode::Mode& mode);
+		CryptionConfig(algorithm::Algorithm&& algorithm, mode::Mode&& mode);
 		CryptionConfig(const CryptionConfig& other);
 		CryptionConfig(CryptionConfig&& other);
 		void swap(CryptionConfig& other);
@@ -199,8 +216,8 @@ namespace dog_torch::crypto::symmetric
 		Data              available_key_;
 	public:
 		Cipher(const algorithm::Algorithm& algorithm, const mode::Mode& mode);
-		Cipher(const Cipher& other);
-		Cipher(Cipher&& other);
+		Cipher(const Cipher& other) noexcept;
+		Cipher(Cipher&& other) noexcept;
 		
 		void set_key(Data key);
 		bool is_available() const;
@@ -242,12 +259,14 @@ namespace dog_torch::crypto::symmetric
 		bool set_mode_data_param(const std::string& param, const Data& value);
 		bool set_mode_Padding(const padding::Padding& value);
 
+		using PauseableChannel = dog_torch::asyncion::thread::PauseableChannel;
+
  		Data encrypt(const Data& plain);
-		void encrypt(std::istream& plain, std::ostream& crypt);
+		void encrypt(std::istream& plain, uint64_t max, std::ostream& crypt);
 		void encrypt(std::filesystem::path plain, std::filesystem::path crypt);
 
 		Data decrypt(const Data& crypt);
- 		void decrypt(std::istream& crypt, std::ostream& plain);
+ 		void decrypt(std::istream& crypt, uint64_t max, std::ostream& plain);
 		void decrypt(std::filesystem::path crypt, std::filesystem::path plain);
 	};
 

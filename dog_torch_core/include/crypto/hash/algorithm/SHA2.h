@@ -13,7 +13,7 @@
 #include "math/math.h"
 #include "serialize/serialize.h"
 #include "utils/exception.h"
-#include "crypto/hash/base.h"
+#include "crypto/hash/hash.h"
 
 namespace dog_torch::crypto::hash::algorithm
 {
@@ -23,7 +23,7 @@ namespace dog_torch::crypto::hash::algorithm
 		bool is_padding_ = false;
 		dog_torch::math::number::BigInteger max_ = 0;
 	public:
-		static const Config CONFIG;
+		static const Config get_config();
 		static const uint32_t k_256[64];
 		static uint32_t tick4B(Data& data, uint64_t size, uint64_t index);
 		//circle right move by bits循环右移

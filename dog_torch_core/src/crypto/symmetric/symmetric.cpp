@@ -1,7 +1,9 @@
-#include "crypto/symmetric/base.h"
+#include "crypto/symmetric/symmetric.h"
 
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root
 #define DOG_DATA dog_torch::serialize::BinaryData
+
+#define DOG_ERROR_EMPTY_KEY "Error:encrypt key is not set or key is invalid"
 
 //utils
 uint8_t NSROOT::utils::rand_byte()
@@ -90,7 +92,25 @@ NSROOT::padding::Padding::Padding()
 {
 	this->name = "None";
 }
-std::unique_ptr<NSROOT::padding::Padding> dog_torch::crypto::symmetric::padding::Padding::clone() const
+NSROOT::padding::Padding::Padding(const Padding& padding)
+{
+	this->name = padding.name;
+}
+NSROOT::padding::Padding NSROOT::padding::Padding::operator=(const Padding& padding)
+{
+	this->name = padding.name;
+	return *this;
+}
+NSROOT::padding::Padding::Padding(Padding&& padding) noexcept
+{
+	this->name = std::move(padding.name);
+}
+NSROOT::padding::Padding NSROOT::padding::Padding::operator=(Padding&& padding) noexcept
+{
+	this->name = std::move(padding.name);
+	return *this;
+}
+std::unique_ptr<NSROOT::padding::Padding> NSROOT::padding::Padding::clone() const
 {
 	return std::make_unique<Padding>(*this);
 }
@@ -149,6 +169,11 @@ NSROOT::padding::padding_func NSROOT::padding::None::get_unpadding() const
 }
 
 //Mode
+NSROOT::mode::Config::Config(const std::string& name, const std::unordered_map<std::string, std::string> params)
+	: name(name), params(params)
+{
+
+}
 std::unique_ptr<NSROOT::mode::Mode> NSROOT::mode::Mode::clone() const
 {
 	return std::move(std::make_unique<Mode>(*this));
@@ -201,16 +226,13 @@ NSROOT::mode::stream_crypt_func NSROOT::mode::Mode::get_stream_decrypt() const
 {
 	return stream_crypt_func();
 }
-uint64_t NSROOT::mode::read_byte_size(std::istream& input, Data& buf, uint64_t size, uint64_t& total)
+NSROOT::mode::streamp_crypt_func NSROOT::mode::Mode::get_streamp_encrypt() const
 {
-	input.read((char*)buf.data(), size);
-	uint64_t read_byte_size = input.gcount();
-	total += read_byte_size;
-	for (uint64_t i = read_byte_size; i < size; i++)
-	{
-		buf.pop_back();
-	}
-	return read_byte_size;
+	return streamp_crypt_func();
+}
+NSROOT::mode::streamp_crypt_func NSROOT::mode::Mode::get_streamp_decrypt() const
+{
+	return streamp_crypt_func();
 }
 double NSROOT::mode::update_progress(double progress, double progress_step, double progress_max)
 {
@@ -222,6 +244,10 @@ NSROOT::CryptionConfig::CryptionConfig(const algorithm::Algorithm& algorithm, co
 	: algorithm_(algorithm.clone()), mode_(mode.clone())
 {
 	//2025.12.28 20:57 发现加密模式是空指针 一看构造函数没有构造 给我气笑了
+}
+dog_torch::crypto::symmetric::CryptionConfig::CryptionConfig(algorithm::Algorithm&& algorithm, mode::Mode&& mode)
+	:algorithm_(std::make_unique<algorithm::Algorithm>(std::move(algorithm))), mode_(std::make_unique<mode::Mode>(std::move(mode)))
+{
 }
 NSROOT::CryptionConfig::CryptionConfig(const CryptionConfig& other)
 {
@@ -252,13 +278,13 @@ NSROOT::Cipher::Cipher(const algorithm::Algorithm& algorithm, const mode::Mode& 
 {
 
 }
-NSROOT::Cipher::Cipher(const Cipher& other) : config_(other.config_)
+NSROOT::Cipher::Cipher(const Cipher& other) noexcept : config_(other.config_)
 {
 	this->original_key_   = other.original_key_;
 	this->available_key_ = other.available_key_;
 	this->is_setting_key_ = other.is_setting_key_;
 }
-NSROOT::Cipher::Cipher(Cipher&& other) : config_(std::move(other.config_))
+NSROOT::Cipher::Cipher(Cipher&& other) noexcept : config_(std::move(other.config_))
 {
 	this->original_key_ = std::move(other.original_key_);
 	this->available_key_ = std::move(other.available_key_);
@@ -274,7 +300,7 @@ bool NSROOT::Cipher::is_available() const
 {
  	if (!this->is_setting_key_)
  	{
- 		throw CryptionException(DOG_EXCEPTION_MSG_OPINION("Error:encrypt key is not set or key is invalid\n错误：加密密钥未设置或密钥无效"));
+ 		throw CryptionException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_EMPTY_KEY));
  	}
  	return true;
 }
@@ -394,6 +420,10 @@ DOG_DATA NSROOT::Cipher::encrypt(const Data& plain)
 {//only for test
 	return this->config_.mode_->get_mult_encrypt()(plain, this->get_available_key(), this->get_algorithm());
 }
+void NSROOT::Cipher::encrypt(std::istream& plain, uint64_t max, std::ostream& crypt)
+{
+	this->config_.mode_->get_stream_encrypt()(plain, max, crypt, this->get_available_key(), this->get_algorithm());
+}
 void NSROOT::Cipher::encrypt(std::filesystem::path plain, std::filesystem::path crypt)
 {
 	std::ifstream is(plain, std::ios::binary);
@@ -409,6 +439,10 @@ DOG_DATA NSROOT::Cipher::decrypt(const Data& crypt)
 {//only for test
 	return this->config_.mode_->get_mult_decrypt()(crypt, this->get_available_key(), this->get_algorithm());
 }
+void NSROOT::Cipher::decrypt(std::istream& crypt, uint64_t max, std::ostream& plain)
+{
+	this->config_.mode_->get_stream_decrypt()(crypt, max, plain, this->get_available_key(), this->get_algorithm());
+}
 void NSROOT::Cipher::decrypt(std::filesystem::path crypt, std::filesystem::path plain)
 {
 	std::ifstream is(crypt, std::ios::binary);
@@ -422,3 +456,5 @@ void NSROOT::Cipher::decrypt(std::filesystem::path crypt, std::filesystem::path 
 
 #undef NSROOT
 #undef DOG_DATA
+
+#undef DOG_ERROR_EMPTY_KEY

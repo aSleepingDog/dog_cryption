@@ -1,5 +1,17 @@
 #include "math/BigInteger.h"
 
+#define DOG_ERROR_MINUS_SIGN_ERROR "Error:minus sign is not at first"
+#define DOG_ERROR_WRONG_CHAR_HEX "Error:wrong char in hex\ncorrect chars are 0123456789abcdefABCDEF"
+#define DOG_ERROR_WRONG_CHAR_DEC "Error:wrong char in oct\ncorrect chars are 0123456789"
+#define DOG_ERROR_WRONG_CHAR_OCT "Error:wrong char in oct\ncorrect chars are 01234567"
+#define DOG_ERROR_WRONG_CHAR_BIN "Error:wrong char in bin\ncorrect chars are 01"
+
+#define DOG_ERROR_WRONG_RADIX std::format("Error:radix must be between 2 and 16,now is {}", radix)
+
+#define DOG_ERROR_NO_SUPPORT "Error:Not support"
+
+#define DOG_ERROR_DIVIDE_BY_ZERO "Error: Divide by zero"
+
 dog_torch::math::number::BigInteger::BigInteger()
 {
 	this->sign_ = 0;
@@ -31,7 +43,7 @@ dog_torch::math::number::BigInteger::BigInteger(const char* str, const int radix
 			}
 			else if (*p == '-' && p != str)
 			{
-				throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:minus sign is not at first\n错误：负号不在首位"));
+				throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_MINUS_SIGN_ERROR));
 			}
 			else if (*p >= '0' && *p <= '9')
 			{
@@ -75,7 +87,7 @@ dog_torch::math::number::BigInteger::BigInteger(const char* str, const int radix
 			else
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:wrong char in hex\ncorrect chars are 0123456789abcdefABCDEF\n错误：出现了16进制中不存在的字符\n正确的字符为0123456789abcdefABCDEF")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_CHAR_HEX)
 				);
 			}
 			if (num == 2)
@@ -161,7 +173,7 @@ dog_torch::math::number::BigInteger::BigInteger(const char* str, const int radix
 			else if (*p == '-' && p != str)
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:minus sign is not at first\n错误：负号不在首位")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_MINUS_SIGN_ERROR)
 				);
 			}
 			else if (*p >= '0' && *p <= '7')
@@ -172,7 +184,7 @@ dog_torch::math::number::BigInteger::BigInteger(const char* str, const int radix
 			else
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:wrong char in oct\ncorrect chars are 01234567\n错误：出现了8进制中不存在的字符\n正确的字符为01234567")
+					DOG_EXCEPTION_MSG_OPINION()
 				);
 			}
 			if (num == 8)
@@ -257,7 +269,7 @@ dog_torch::math::number::BigInteger::BigInteger(const char* str, const int radix
 			else if (*p == '-' && p != str)
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:minus sign is not at first\n错误：负号不在首位")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_MINUS_SIGN_ERROR)
 				);
 			}
 			else if (*p == '0' || *p == '1')
@@ -268,7 +280,7 @@ dog_torch::math::number::BigInteger::BigInteger(const char* str, const int radix
 			else
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:wrong char in bin\ncorrect chars are 01\n错误：出现了2进制中不存在的字符\n正确的字符为01")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_CHAR_BIN)
 				);
 			}
 			if (num == 8)
@@ -377,7 +389,7 @@ dog_torch::math::number::BigInteger::BigInteger(const char* str, const int radix
 			{
 				if (*p - '0' < 0 || *p - '0' > 9)
 				{
-					throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:wrong character in dec\n错误：十进制下错误的字符"));
+					throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_CHAR_DEC));
 				}
 				total_quotient.push_back(*p - '0');
 				p++;
@@ -455,7 +467,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::string& str, const in
 			else if (*p == '-' && p != str_)
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:minus sign is not at first\n错误：负号不在首位")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_MINUS_SIGN_ERROR)
 				);
 			}
 			else if (*p >= '0' && *p <= '9')
@@ -500,7 +512,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::string& str, const in
 			else
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:wrong char in hex\ncorrect chars are 0123456789abcdefABCDEF\n错误：出现了16进制中不存在的字符\n正确的字符为0123456789abcdefABCDEF")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_CHAR_HEX)
 				);
 			}
 			if (num == 2)
@@ -586,7 +598,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::string& str, const in
 			else if (*p == '-' && p != str_)
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:minus sign is not at first\n错误：负号不在首位")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_MINUS_SIGN_ERROR)
 				);
 			}
 			else if (*p >= '0' && *p <= '7')
@@ -597,7 +609,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::string& str, const in
 			else
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:wrong char in oct\ncorrect chars are 01234567\n错误：出现了8进制中不存在的字符\n正确的字符为01234567")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_CHAR_OCT)
 				);
 			}
 			if (num == 8)
@@ -682,7 +694,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::string& str, const in
 			else if (*p == '-' && p != str_)
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:minus sign is not at first\n错误：负号不在首位")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_MINUS_SIGN_ERROR)
 				);
 			}
 			else if (*p == '0' || *p == '1')
@@ -693,7 +705,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::string& str, const in
 			else
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:wrong char in bin\ncorrect chars are 01\n错误：出现了2进制中不存在的字符\n正确的字符为01")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_CHAR_BIN)
 				);
 			}
 			if (num == 8)
@@ -804,7 +816,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::vector<char>& str, co
 			else if (*p == '-' && p != str_)
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:minus sign is not at first\n错误：负号不在首位")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_MINUS_SIGN_ERROR)
 				);
 			}
 			else if (*p >= '0' && *p <= '9')
@@ -849,7 +861,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::vector<char>& str, co
 			else
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:wrong char in hex\ncorrect chars are 0123456789abcdefABCDEF\n错误：出现了16进制中不存在的字符\n正确的字符为0123456789abcdefABCDEF")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_CHAR_HEX)
 				);
 			}
 			if (num == 2)
@@ -935,7 +947,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::vector<char>& str, co
 			else if (*p == '-' && p != str_)
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:minus sign is not at first\n错误：负号不在首位")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_MINUS_SIGN_ERROR)
 				);
 			}
 			else if (*p >= '0' && *p <= '7')
@@ -946,7 +958,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::vector<char>& str, co
 			else
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:wrong char in oct\ncorrect chars are 01234567\n错误：出现了8进制中不存在的字符\n正确的字符为01234567")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_CHAR_OCT)
 				);
 			}
 			if (num == 8)
@@ -1031,7 +1043,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::vector<char>& str, co
 			else if (*p == '-' && p != str_)
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:minus sign is not at first\n错误：负号不在首位")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_MINUS_SIGN_ERROR)
 				);
 			}
 			else if (*p == '0' || *p == '1')
@@ -1042,7 +1054,7 @@ dog_torch::math::number::BigInteger::BigInteger(const std::vector<char>& str, co
 			else
 			{
 				throw NumberException(
-					DOG_EXCEPTION_MSG_OPINION("Error:wrong char in bin\ncorrect chars are 01\n错误：出现了2进制中不存在的字符\n正确的字符为01")
+					DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_CHAR_BIN)
 				);
 			}
 			if (num == 8)
@@ -1333,7 +1345,7 @@ std::string dog_torch::math::number::BigInteger::to_num_string(int radix, bool i
 	}
 	if (radix > 16 || radix < 2)
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION(std::format("Error:radix must be between 2 and 16,now is %d\n错误：进制仅支持2-16，当前为%d", radix, radix)));
+		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_RADIX));
 	}
 	if (radix == 16 && isUpper)
 	{
@@ -1428,7 +1440,7 @@ std::vector<uint8_t> dog_torch::math::number::BigInteger::to_byte_vector() const
 {
 	return this->num_;
 }
-uint64_t dog_torch::math::number::BigInteger::to_abs_uint64()
+uint64_t dog_torch::math::number::BigInteger::to_abs_uint64() const
 {
 	if (this->num_.empty())
 	{
@@ -2348,7 +2360,7 @@ dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::multipl
 }
 dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::multiplyToomCook30(BigInteger a, BigInteger b)
 {
-	throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:Not implemented\n错误：暂不支持的操作"));
+	throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_NO_SUPPORT));
 	if (a.get_sign() == 0 || b.get_sign() == 0) { return BigInteger(); }
 	uint64_t a_len = a.size(), b_len = b.size();
 	if (a_len == 1 && b_len == 1) { return multiplysingle(a, b); }
@@ -2427,7 +2439,7 @@ dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::multipl
 }
 dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::multiplyToomCook31(BigInteger a, BigInteger b)
 {
-	throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:Not implemented\n错误：暂不支持的操作"));
+	throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_NO_SUPPORT));
 	return BigInteger();
 }
 
@@ -2540,7 +2552,7 @@ void dog_torch::math::number::BigInteger::FNTT1(std::vector<uint64_t>& a, int in
 
 void dog_torch::math::number::BigInteger::FNTTinv(std::vector<uint64_t>& a, std::vector<uint64_t>& rev)
 {
-	throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:Not implemented\n错误：暂不支持的操作"));
+	throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_NO_SUPPORT));
 
 }
 
@@ -2855,7 +2867,7 @@ std::pair<dog_torch::math::number::BigInteger, dog_torch::math::number::BigInteg
 {
 	if (b.get_sign() == 0)
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error: Divide by zero\n错误：除0错误"));
+		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_DIVIDE_BY_ZERO));
 	}
 	if (a.get_sign() == 0)
 	{
@@ -2974,7 +2986,7 @@ dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::divideN
 {
 	if (b.get_sign() == 0)
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error: Divide by zero\n错误：除0错误"));
+		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_DIVIDE_BY_ZERO));
 	}
 	if (a.get_sign() == 0)
 	{
@@ -2984,7 +2996,7 @@ dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::divideN
 	{
 		return 1;
 	}
-	throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:Not implemented\n错误：暂不支持的操作"));
+	throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_NO_SUPPORT));
 
 
 	return BigInteger();
@@ -3292,3 +3304,15 @@ const dog_torch::math::number::BigInteger dog_torch::math::number::ZERO = "0";
 const dog_torch::math::number::BigInteger dog_torch::math::number::BIG_UINT32_MAX = "4294967295";
 const dog_torch::math::number::BigInteger dog_torch::math::number::BIG_UINT64_MAX = "18446744073709551615";
 const dog_torch::math::number::BigInteger dog_torch::math::number::BIG_UINT128_MAX = "340282366920938463463374607431768211455";
+
+#undef DOG_ERROR_MINUS_SIGN_ERROR
+#undef DOG_ERROR_WRONG_CHAR_HEX
+#undef DOG_ERROR_WRONG_CHAR_DEC
+#undef DOG_ERROR_WRONG_CHAR_OCT
+#undef DOG_ERROR_WRONG_CHAR_BIN
+
+#undef DOG_ERROR_WRONG_RADIX
+
+#undef DOG_ERROR_NO_SUPPORT
+
+#undef DOG_ERROR_DIVIDE_BY_ZERO

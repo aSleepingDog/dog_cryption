@@ -1,5 +1,8 @@
 #include "serialize/Jsont.h"
 
+#define DOG_ERROR_UNEXCEPT_END "Error:unexpected end of jsont string"
+#define DOG_ERROR_UNEXCEPT_CHAR "Error: unexpected character of jsont string"
+
 std::string dog_torch::serialize::jsont::to_string(Type type)
 {
     switch (type)
@@ -16,7 +19,7 @@ std::string dog_torch::serialize::jsont::to_string(Type type)
     }
 }
 
-#define CHECK_END if (now == end) throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+#define CHECK_END if (now == end) throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
 void dog_torch::serialize::jsont::any::skip_whitespace(std::string::const_iterator& now, std::string::const_iterator end)
 {
     int status = 0;//-1:退出 0:空白字符无/ 1:空白字符单/ 2:单行 3:多行无* 4:多行有*
@@ -64,7 +67,7 @@ void dog_torch::serialize::jsont::any::skip_whitespace(std::string::const_iterat
             }
             default:
             {
-                throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+                throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
             }
             }
             now++;
@@ -115,7 +118,7 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         //null number
         if (now + 6 >= end)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         auto str = std::string(now, now + 6);
         if (str == "number")
@@ -130,7 +133,7 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
     }
     case 'b':
@@ -138,12 +141,12 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         //boolean
         if (now + 7 >= end)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         auto str = std::string(now, now + 7);
         if (str != "boolean")
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         now += 7;
         return Type::boolean;
@@ -153,12 +156,12 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         //string
         if (now + 6 >= end)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         auto str = std::string(now, now + 6);
         if (str != "string")
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         now += 6;
         return Type::string;
@@ -168,12 +171,12 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         //int64
         if (now + 5 >= end)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         auto str = std::string(now, now + 5);
         if (str != "int64")
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         now += 5;
         return Type::int64;
@@ -183,12 +186,12 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         //uint64
         if (now + 6 >= end)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         auto str = std::string(now, now + 6);
         if (str != "uint64")
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         now += 6;
         return Type::uint64;
@@ -198,19 +201,19 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         //float64
         if (now + 7 >= end)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         auto str = std::string(now, now + 7);
         if (str != "float64")
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         now += 7;
         return Type::float64;
     }
     default:
     {
-        throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     }
 }
@@ -219,7 +222,7 @@ std::string dog_torch::serialize::jsont::any::to_string(std::string::const_itera
     CHECK_END;
     if (*now != '"')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     now++;
     std::string result = "";
@@ -299,7 +302,7 @@ std::string dog_torch::serialize::jsont::any::to_string(std::string::const_itera
                 }
                 default:
                 {
-                    throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+                    throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
                 }
                 }
                 status = 0;
@@ -329,7 +332,7 @@ std::string dog_torch::serialize::jsont::any::to_string(std::string::const_itera
                 }
                 else
                 {
-                    throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+                    throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
                 }
                 now++;
             }
@@ -347,7 +350,7 @@ std::string dog_torch::serialize::jsont::any::to_string(std::string::const_itera
     return result;
 }
 
-#define CHECK_SEND if (input.eof()) throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束 of file");
+#define CHECK_SEND if (input.eof()) throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
 void dog_torch::serialize::jsont::any::skip_whitespace(std::istream& input)
 {
     int status = 0;//-1:退出 0:空白字符无/ 1:空白字符单/ 2:单行 3:多行无* 4:多行有*
@@ -391,7 +394,7 @@ void dog_torch::serialize::jsont::any::skip_whitespace(std::istream& input)
             }
             default:
             {
-                throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+                throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
             }
             }
             input.get();
@@ -444,7 +447,7 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         input.read(&str[0], 6);
         if (input.gcount() < 6)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         if (str == "number")
         {
@@ -458,7 +461,7 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
     }
     case 'b':
@@ -468,11 +471,11 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         input.read(&str[0], 7);
         if (input.gcount() < 7)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         if (str != "boolean")
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         return Type::boolean;
     }
@@ -483,11 +486,11 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         input.read(&str[0], 6);
         if (input.gcount() < 6)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         if (str != "string")
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         return Type::string;
     }
@@ -498,11 +501,11 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         input.read(&str[0], 5);
         if (input.gcount() < 5)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         if (str != "int64")
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         return Type::int64;
     }
@@ -512,11 +515,11 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         std::string str = "012345";
         if (input.gcount() < 6)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         if (str != "uint64")
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         return Type::uint64;
     }
@@ -527,17 +530,17 @@ dog_torch::serialize::jsont::Type dog_torch::serialize::jsont::any::to_type(std:
         input.read(&str[0], 7);
         if (input.gcount() < 7)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of jsont string\n错误：jsont字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         if (str != "float64")
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         return Type::float64;
     }
     default:
     {
-        throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     }
 }
@@ -546,7 +549,7 @@ std::string dog_torch::serialize::jsont::any::to_string(std::istream& input)
     CHECK_SEND;
     if (input.peek() != '"')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     input.get();
     std::string result = "";
@@ -626,7 +629,7 @@ std::string dog_torch::serialize::jsont::any::to_string(std::istream& input)
                 }
                 default:
                 {
-                    throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+                    throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
                 }
                 }
                 status = 0;
@@ -656,7 +659,7 @@ std::string dog_torch::serialize::jsont::any::to_string(std::istream& input)
                 }
                 else
                 {
-                    throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+                    throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
                 }
                 input.get();
             }
@@ -728,7 +731,7 @@ std::vector<dog_torch::serialize::jsont::Value> dog_torch::serialize::jsont::Val
 {
     if (this->get_type() != Type::array)
     {
-        throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     return std::get<std::vector<Value>>(this->value_);
 }
@@ -740,7 +743,7 @@ std::unordered_map<std::string, dog_torch::serialize::jsont::Value> dog_torch::s
 {
     if (this->get_type() != Type::object)
     {
-        throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     return std::get<std::unordered_map<std::string, Value>>(this->value_);
 }
@@ -849,7 +852,7 @@ dog_torch::serialize::jsont::Object::Object(std::string::const_iterator& now, st
     CHECK_END;
     if (*now != '{')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     using namespace dog_torch::serialize::jsont::any;
     now++;
@@ -866,7 +869,7 @@ dog_torch::serialize::jsont::Object::Object(std::string::const_iterator& now, st
         skip_whitespace(now, end);
         if (*now != ':')
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         now++;
         skip_whitespace(now, end);
@@ -882,7 +885,7 @@ dog_torch::serialize::jsont::Object::Object(std::string::const_iterator& now, st
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
 
     }
@@ -898,7 +901,7 @@ dog_torch::serialize::jsont::Object::Object(std::istream& input)
     CHECK_SEND;
     if (input.peek() != '{')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     input.get();
     using namespace dog_torch::serialize::jsont::any;
@@ -915,7 +918,7 @@ dog_torch::serialize::jsont::Object::Object(std::istream& input)
         skip_whitespace(input);
         if (input.peek() != ':')
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         input.get();
         skip_whitespace(input);
@@ -931,7 +934,7 @@ dog_torch::serialize::jsont::Object::Object(std::istream& input)
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
 
     }
@@ -1113,7 +1116,7 @@ dog_torch::serialize::jsont::Array::Array(std::string::const_iterator& now, std:
     CHECK_END;
     if (*now != '[')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     using namespace dog_torch::serialize::jsonx::any;
     auto& result = this->value_;
@@ -1133,7 +1136,7 @@ dog_torch::serialize::jsont::Array::Array(std::string::const_iterator& now, std:
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of jsont string\n错误：jsont字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
     }
     now++;
@@ -1331,3 +1334,6 @@ void dog_torch::serialize::jsont::Array::resize(size_t count, const Value& value
 #undef CHECK_END
 #undef CHECK_SEND
 #undef MATCH_TYPE
+
+#undef DOG_ERROR_UNEXCEPT_END
+#undef DOG_ERROR_UNEXCEPT_CHAR

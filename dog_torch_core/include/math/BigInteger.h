@@ -104,7 +104,7 @@ namespace dog_torch::math::number
 
 		std::vector<uint8_t> to_byte_vector() const;
 
-		uint64_t to_abs_uint64();
+		uint64_t to_abs_uint64() const;
 
 		//基本操作
 		/*

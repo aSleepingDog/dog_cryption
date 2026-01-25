@@ -3,7 +3,14 @@
 #define NSROOT dog_torch::crypto::hash::algorithm
 #define DOG_DATA dog_torch::serialize::BinaryData
 
-const NSROOT::Config NSROOT::SM3::CONFIG = Config("SM3", "32");
+#define DOG_ERROR_WRONG_BLOCK_SM3_256 "Error:block size is not 64 when SM3-256"
+#define DOG_ERROR_WRONG_SIZE "Error:effective must be 32"
+#define DOG_ERROR_LARGE_SIZE "Error:input size is too large"
+
+const NSROOT::Config dog_torch::crypto::hash::algorithm::SM3::get_Config()
+{
+	return Config("SM3", "32");
+}
 
 uint32_t NSROOT::SM3::CLMB(uint32_t i, uint64_t n)
 {
@@ -51,7 +58,7 @@ void NSROOT::SM3::single_update(Data block, Data& value)
 {
 	if (block.size() != 64)
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("Error:block size is not 64 when SM3-256\n错误：在SM3-256时，数据分组block大小不为64"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_BLOCK_SM3_256));
 	}
 	uint32_t tempN[8], tempH[8];
 	for (int i = 0; i < 8; i++)
@@ -113,7 +120,7 @@ NSROOT::SM3::SM3(uint64_t effective) : Hash("SM3", effective)
 {
 	if (effective != 32)
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("Error:SM3 only support 32bits\n错误：SM3只支持32位"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_SIZE));
 	}
 	this->max_ = dog_torch::math::number::BIG_UINT64_MAX;
 }
@@ -129,7 +136,7 @@ bool NSROOT::SM3::have_next_block(const BigInt& pos, const BigInt& total) const
 {
 	if (total > this->max_)
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("data size is too large"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
 	}
 	auto dur = (total - pos);
 	return dur >= 64 ? true : !this->is_padding_;
@@ -138,9 +145,9 @@ DOG_DATA NSROOT::SM3::next_block(const Data& data, BigInt& pos, const BigInt& to
 {
 	if (total > this->max_)
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("data size is too large"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
 	}
-	auto res = data.sub_by_len(pos.to_abs_uint64(), 64);
+	auto res = data.sub_bytes_by_len(pos.to_abs_uint64(), 64);
 	pos += res.size();
 	if (res.size() >= 64)
 	{
@@ -177,7 +184,7 @@ DOG_DATA NSROOT::SM3::next_block(std::istream& data, BigInt& pos, const BigInt& 
 {
 	if (total > this->max_)
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("data size is too large"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
 	}
 	Data res(16);
 	data.read((char*)res.data(), 16);
@@ -232,3 +239,7 @@ const DOG_DATA NSROOT::SM3::IV = "7380166F4914B2B9172442D7DA8A0600A96F30BC163138
 
 #undef NSROOT
 #undef DOG_DATA
+
+#undef DOG_ERROR_WRONG_BLOCK_SM3_256
+#undef DOG_ERROR_WRONG_SIZE
+#undef DOG_ERROR_LARGE_SIZE

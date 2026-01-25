@@ -3,19 +3,32 @@
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root
 #define DOG_DATA dog_torch::serialize::BinaryData
 
+NSROOT::mode::Config NSROOT::mode::OFB::get_config()
+{
+	return {
+	"OFB",
+	std::unordered_map<std::string, std::string>({
+		{"padding","Padding"},
+		{"iv","BinaryData"}
+	})
+	};
+}
+
 #define OFB_ENCRYPT_INIT \
 uint64_t block_size = algorithm.get_block_size(); \
 uint64_t key_size = algorithm.get_key_size(); \
 const Data& key = available_key; \
 algorithm::block_self_cryption_func block_self_encryption = algorithm.get_encrypt_self();\
-Data temp_block0 = iv;
+Data temp_block0 = iv;\
+using dog_torch::serialize::stream::utils::read_bytes_size;
 
 #define OFB_DECRYPT_INIT \
 uint64_t block_size = algorithm.get_block_size(); \
 uint64_t key_size = algorithm.get_key_size(); \
 const Data& key = available_key; \
 algorithm::block_self_cryption_func block_self_encryption = algorithm.get_encrypt_self();\
-Data temp_block0 = iv;
+Data temp_block0 = iv;\
+using dog_torch::serialize::stream::utils::read_bytes_size;
 
 DOG_DATA NSROOT::mode::OFB::encrypt(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding)
 {
@@ -27,12 +40,12 @@ DOG_DATA NSROOT::mode::OFB::encrypt(const Data& plain, const Data& available_key
 	for (; block_size <= plain.size() - i; i += block_size)
 	{
 		block_self_encryption(temp_block0, block_size, key, key_size);
-		temp_block1 = plain.sub_by_len(i, block_size);
+		temp_block1 = plain.sub_bytes_by_len(i, block_size);
 		dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, block_size);
 		crypt += temp_block1;
 	}
 	block_self_encryption(temp_block0, block_size, key, key_size);
-	temp_block1 = plain.sub_by_len(i, block_size);
+	temp_block1 = plain.sub_bytes_by_len(i, block_size);
 	padding(temp_block1, block_size);
 	dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, temp_block1.size());
 	crypt += temp_block1;
@@ -48,12 +61,12 @@ DOG_DATA NSROOT::mode::OFB::decrypt(const Data& crypt, const Data& available_key
 	for (; block_size < crypt.size() - i; i += block_size)
 	{
 		block_self_encryption(temp_block0, block_size, key, key_size);
-		temp_block1 = crypt.sub_by_len(i, block_size);
+		temp_block1 = crypt.sub_bytes_by_len(i, block_size);
 		dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, block_size);
 		plain += temp_block1;
 	}
 	block_self_encryption(temp_block0, block_size, key, key_size);
-	temp_block1 = crypt.sub_by_len(i, block_size);
+	temp_block1 = crypt.sub_bytes_by_len(i, block_size);
 	dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, temp_block1.size());
 	unpadding(temp_block1, block_size);
 	plain += temp_block1;
@@ -65,13 +78,13 @@ void NSROOT::mode::OFB::encrypt_stream(std::istream& plain, uint64_t max, std::o
 
 	Data temp_block1(block_size);
 	uint64_t total = 0;
-	while (max - total >= block_size && read_byte_size(plain, temp_block1, block_size, total) == block_size)
+	while (max - total >= block_size && read_bytes_size(plain, temp_block1, block_size, total) == block_size)
 	{
 		block_self_encryption(temp_block0, block_size, key, key_size);
 		dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, block_size);
 		crypt.write((char*)temp_block1.data(), block_size);
 	}
-	read_byte_size(plain, temp_block1, block_size, total);
+	read_bytes_size(plain, temp_block1, block_size, total);
 	block_self_encryption(temp_block0, block_size, key, key_size);
 	padding(temp_block1, block_size);
 	dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, temp_block1.size());
@@ -83,18 +96,72 @@ void NSROOT::mode::OFB::decrypt_stream(std::istream& crypt, uint64_t max, std::o
 	OFB_DECRYPT_INIT;
 	Data temp_block1(block_size);
     uint64_t total = 0;
-	while (max - total > block_size && read_byte_size(crypt, temp_block1, block_size, total) == block_size)
+	while (max - total > block_size && read_bytes_size(crypt, temp_block1, block_size, total) == block_size)
 	{
 		block_self_encryption(temp_block0, block_size, key, key_size);
 		dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, block_size);
 		plain.write((char*)temp_block1.data(), block_size);
 	}
-	read_byte_size(crypt, temp_block1, block_size, total);
+	read_bytes_size(crypt, temp_block1, block_size, total);
 	block_self_encryption(temp_block0, block_size, key, key_size);
 	dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, temp_block1.size());
 	unpadding(temp_block1, block_size);
 	plain.write((char*)temp_block1.data(), temp_block1.size());
 	plain.flush();
+}
+
+void NSROOT::mode::OFB::encryptp_stream(PauseableChannel& pchannel, std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding)
+{
+	OFB_ENCRYPT_INIT;
+
+	pchannel.start();
+
+	Data temp_block1(block_size);
+    uint64_t total = 0;
+	while (max - total >= block_size && read_bytes_size(plain, temp_block1, block_size, total) == block_size)
+	{
+		block_self_encryption(temp_block0, block_size, key, key_size);
+		dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, block_size);
+		crypt.write((char*)temp_block1.data(), block_size);
+
+		pchannel.add_progress(block_size * 1.0 / max);
+		if (pchannel.should_pause()) break;;
+	}
+	read_bytes_size(plain, temp_block1, block_size, total);
+	block_self_encryption(temp_block0, block_size, key, key_size);
+	padding(temp_block1, block_size);
+	dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, temp_block1.size());
+	crypt.write((char*)temp_block1.data(), temp_block1.size());
+	crypt.flush();
+
+	pchannel.stop();
+}
+
+void NSROOT::mode::OFB::decryptp_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding)
+{
+	OFB_DECRYPT_INIT;
+
+	pchannel.start();
+
+	Data temp_block1(block_size);
+    uint64_t total = 0;
+	while (max - total > block_size && read_bytes_size(crypt, temp_block1, block_size, total) == block_size)
+	{
+		block_self_encryption(temp_block0, block_size, key, key_size);
+		dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, block_size);
+		plain.write((char*)temp_block1.data(), block_size);
+
+		pchannel.add_progress(block_size * 1.0 / max);
+		if (pchannel.should_pause()) break;;
+	}
+	read_bytes_size(crypt, temp_block1, block_size, total);
+	block_self_encryption(temp_block0, block_size, key, key_size);
+	dog_torch::serialize::BinaryData::XOR_self(temp_block1, temp_block0, temp_block1.size());
+	unpadding(temp_block1, block_size);
+	plain.write((char*)temp_block1.data(), temp_block1.size());
+	plain.flush();
+
+	pchannel.stop();
 }
 
 NSROOT::mode::OFB::OFB(const padding::Padding& padding, const Data& iv) : Mode("OFB")
@@ -172,6 +239,22 @@ NSROOT::mode::stream_crypt_func NSROOT::mode::OFB::get_stream_decrypt() const
 		};
 }
 
+NSROOT::mode::streamp_crypt_func NSROOT::mode::OFB::get_streamp_encrypt() const
+{
+	return [this](PauseableChannel& pchannel, std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm) -> void
+		{
+			return encryptp_stream(pchannel, plain, max, crypt, available_key, algorithm, this->iv_, this->padding_->get_padding());
+		};
+}
+NSROOT::mode::streamp_crypt_func NSROOT::mode::OFB::get_streamp_decrypt() const
+{
+	return [this](PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm) -> void
+		{
+			return decryptp_stream(pchannel, crypt, max, plain, available_key, algorithm, this->iv_, this->padding_->get_unpadding());
+		};
+}
 
 #undef NSROOT
 #undef DOG_DATA
+#undef OFB_ENCRYPT_INIT
+#undef OFB_DECRYPT_INIT

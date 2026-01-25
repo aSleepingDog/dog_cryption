@@ -4,8 +4,10 @@
 #define DOG_DATA dog_torch::serialize::BinaryData
 
 //unit单位:uint8_t字节
-const NSROOT::algorithm::Config NSROOT::algorithm::SM4::CONFIG = Config("SM4", "[16,16]0", "[16,16]0");
-
+const NSROOT::algorithm::Config NSROOT::algorithm::SM4::get_config()
+{
+	return Config("SM4", "[16,16]0", "[16,16]0");
+}
 const uint8_t NSROOT::algorithm::SM4::SBox[16][16] = {
 	//0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
 	{0xd6, 0x90, 0xe9, 0xfe, 0xcc, 0xe1, 0x3d, 0xb7, 0x16, 0xb6, 0x14, 0xc2, 0x28, 0xfb, 0x2c, 0x05},//0

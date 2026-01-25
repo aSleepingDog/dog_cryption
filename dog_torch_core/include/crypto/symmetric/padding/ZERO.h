@@ -23,13 +23,13 @@
 
 #include "serialize/serialize.h"
 #include "math/math.h"
-#include "crypto/symmetric/base.h"
+#include "crypto/symmetric/symmetric.h"
 
 namespace dog_torch::crypto::symmetric::padding
 {
 	using Data = dog_torch::serialize::BinaryData;
 
-	class ZERO : public Padding
+	class DOG_CRYPTION_API ZERO : public Padding
 	{
 	public:
 		static void padding(Data& data, uint64_t block_size);

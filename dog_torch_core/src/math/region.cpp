@@ -1,5 +1,8 @@
 #include "math/region.h"
 
+#define DOG_ERROR_INVALID_STR "Error:invalid region string"
+#define DOG_ERROR_END_ITERATOR "Error:range iterator is end"
+
 bool dog_torch::math::region::gap::is_effective(std::string region_str)
 {
 	//[XX,XX]XX ([]|)
@@ -54,7 +57,7 @@ std::array<uint64_t, 3> dog_torch::math::region::gap::get_list(std::string regio
 {
 	if (!dog_torch::math::region::gap::is_effective(region_str))
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:invalid region string\n错误：无效的区域字符串"));
+		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_INVALID_STR));
 	}
 	std::array<uint64_t, 3> list = {0,0,0};
 	uint64_t i = 0;
@@ -125,7 +128,7 @@ std::vector<uint64_t> dog_torch::math::region::array::get_list(std::string regio
 {
 	if (!is_effective(region_str))
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:invalid region string\n错误：无效的区域字符串"));
+		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_INVALID_STR));
 	}
 	std::vector<uint64_t> list;
 	std::unique_ptr<uint64_t> n = nullptr;
@@ -193,7 +196,7 @@ bool dog_torch::math::region::is_fall(std::string region_str, uint64_t n)
 	}
 	else
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:invalid region string\n错误：无效的区域字符串"));
+		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_INVALID_STR));
 	}
 }
 
@@ -224,7 +227,7 @@ dog_torch::math::region::NumberIterator::NumberIterator(std::string region_str)
 	}
 	else
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:invalid region string\n错误：无效的区域字符串"));
+		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_INVALID_STR));
 	}
 }
 bool dog_torch::math::region::NumberIterator::have_next()
@@ -235,7 +238,7 @@ uint64_t dog_torch::math::region::NumberIterator::next()
 {
 	if (!have_next())
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:range iterator is end\n错误：范围迭代器已结束"));
+		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_END_ITERATOR));
 	}
 	uint64_t result = 0;
 	if (this->is_normal_)
@@ -264,3 +267,7 @@ uint64_t dog_torch::math::region::NumberIterator::next()
 	}
 	return result;
 }
+
+
+#undef DOG_ERROR_INVALID_STR
+#undef DOG_ERROR_END_ITERATOR

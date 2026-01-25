@@ -179,7 +179,7 @@ namespace dog_torch::asyncion::container
 		}
 	};
 
-	template <typename T, typename Alloc = std::allocator<T>>
+	template <std::movable T, typename Alloc = std::allocator<T>>
 	class DequeMove
 	{
 	private:

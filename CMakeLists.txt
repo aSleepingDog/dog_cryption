@@ -29,9 +29,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dll)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-
 add_subdirectory(dog_torch_core)
-
 
 include_directories("${CMAKE_SOURCE_DIR}/dog_torch_task/include")
 include_directories("${CMAKE_SOURCE_DIR}/dog_torch_core/include")

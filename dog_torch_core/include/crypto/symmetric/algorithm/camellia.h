@@ -22,7 +22,7 @@
 
 #include "serialize/serialize.h"
 #include "math/math.h"
-#include "crypto/symmetric/base.h"
+#include "crypto/symmetric/symmetric.h"
 
 namespace dog_torch::crypto::symmetric::algorithm
 {
@@ -31,7 +31,8 @@ namespace dog_torch::crypto::symmetric::algorithm
 	class DOG_CRYPTION_API camellia : public Algorithm
 	{
 	public:
-		static const Config CONFIG;
+		static const Config get_config();
+
 		static const uint8_t Sbox[256];
 		static const uint64_t sigma[6];
 		static std::pair<uint64_t, uint64_t> CLMB(uint64_t l, uint64_t r, uint64_t i);
@@ -55,7 +56,7 @@ namespace dog_torch::crypto::symmetric::algorithm
 		static void decoding_self(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size);
 
 
-		camellia(const uint64_t key_size) : Algorithm(CONFIG.name, 16, key_size) {};
+		camellia(const uint64_t key_size) : Algorithm(get_config().name, 16, key_size) {};
 
 		std::unique_ptr<Algorithm> clone() const override;
 

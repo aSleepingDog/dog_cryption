@@ -2,6 +2,9 @@
 
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root
 
+#define DOG_ERROR_INVAILD_BLOCK_SIZE std::format("Error:Invalid Block Size {},it must fall in {}", block_size, get_config().block_size_region)
+#define DOG_ERROR_INVAILD_KEY_SIZE std::format("Error:Invalid Key Size {},it must fall in {}", key_size, get_config().key_size_region)
+
 const uint8_t NSROOT::algorithm::Rijndael::SBox[16][16] = {
 	//0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
 	{0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76},//0
@@ -90,46 +93,52 @@ uint8_t NSROOT::algorithm::Rijndael::Xtime(uint8_t a, uint8_t b)
 	}
 	else
 	{
-		throw CryptionException(DOG_EXCEPTION_MSG_OPINION("Error:AES wrong value of a\n错误,AES a值错误"));
+		return dog_torch::math::galois_field::GF2_mult(a, b, 0x11B);
 	}
 }
 
 //Rijndael
-const NSROOT::algorithm::Config NSROOT::algorithm::Rijndael::CONFIG = Config("Rijndael","[16,32]4","[16,32]4");
-NSROOT::algorithm::Rijndael::Rijndael(const uint64_t block_size, const uint64_t key_size) : Algorithm(CONFIG.name, block_size, key_size)
+const NSROOT::algorithm::Config NSROOT::algorithm::Rijndael::get_config()
 {
-	this->name = CONFIG.name;
+	return Config("Rijndael", "[16,32]4", "[16,32]4");
+}
+NSROOT::algorithm::Rijndael::Rijndael(const uint64_t block_size, const uint64_t key_size) : Algorithm(get_config().name, block_size, key_size)
+{
 	using namespace dog_torch::math::region;
-	if (!is_fall(CONFIG.block_size_region, block_size))
+	if (!is_fall(get_config().block_size_region, block_size))
 	{
 		throw CryptionException(
-			DOG_EXCEPTION_MSG_OPINION(std::format("Error:Invalid Block Size {},it must fall in {}  < 16\n错误：无效分钟大小 {} 合适的范围{}", 
-				block_size, CONFIG.block_size_region, block_size, CONFIG.block_size_region))
+			DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_INVAILD_BLOCK_SIZE)
 		);
 	}
-	if (!is_fall(CONFIG.key_size_region, key_size))
+	if (!is_fall(get_config().key_size_region, key_size))
 	{
 		throw CryptionException(
-			DOG_EXCEPTION_MSG_OPINION(std::format("Error:Invalid Key Size {},it must fall in {}  < 16\n错误：无效密钥大小 {} 合适的范围{}",
-				key_size, CONFIG.key_size_region, block_size, CONFIG.block_size_region))
+			DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_INVAILD_KEY_SIZE)
 		);
 	}
 }
 
 //AES
-const NSROOT::algorithm::Config NSROOT::algorithm::AES::CONFIG = Config("AES","[16,16]0","[16,32]8");
+const NSROOT::algorithm::Config NSROOT::algorithm::AES::get_config()
+{
+	return Config("AES", "[16,16]0", "[16,32]8");
+}
 
 dog_torch::serialize::BinaryData NSROOT::algorithm::AES::extend_key(const Data& key, uint64_t block_size, uint64_t key_size)
 {
+	using namespace dog_torch::math::region;
+	if (!is_fall(get_config().key_size_region, key_size))
+	{
+		throw CryptionException(
+			DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_INVAILD_KEY_SIZE)
+		);
+	}
 	if (key_size == 16)
     {
         dog_torch::serialize::BinaryData res;
         res.reserve(176);
 
-        if (key.size() < 16)
-        {
-            throw CryptionException(DOG_EXCEPTION_MSG_OPINION(std::format("Error:Invalid Key Size {}  < 16\n错误：密钥长度过短 {} < 16", key.size(), key.size())));
-        }
         for (int i = 0; i < 16; i++)
         {
             res.push_back(key.at(i));
@@ -179,10 +188,7 @@ dog_torch::serialize::BinaryData NSROOT::algorithm::AES::extend_key(const Data& 
     {
         dog_torch::serialize::BinaryData res;
         res.reserve(208);
-        if (key.size() < 24)
-        {
-            throw CryptionException(DOG_EXCEPTION_MSG_OPINION(std::format("Error:Invalid Key Size {}  < 24\n错误：密钥长度过短 {} < 24", key.size(), key.size())));
-        }
+
         for (int i = 0; i < 24; i++)
         {
             res.push_back(key.at(i));
@@ -232,10 +238,7 @@ dog_torch::serialize::BinaryData NSROOT::algorithm::AES::extend_key(const Data& 
 	{
         dog_torch::serialize::BinaryData res;
         res.reserve(240);
-        if (key.size() < 32)
-        {
-            throw CryptionException(DOG_EXCEPTION_MSG_OPINION(std::format("Error:Invalid Key Size {}  < 32\n错误：密钥长度过短 {} < 32", key.size(), key.size())));
-        }
+
         for (int i = 0; i < 32; i++)
         {
             res.push_back(key.at(i));
@@ -296,10 +299,6 @@ dog_torch::serialize::BinaryData NSROOT::algorithm::AES::extend_key(const Data& 
         }
         return res;
     }
-	else
-	{
-		throw CryptionException(DOG_EXCEPTION_MSG_OPINION("Error:AES wrong value of key_size\n错误,AES key_size值错误"));
-	}
 }
 
 void NSROOT::algorithm::AES::middle_encryption(Data& datablock, uint64_t flag, uint64_t mode)
@@ -434,59 +433,58 @@ void NSROOT::algorithm::AES::middle_decryption(Data& datablock, uint64_t flag, u
 
 dog_torch::serialize::BinaryData NSROOT::algorithm::AES::encoding(const Data& plain, uint64_t block_size, const Data& key, uint64_t key_size)
 {
-	Data temp_key = key.sub_by_pos(0, 16);
+	Data temp_key = key.sub_bytes_by_pos(0, 16);
 	Data mid_block = dog_torch::serialize::BinaryData::XOR(plain, temp_key, 16);
 	for (int i = 0; i < ((key_size / 4) + 6); i++)
 	{
 		AES::middle_encryption(mid_block, i, key_size << 3);
-		temp_key = key.sub_by_pos(16 * (i + 1), 16 * (i + 2));
+		temp_key = key.sub_bytes_by_pos(16 * (i + 1), 16 * (i + 2));
 		mid_block = dog_torch::serialize::BinaryData::XOR(mid_block, temp_key, 16);
 	}
 	return mid_block;
 }
 dog_torch::serialize::BinaryData NSROOT::algorithm::AES::decoding(const Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size)
 {
-	Data tempKey = key.sub_by_pos((key_size * 4) + 96, (key_size * 4) + 112);
+	Data tempKey = key.sub_bytes_by_pos((key_size * 4) + 96, (key_size * 4) + 112);
 	Data mid_block = dog_torch::serialize::BinaryData::XOR(crypt, tempKey, 16);
 	for (int i = 0; i < ((key_size / 4) + 6); i++)
 	{
 		AES::middle_decryption(mid_block, i, key_size << 3);
-		tempKey = key.sub_by_pos(16 * ((key_size / 4) + 5 - i), 16 * ((key_size / 4) + 6 - i));
+		tempKey = key.sub_bytes_by_pos(16 * ((key_size / 4) + 5 - i), 16 * ((key_size / 4) + 6 - i));
 		mid_block = dog_torch::serialize::BinaryData::XOR(mid_block, tempKey, 16);
 	}
 	return mid_block;
 }
 void NSROOT::algorithm::AES::encoding_self(Data& plain, uint64_t block_size, const Data& key, uint64_t key_size)
 {
-	Data tempKey = key.sub_by_pos(0, 16);
+	Data tempKey = key.sub_bytes_by_pos(0, 16);
 	plain = dog_torch::serialize::BinaryData::XOR(plain, tempKey, 16);
 	for (int i = 0; i < ((key_size / 4) + 6); i++)
 	{
 		AES::middle_encryption(plain, i, key_size << 3);
-		tempKey = key.sub_by_pos(16 * (i + 1), 16 * (i + 2));
+		tempKey = key.sub_bytes_by_pos(16 * (i + 1), 16 * (i + 2));
 		plain = dog_torch::serialize::BinaryData::XOR(plain, tempKey, 16);
 	}
 }
 void NSROOT::algorithm::AES::decoding_self(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size)
 {
-	dog_torch::serialize::BinaryData tempKey = key.sub_by_pos((key_size * 4) + 96, (key_size * 4) + 112);
+	dog_torch::serialize::BinaryData tempKey = key.sub_bytes_by_pos((key_size * 4) + 96, (key_size * 4) + 112);
 	crypt = dog_torch::serialize::BinaryData::XOR(crypt, tempKey, 16);
 	for (int i = 0; i < ((key_size / 4) + 6); i++)
 	{
 		middle_decryption(crypt, i, key_size << 3);
-		tempKey = key.sub_by_pos(16 * ((key_size / 4) + 5 - i), 16 * ((key_size / 4) + 6 - i));//取当前轮密钥
+		tempKey = key.sub_bytes_by_pos(16 * ((key_size / 4) + 5 - i), 16 * ((key_size / 4) + 6 - i));//取当前轮密钥
 		crypt = dog_torch::serialize::BinaryData::XOR(crypt, tempKey, 16);//轮密钥加
 	}
 }
 NSROOT::algorithm::AES::AES(const uint64_t key_size) : Rijndael(16, key_size)
 {
-	this->name = CONFIG.name;
+	this->name = get_config().name;
 	using namespace dog_torch::math::region;
-	if (!is_fall(CONFIG.key_size_region, key_size))
+	if (!is_fall(get_config().key_size_region, key_size))
 	{
 		throw CryptionException(
-			DOG_EXCEPTION_MSG_OPINION(std::format("Error:Invalid Key Size {},it must fall in {}  < 16\n错误：无效密钥大小 {} 合适的范围{}",
-				key_size, CONFIG.key_size_region, key_size, CONFIG.key_size_region))
+			DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_INVAILD_KEY_SIZE)
 		);
 	}
 }
@@ -517,4 +515,6 @@ NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::AES::get_decrypt_
 
 #undef NSROOT
 
+#undef DOG_ERROR_INVAILD_BLOCK_SIZE
+#undef DOG_ERROR_INVAILD_KEY_SIZE
 

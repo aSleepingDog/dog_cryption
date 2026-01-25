@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-function(paking PATH ROOT)
+function(packing PATH ROOT)
     file(GLOB DIR RELATIVE "${CMAKE_SOURCE_DIR}/${ROOT}/${PATH}" ${PATH}/*)
     foreach(ITEM ${DIR})
         if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/${ROOT}/${PATH}/${ITEM}")
@@ -18,9 +18,9 @@ function(paking PATH ROOT)
     endif()
     source_group("Header Files\\\\${PATH}" FILES ${FILES})
     # message("source_group(Header Files\\\\${PATH} FILES ${FILES})")
-endfunction(paking PATH ROOT)
+endfunction(packing PATH ROOT)
 
-paking("include" "dog_torch_core")
+packing("include" "dog_torch_core")
 
 include_directories("${CMAKE_SOURCE_DIR}/dog_torch_core/include")
 

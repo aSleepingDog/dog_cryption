@@ -4,12 +4,11 @@
 
 void NSROOT::padding::ZERO::padding(Data& data, uint64_t block_size)
 {
-	if (data.size() > block_size)
- 	{
- 		throw CryptionException(DOG_EXCEPTION_MSG_OPINION("Error:Data size is bigger than block size\n错误：数据长度大于块大小"));
- 	}
- 	uint64_t up_size = block_size - data.size();
- 	for (uint64_t i = 0; i < up_size; i++)
+    if (data.size() > block_size)
+    {
+        return;
+    }
+ 	for (uint64_t i = data.size(); i < block_size; i++)
  	{
  		data.push_back(0x00);
  	}

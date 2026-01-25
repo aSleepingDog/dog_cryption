@@ -1,6 +1,8 @@
 #include "serialize/BinaryData.h"
 
 #define NSROOT dog_torch::serialize
+#define DOG_ERROR_SIZE_NO_EQUAL "Error:BinaryData size not equal"
+#define DOG_ERROR_OUT_OF_OFFSET "Error:out of offset"
 
 NSROOT::BinaryData::BinaryData(std::string str, const int type)
 {
@@ -288,7 +290,19 @@ std::string NSROOT::BinaryData::to_hex_string(bool is_upper) const
     std::vector<char> res = this->to_hex_vector(is_upper);
     return std::string(res.begin(), res.end());
 }
-NSROOT::BinaryData NSROOT::BinaryData::sub_by_pos(uint64_t start, uint64_t end) const
+std::string NSROOT::BinaryData::to_bin_string() const
+{
+    std::string res;res.reserve(this->inside_data.size() * 8);
+    for (uint8_t i = 0; i < this->inside_data.size(); i++)
+    {
+		for (uint8_t j = 0;j < 8;j++)
+        {
+            res.push_back(((this->inside_data[i] >> (7 - j)) & 0x01) ? '1' : '0');
+        }
+    }
+    return res;
+}
+NSROOT::BinaryData NSROOT::BinaryData::sub_bytes_by_pos(uint64_t start, uint64_t end) const
 {
     uint64_t size = end - start;
     uint64_t max_size = this->inside_data.size();
@@ -299,7 +313,7 @@ NSROOT::BinaryData NSROOT::BinaryData::sub_by_pos(uint64_t start, uint64_t end) 
     }
     return res;
 }
-NSROOT::BinaryData NSROOT::BinaryData::sub_by_len(uint64_t start, uint64_t len) const
+NSROOT::BinaryData NSROOT::BinaryData::sub_bytes_by_len(uint64_t start, uint64_t len) const
 {
     uint64_t end = start + len;
     uint64_t max_size = this->inside_data.size();
@@ -310,7 +324,7 @@ NSROOT::BinaryData NSROOT::BinaryData::sub_by_len(uint64_t start, uint64_t len) 
     }
     return res;
 }
-NSROOT::BinaryData NSROOT::BinaryData::sub_by_pos(std::vector<uint8_t>::iterator start, std::vector<uint8_t>::iterator end) const
+NSROOT::BinaryData NSROOT::BinaryData::sub_bytes_by_pos(std::vector<uint8_t>::iterator start, std::vector<uint8_t>::iterator end) const
 {
     uint64_t size = end - start;
     NSROOT::BinaryData res; res.reserve(size);
@@ -320,7 +334,7 @@ NSROOT::BinaryData NSROOT::BinaryData::sub_by_pos(std::vector<uint8_t>::iterator
     }
     return res;
 }
-NSROOT::BinaryData NSROOT::BinaryData::sub_by_len(std::vector<uint8_t>::iterator start, uint64_t len) const
+NSROOT::BinaryData NSROOT::BinaryData::sub_bytes_by_len(std::vector<uint8_t>::iterator start, uint64_t len) const
 {
     std::vector<uint8_t>::iterator end = start + len;
     NSROOT::BinaryData res; res.reserve(len);
@@ -329,6 +343,181 @@ NSROOT::BinaryData NSROOT::BinaryData::sub_by_len(std::vector<uint8_t>::iterator
         res.push_back(*i);
     }
     return res;
+}
+NSROOT::BinaryData NSROOT::BinaryData::sub_bits_by_pos(uint64_t start, uint64_t start_bit_pos, uint64_t end, uint64_t end_bit_pos) const
+{
+    BinaryData result;
+    uint64_t max_size = this->inside_data.size();
+    uint8_t fill_byte = 0;
+	uint8_t fill_bit_pos = 0;
+    for (uint64_t i = start_bit_pos; i < 8; i++)
+    {
+        fill_byte |= ((this->inside_data[start] >> (7 - i)) & 0x01) << (7 - fill_bit_pos);
+        fill_bit_pos++;
+    }
+    if (fill_bit_pos == 8)
+    {
+        result.push_back(fill_byte);
+        fill_byte = 0;
+        fill_bit_pos = 0;
+    }
+    uint64_t i = start + 1;
+    for (; i < end && i < max_size; i++)
+    {
+        for (uint64_t j = 0; j < 8; j++)
+        {
+            fill_byte |= ((this->inside_data[i] >> (7 - j)) & 0x01) << (7 - fill_bit_pos);
+            fill_bit_pos++;
+            if (fill_bit_pos == 8)
+            {
+                result.push_back(fill_byte);
+                fill_byte = 0;
+                fill_bit_pos = 0;
+            }   
+        }
+    }
+    if (i == end && end != max_size)
+    {
+        for (uint64_t j = 0; j < end_bit_pos; j++)
+        {
+            fill_byte |= ((this->inside_data[end] >> (7 - j)) & 0x01) << (7 - fill_bit_pos);
+            fill_bit_pos++;
+            if (fill_bit_pos == 8)
+            {
+                result.push_back(fill_byte);
+                fill_byte = 0;
+                fill_bit_pos = 0;
+            }
+        }
+    }
+    if (fill_bit_pos != 0)
+    {
+        result.push_back(fill_byte);
+    }
+    return result;
+}
+NSROOT::BinaryData NSROOT::BinaryData::sub_bits_by_len(uint64_t start, uint64_t start_bit_pos, uint64_t len) const
+{
+    BinaryData result;
+    uint64_t max_size = this->inside_data.size();
+    uint8_t fill_byte = 0;
+    uint8_t fill_bit_pos = 0;
+    uint64_t now_pos = start;
+	uint8_t now_bit_pos = start_bit_pos;
+    for (uint64_t i = 0; i < len; i++)
+    {
+        fill_byte |= ((this->inside_data[now_pos] >> (7 - now_bit_pos)) & 0x01) << (7 - fill_bit_pos);
+        fill_bit_pos++;
+        now_bit_pos++;
+        if (fill_bit_pos == 8)
+        {
+            result.push_back(fill_byte);
+            fill_byte = 0;
+            fill_bit_pos = 0;
+        }
+        if (now_bit_pos == 8)
+        {
+            now_pos++;
+            now_bit_pos = 0;
+        }
+        if (now_pos == max_size)
+        {
+            break;
+		}
+    }
+    if (fill_bit_pos != 0)
+    {
+        result.push_back(fill_byte);
+    }
+    return result;
+}
+NSROOT::BinaryData NSROOT::BinaryData::sub_bits_by_pos(std::vector<uint8_t>::iterator start, uint64_t start_bit_pos, std::vector<uint8_t>::iterator end, uint64_t end_bit_pos) const
+{
+    BinaryData result;
+    uint64_t max_size = this->inside_data.size();
+    uint8_t fill_byte = 0;
+    uint8_t fill_bit_pos = 0;
+    for (uint64_t i = start_bit_pos; i < 8; i++)
+    {
+        fill_byte |= ((*start >> (7 - i)) & 0x01) << (7 - fill_bit_pos);
+        fill_bit_pos++;
+    }
+    if (fill_bit_pos == 8)
+    {
+        result.push_back(fill_byte);
+        fill_byte = 0;
+        fill_bit_pos = 0;
+    }
+    start++;
+    for (; start < end && start < this->cend(); start++)
+    {
+        for (uint64_t j = 0; j < 8; j++)
+        {
+            fill_byte |= ((*start >> (7 - j)) & 0x01) << (7 - fill_bit_pos);
+            fill_bit_pos++;
+            if (fill_bit_pos == 8)
+            {
+                result.push_back(fill_byte);
+                fill_byte = 0;
+                fill_bit_pos = 0;
+            }
+        }
+    }
+    if (start == end && end != this->cend())
+    {
+        for (uint64_t j = 0; j < end_bit_pos; j++)
+        {
+            fill_byte |= ((*end >> (7 - j)) & 0x01) << (7 - fill_bit_pos);
+            fill_bit_pos++;
+            if (fill_bit_pos == 8)
+            {
+                result.push_back(fill_byte);
+                fill_byte = 0;
+                fill_bit_pos = 0;
+            }
+        }
+    }
+    if (fill_bit_pos != 0)
+    {
+        result.push_back(fill_byte);
+    }
+    return result;
+
+}
+NSROOT::BinaryData NSROOT::BinaryData::sub_bits_by_len(std::vector<uint8_t>::iterator start, uint64_t start_bit_pos, uint64_t len) const
+{
+    BinaryData result;
+    uint64_t max_size = this->inside_data.size();
+    uint8_t fill_byte = 0;
+    uint8_t fill_bit_pos = 0;
+    uint64_t now_pos = start - this->cbegin();
+    uint8_t now_bit_pos = start_bit_pos;
+    for (uint64_t i = 0; i < len; i++)
+    {
+        fill_byte |= ((this->inside_data[now_pos] >> (7 - now_bit_pos)) & 0x01) << (7 - fill_bit_pos);
+        fill_bit_pos++;
+        now_bit_pos++;
+        if (fill_bit_pos == 8)
+        {
+            result.push_back(fill_byte);
+            fill_byte = 0;
+            fill_bit_pos = 0;
+        }
+        if (now_bit_pos == 8)
+        {
+            now_pos++;
+            now_bit_pos = 0;
+        }
+        if (now_pos == max_size)
+        {
+            break;
+        }
+    }
+    if (fill_bit_pos != 0)
+    {
+        result.push_back(fill_byte);
+    }
+    return result;
 }
 bool NSROOT::BinaryData::empty() const
 {
@@ -413,7 +602,7 @@ NSROOT::BinaryData NSROOT::BinaryData::bit_left_move_norise(uint64_t shift)
     }
     else if (byte_shift != 0)
     {
-        mid = this->sub_by_len(byte_shift, this->size() - byte_shift);
+        mid = this->sub_bytes_by_len(byte_shift, this->size() - byte_shift);
         for (uint64_t i = 0; i < byte_shift; i++)
         {
             mid.push_back(0x00);
@@ -442,7 +631,7 @@ void NSROOT::BinaryData::bit_left_move_norise_self(uint64_t shift)
     }
     else if (byte_shift != 0)
     {
-        mid = this->sub_by_len(byte_shift, this->size() - byte_shift);
+        mid = this->sub_bytes_by_len(byte_shift, this->size() - byte_shift);
         for (uint64_t i = 0; i < byte_shift; i++)
         {
             mid.push_back(0x00);
@@ -517,7 +706,7 @@ NSROOT::BinaryData NSROOT::BinaryData::bit_right_move_norise(uint64_t shift)
     }
     else if (byte_shift != 0)
     {
-        mid = this->sub_by_len(0, this->size() - byte_shift);
+        mid = this->sub_bytes_by_len(0, this->size() - byte_shift);
         for (uint64_t i = 0; i < byte_shift; i++)
         {
             mid.insert(mid.begin(), 0x00);
@@ -546,7 +735,7 @@ void NSROOT::BinaryData::bit_right_move_norise_self(uint64_t shift)
     }
     else if (byte_shift != 0)
     {
-        mid = this->sub_by_len(0, this->size() - byte_shift);
+        mid = this->sub_bytes_by_len(0, this->size() - byte_shift);
         for (uint64_t i = 0; i < byte_shift; i++)
         {
             mid.insert(mid.begin(), 0x00);
@@ -664,6 +853,7 @@ void NSROOT::BinaryData::XOR_self(BinaryData& d1, const BinaryData& d2, uint64_t
         d1[i] ^= d2[i];
     }
 }
+
 bool NSROOT::operator==(const BinaryData& d1, const BinaryData& d2)
 {
     if (d1.size() != d2.size())
@@ -696,7 +886,7 @@ NSROOT::BinaryData NSROOT::operator&(const BinaryData& d1, const BinaryData& d2)
 {
     if (d1.size() != d2.size())
     {
-        throw DOG_EXCEPTION("BinaryData size not equal");
+        throw DOG_EXCEPTION(DOG_ERROR_SIZE_NO_EQUAL);
     }
     BinaryData res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -709,7 +899,7 @@ void NSROOT::operator&=(BinaryData& d1, const BinaryData& d2)
 {
     if (d1.size() != d2.size())
     {
-        throw DOG_EXCEPTION("BinaryData size not equal");
+        throw DOG_EXCEPTION(DOG_ERROR_SIZE_NO_EQUAL);
     }
     BinaryData res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -721,7 +911,7 @@ NSROOT::BinaryData NSROOT::operator|(const BinaryData& d1, const BinaryData& d2)
 {
     if (d1.size() != d2.size())
     {
-        throw DOG_EXCEPTION("BinaryData size not equal");
+        throw DOG_EXCEPTION(DOG_ERROR_SIZE_NO_EQUAL);
     }
     BinaryData res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -734,7 +924,7 @@ void NSROOT::operator|=(BinaryData& d1, const BinaryData& d2)
 {
     if (d1.size() != d2.size())
     {
-        throw DOG_EXCEPTION("BinaryData size not equal");
+        throw DOG_EXCEPTION(DOG_ERROR_SIZE_NO_EQUAL);
     }
     BinaryData res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -746,7 +936,7 @@ NSROOT::BinaryData NSROOT::operator^(const BinaryData& d1, const BinaryData& d2)
 {
     if (d1.size() != d2.size())
     {
-        throw DOG_EXCEPTION("BinaryData size not equal");
+        throw DOG_EXCEPTION(DOG_ERROR_SIZE_NO_EQUAL);
     }
     BinaryData res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -759,7 +949,7 @@ void NSROOT::operator^=(BinaryData& d1, const BinaryData& d2)
 {
     if (d1.size() != d2.size())
     {
-        throw DOG_EXCEPTION("BinaryData size not equal");
+        throw DOG_EXCEPTION(DOG_ERROR_SIZE_NO_EQUAL);
     }
     BinaryData res; res.reserve(d1.size());
     for (uint64_t i = 0; i < d1.size(); i++)
@@ -783,6 +973,7 @@ void NSROOT::operator+=(BinaryData& d1, const BinaryData& d2)
         d1.push_back(*it);
     }
 }
+
 NSROOT::BinaryData NSROOT::BinaryData::concat(const BinaryData& d) const
 {
     BinaryData res; res.reserve(this->size() + d.size());
@@ -940,7 +1131,7 @@ std::string NSROOT::utf8::get_utf8_char(std::string str, uint64_t offset)
             }
         }
     }
-    throw DOG_EXCEPTION("Error:out of offset\n错误：偏移量超出范围");
+    throw DOG_EXCEPTION(DOG_ERROR_OUT_OF_OFFSET);
 }
 std::string NSROOT::utf8::get_utf8_char(const char* str, uint64_t offset)
 {
@@ -948,110 +1139,5 @@ std::string NSROOT::utf8::get_utf8_char(const char* str, uint64_t offset)
 }
 
 #undef NSROOT
-
-void dog_torch::serialize::DataStreamBuf::imbue(const std::locale& loc)
-{
-}
-std::basic_streambuf<uint8_t>* dog_torch::serialize::DataStreamBuf::setbuf(char_type* s, std::streamsize n)
-{
-    this->rbuf_start_ = s;
-    this->rbuf_end_ = s + n;
-    this->rbuf_pos_ = this->rbuf_start_;
-
-    this->wbuf_start_ = s;
-    this->wbuf_end_ = s + n;
-    this->wbuf_pos_ = this->wbuf_start_;
-    return this;
-}
-dog_torch::serialize::DataStreamBuf::pos_type dog_torch::serialize::DataStreamBuf::seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which)
-{
-    if (which == std::ios_base::in)
-    {
-        switch (dir)
-        {
-        case std::ios_base::beg:
-        {
-            this->rbuf_pos_ = this->rbuf_start_ + off;
-            break;
-        }
-        case std::ios_base::cur:
-        {
-            this->rbuf_pos_ += off;
-            break;
-        }
-        case std::ios_base::end:
-        {
-            this->rbuf_pos_ = this->rbuf_end_ - off;
-            break;
-        }
-        }
-        return pos_type(this->rbuf_pos_ - this->rbuf_start_);
-    }
-    else if (which == std::ios_base::out)
-    {
-        switch (dir)
-        {
-        case std::ios_base::beg:
-        {
-            this->wbuf_pos_ = this->wbuf_start_ + off;
-            break;
-        }
-        case std::ios_base::cur:
-        {
-            this->wbuf_pos_ += off;
-            break;
-        }
-        case std::ios_base::end:
-        {
-            this->wbuf_pos_ = this->wbuf_end_ - off;
-            break;
-        }
-        }
-        return pos_type(this->wbuf_pos_ - this->wbuf_start_);
-    }
-}
-dog_torch::serialize::DataStreamBuf::pos_type dog_torch::serialize::DataStreamBuf::seekpos(pos_type pos, std::ios_base::openmode which)
-{
-    if (which == std::ios_base::in)
-    {
-        this->rbuf_pos_ = this->rbuf_start_ + pos;
-        return pos_type(this->rbuf_pos_ - this->rbuf_start_);
-    }
-    else if (which == std::ios_base::out)
-    {
-        this->wbuf_pos_ = this->wbuf_start_ + pos;
-        return pos_type(this->wbuf_pos_ - this->wbuf_start_);
-    }
-}
-int dog_torch::serialize::DataStreamBuf::sync()
-{
-    return 0;
-}
-std::streamsize dog_torch::serialize::DataStreamBuf::showmanyc()
-{
-    return std::streamsize();
-}
-dog_torch::serialize::DataStreamBuf::int_type dog_torch::serialize::DataStreamBuf::underflow()
-{
-    return int_type();
-}
-dog_torch::serialize::DataStreamBuf::int_type dog_torch::serialize::DataStreamBuf::uflow()
-{
-    return int_type();
-}
-std::streamsize dog_torch::serialize::DataStreamBuf::xsgetn(char_type* s, std::streamsize count)
-{
-    return std::streamsize();
-}
-std::streamsize dog_torch::serialize::DataStreamBuf::xsputn(const char_type* s, std::streamsize count)
-{
-    return std::streamsize();
-}
-dog_torch::serialize::DataStreamBuf::int_type dog_torch::serialize::DataStreamBuf::overflow(int_type ch)
-{
-    return int_type();
-}
-dog_torch::serialize::DataStreamBuf::int_type dog_torch::serialize::DataStreamBuf::pbackfail(int_type c)
-{
-    return int_type();
-}
+#undef DOG_ERROR_SIZE_NO_EQUAL
+#undef DOG_ERROR_OUT_OF_OFFSET

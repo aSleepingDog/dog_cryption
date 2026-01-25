@@ -22,16 +22,16 @@
 
 #include "serialize/serialize.h"
 #include "math/math.h"
-#include "crypto/symmetric/base.h"
+#include "crypto/symmetric/symmetric.h"
 
 namespace dog_torch::crypto::symmetric::algorithm
 {
 	using Data = dog_torch::serialize::BinaryData;
-	class SM4 : public Algorithm
+	class DOG_CRYPTION_API SM4 : public Algorithm
 	{
 	public:
 		//unit单位:uint8_t字节
-		static const Config CONFIG;
+		static const Config get_config();
 
 		static const uint8_t SBox[16][16];
 
@@ -49,7 +49,7 @@ namespace dog_torch::crypto::symmetric::algorithm
 		static void encoding_self(Data& plain, uint64_t block_size, const Data& key, uint64_t key_size);
 		static void decoding_self(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size);
 
-		SM4(const uint64_t key_size) : Algorithm(CONFIG.name, 16, key_size) {}
+		SM4(const uint64_t key_size) : Algorithm(get_config().name, 16, key_size) {}
 
 		std::unique_ptr<Algorithm> clone() const override;
 

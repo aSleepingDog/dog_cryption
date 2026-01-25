@@ -75,12 +75,17 @@ namespace dog_torch::serialize
 		std::string to_base64_string(char a, char b) const;
 		std::string to_base64_string(char a, char b, char c) const;
 		std::string to_hex_string(bool is_upper = true) const;
+		std::string to_bin_string() const;
 
-		BinaryData sub_by_pos(uint64_t start, uint64_t end) const;
-		BinaryData sub_by_len(uint64_t start, uint64_t len) const;
+		BinaryData sub_bytes_by_pos(uint64_t start, uint64_t end) const;
+		BinaryData sub_bytes_by_len(uint64_t start, uint64_t len) const;
+		BinaryData sub_bytes_by_pos(std::vector<uint8_t>::iterator start, std::vector<uint8_t>::iterator end) const;
+		BinaryData sub_bytes_by_len(std::vector<uint8_t>::iterator start, uint64_t len) const;
 
-		BinaryData sub_by_pos(std::vector<uint8_t>::iterator start, std::vector<uint8_t>::iterator end) const;
-		BinaryData sub_by_len(std::vector<uint8_t>::iterator start, uint64_t len) const;
+		BinaryData sub_bits_by_pos(uint64_t start, uint64_t start_bit_pos, uint64_t end, uint64_t end_bit_pos) const;
+		BinaryData sub_bits_by_len(uint64_t start, uint64_t start_bit_pos, uint64_t len) const;
+		BinaryData sub_bits_by_pos(std::vector<uint8_t>::iterator start, uint64_t start_bit_pos, std::vector<uint8_t>::iterator end, uint64_t end_bit_pos) const;
+		BinaryData sub_bits_by_len(std::vector<uint8_t>::iterator start, uint64_t start_bit_pos, uint64_t len) const;
 
 		bool empty() const;
 		uint64_t size() const;
@@ -128,62 +133,33 @@ namespace dog_torch::serialize
 		BinaryData bit_circle_right_move(uint64_t shift);
 
 		bool is_equal(const BinaryData& d) const;
-		friend bool operator==(const BinaryData& d1, const BinaryData& d2);
-		friend bool operator!=(const BinaryData& d1, const BinaryData& d2);
+		DOG_CRYPTION_API friend bool operator==(const BinaryData& d1, const BinaryData& d2);
+		DOG_CRYPTION_API friend bool operator!=(const BinaryData& d1, const BinaryData& d2);
 
-		friend BinaryData operator~(const BinaryData& d);
-		friend BinaryData operator&(const BinaryData& d1, const BinaryData& d2);
-		friend void operator&=(BinaryData& d1, const BinaryData& d2);
+		DOG_CRYPTION_API friend BinaryData operator~(const BinaryData& d);
+		DOG_CRYPTION_API friend BinaryData operator&(const BinaryData& d1, const BinaryData& d2);
+		DOG_CRYPTION_API friend void operator&=(BinaryData& d1, const BinaryData& d2);
 		static BinaryData AND(const BinaryData& d1, const BinaryData& d2, uint64_t size);
 		static void AND_self(BinaryData& d1, const BinaryData& d2, uint64_t size);
 
 
-		friend BinaryData operator|(const BinaryData& d1, const BinaryData& d2);
-		friend void operator|=(BinaryData& d1, const BinaryData& d2);
+		DOG_CRYPTION_API friend BinaryData operator|(const BinaryData& d1, const BinaryData& d2);
+		DOG_CRYPTION_API friend void operator|=(BinaryData& d1, const BinaryData& d2);
 		static BinaryData OR(const BinaryData& d1, const BinaryData& d2, uint64_t size);
 		static void OR_self(BinaryData& d1, const BinaryData& d2, uint64_t size);
 		
-		friend BinaryData operator^(const BinaryData& d1, const BinaryData& d2);
-		friend void operator^=(BinaryData& d1, const BinaryData& d2);
+		DOG_CRYPTION_API friend BinaryData operator^(const BinaryData& d1, const BinaryData& d2);
+		DOG_CRYPTION_API friend void operator^=(BinaryData& d1, const BinaryData& d2);
 		static BinaryData XOR(const BinaryData& d1, const BinaryData& d2, uint64_t size);
 		static void XOR_self(BinaryData& d1, const BinaryData& d2, uint64_t size);
 
-		friend BinaryData operator+(const BinaryData& d1, const BinaryData& d2);
-		friend void operator+=(BinaryData& d1, const BinaryData& d2);
+		DOG_CRYPTION_API friend BinaryData operator+(const BinaryData& d1, const BinaryData& d2);
+		DOG_CRYPTION_API friend void operator+=(BinaryData& d1, const BinaryData& d2);
 
 		BinaryData concat(const BinaryData& d) const;
 
 	};
 
-	//未实现
-	class DOG_CRYPTION_API DataStreamBuf : public std::basic_streambuf<uint8_t>
-	{
-	private:
-		uint8_t* rbuf_start_ = nullptr;
-		uint8_t* rbuf_end_ = nullptr;
-		uint8_t* rbuf_pos_ = nullptr;
-
-		uint8_t* wbuf_start_ = nullptr;
-		uint8_t* wbuf_end_ = nullptr;
-		uint8_t* wbuf_pos_ = nullptr;
-
-	public:
-		void imbue(const std::locale& loc) override;
-		std::basic_streambuf<uint8_t>* setbuf(char_type* s, std::streamsize n) override;
-		pos_type seekoff(off_type off, std::ios_base::seekdir dir,
-			std::ios_base::openmode which = std::ios_base::in | std::ios_base::out) override;
-		pos_type seekpos(pos_type pos,
-			std::ios_base::openmode which = std::ios_base::in | std::ios_base::out) override;
-		int sync() override;
-		std::streamsize showmanyc() override;
-		int_type underflow() override;
-		int_type uflow() override;
-		std::streamsize xsgetn(char_type* s, std::streamsize count) override;
-		std::streamsize xsputn(const char_type* s, std::streamsize count) override;
-		int_type overflow(int_type ch) override;
-		int_type pbackfail(int_type c) override;
-
-	};
 
 	BinaryData operator"" _DogHexData(const char* str, size_t len);
 

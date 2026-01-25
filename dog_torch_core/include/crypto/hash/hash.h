@@ -12,6 +12,7 @@
 #include <condition_variable>
 #include <filesystem>
 
+#include "asyncion/thread/thread.h"
 #include "math/math.h"
 #include "serialize/serialize.h"
 #include "utils/exception.h"
@@ -20,6 +21,7 @@ namespace dog_torch::crypto::hash
 {
 	using Data = dog_torch::serialize::BinaryData;
 	using BigInt = dog_torch::math::number::BigInteger;
+	using PauseableChannel = dog_torch::asyncion::thread::PauseableChannel;
 
 	class HashException : public dog_torch::utils::Exception
 	{
@@ -32,9 +34,8 @@ namespace dog_torch::crypto::hash
 	*/
 	namespace algorithm
 	{
-		class DOG_CRYPTION_API Config
+		struct DOG_CRYPTION_API Config
 		{
-		public:
 			std::string name;
 			std::string region;
 			Config(const std::string& name, const std::string& region) : name(name), region(region) {};
@@ -73,7 +74,10 @@ namespace dog_torch::crypto::hash
 		HashGenerator(const algorithm::Hash& hash);
 		void init();
 		Data calculate(const Data& data);
-		Data calculate(std::istream& data);
+		Data calculate(std::istream& data, const BigInt& max);
+		Data calculate(PauseableChannel& pc, std::istream& data, const BigInt& max);
+
 		Data calculate(const std::filesystem::path& path);
+		Data calculate(PauseableChannel& pc, const std::filesystem::path& path);
 	};
 }

@@ -15,7 +15,7 @@
 // 	dog_torch::serialize::BinaryData tempBlock;
 // 	for (uint64_t i0 = 0; i0 <= plain.size(); i0 += block_size)
 // 	{
-// 		tempBlock = plain.sub_by_pos(i0, i0 + block_size);
+// 		tempBlock = plain.sub_bytes_by_pos(i0, i0 + block_size);
 // 		if (tempBlock.size() < block_size) { cryptor.get_padding()(tempBlock, block_size); }
 // 		cryptor.get_block_self_encryption()(tempBlock, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 		res += tempBlock;
@@ -30,7 +30,7 @@
 // 	dog_torch::serialize::BinaryData tempBlock(block_size);
 // 	for (uint64_t i0 = 0; i0 < crypt.size(); i0 += block_size)
 // 	{
-// 		tempBlock = crypt.sub_by_pos(i0, i0 + block_size);
+// 		tempBlock = crypt.sub_bytes_by_pos(i0, i0 + block_size);
 // 		cryptor.get_block_self_decryption()(tempBlock, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 		res += tempBlock;
 // 	}
@@ -163,7 +163,7 @@
 // 	dog_torch::serialize::BinaryData tempKey = iv;
 // 	for (uint64_t i0 = 0; i0 <= plain.size(); i0 += block_size)
 // 	{
-// 		tempBlock = plain.sub_by_pos(i0, i0 + block_size);
+// 		tempBlock = plain.sub_bytes_by_pos(i0, i0 + block_size);
 // 		if (tempBlock.size() < block_size) { cryptor.get_padding()(tempBlock, block_size); }
 // 		NSROOT::algorithmutils::squareXOR_self(tempBlock, tempKey, block_size);
 // 		cryptor.get_block_self_encryption()(tempBlock, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -180,11 +180,11 @@
 // 	dog_torch::serialize::BinaryData tempKey = iv;
 // 	for (uint64_t i0 = 0; i0 < crypt.size(); i0 += block_size)
 // 	{
-// 		tempBlock = crypt.sub_by_pos(i0, i0 + block_size);
+// 		tempBlock = crypt.sub_bytes_by_pos(i0, i0 + block_size);
 // 		cryptor.get_block_self_decryption()(tempBlock, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 		NSROOT::algorithmutils::squareXOR_self(tempBlock, tempKey, block_size);
 // 		res += tempBlock;
-// 		tempKey = crypt.sub_by_pos(i0, i0 + block_size);
+// 		tempKey = crypt.sub_bytes_by_pos(i0, i0 + block_size);
 // 	}
 // 	cryptor.get_unpadding()(res, block_size);
 // 	return res;
@@ -321,7 +321,7 @@
 // 	dog_torch::serialize::BinaryData tempBlock0, tempBlock1 = iv, tempBlock2;
 // 	for (uint64_t i0 = 0; i0 <= plain.size(); i0 += block_size)
 // 	{
-// 		tempBlock0 = plain.sub_by_len(i0, block_size);
+// 		tempBlock0 = plain.sub_bytes_by_len(i0, block_size);
 // 		if (tempBlock0.size() < block_size) { cryptor.get_padding()(tempBlock0, block_size); }
 // 		tempBlock2 = NSROOT::algorithmutils::squareXOR(tempBlock1, tempBlock0, tempBlock0.size());
 // 		cryptor.get_block_self_encryption()(tempBlock2, block_size, cryptor.get_available_key(), cryptor.get_key_size());
@@ -337,7 +337,7 @@
 // 	dog_torch::serialize::BinaryData tempBlock0, tempBlock1 = iv, tempBlock2;
 // 	for (uint64_t i0 = 0; i0 < crypt.size(); i0 += block_size)
 // 	{
-// 		tempBlock0 = crypt.sub_by_len(i0, block_size);
+// 		tempBlock0 = crypt.sub_bytes_by_len(i0, block_size);
 // 		tempBlock2 = cryptor.get_block_decryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 		NSROOT::algorithmutils::squareXOR_self(tempBlock2, tempBlock1, tempBlock1.size());
 // 		res += tempBlock2;
@@ -475,7 +475,7 @@
 // 	for (uint64_t i0 = 0; i0 <= plain.size(); i0 += block_size)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
-// 		tempBlock1 = plain.sub_by_pos(i0, i0 + block_size);
+// 		tempBlock1 = plain.sub_bytes_by_pos(i0, i0 + block_size);
 // 		if (tempBlock1.size() <= block_size && cryptor.get_using_padding()) { cryptor.get_padding()(tempBlock1, block_size); }
 // 		res = res + NSROOT::algorithmutils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size());
 // 	}
@@ -490,7 +490,7 @@
 // 	for (uint64_t i0 = 0; i0 < crypt.size(); i0 += block_size)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
-// 		tempBlock1 = crypt.sub_by_len(i0, block_size);
+// 		tempBlock1 = crypt.sub_bytes_by_len(i0, block_size);
 // 		res = res + NSROOT::algorithmutils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size());
 // 		tempBlock1.rm_pos();
 // 	}
@@ -637,7 +637,7 @@
 // 	{
 // 		tempBlock2 = tempBlock0;
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
-// 		tempBlock1 = plain.sub_by_len(i0, block_size);
+// 		tempBlock1 = plain.sub_bytes_by_len(i0, block_size);
 // 		if (tempBlock1.size() < block_size && cryptor.get_using_padding()) { cryptor.get_padding()(tempBlock1, block_size); }
 // 		res = res + NSROOT::algorithmutils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size());
 // 		tempBlock1.rm_pos();
@@ -666,7 +666,7 @@
 // 	{
 // 		tempBlock2 = tempBlock0;
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
-// 		tempBlock1 = crypt.sub_by_pos(i0, i0 + block_size);
+// 		tempBlock1 = crypt.sub_bytes_by_pos(i0, i0 + block_size);
 // 		res = res + NSROOT::algorithmutils::squareXOR(tempBlock1, tempBlock0, tempBlock1.size());
 // 		endNum++;
 // 		for (int i1 = 0; i1 < 8; i1++)
@@ -869,11 +869,11 @@
 // 	for (i = 0; i < plain.size(); i += nbyte)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
-// 		tempBlock1 = plain.sub_by_len(i, nbyte);
-// 		tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
+// 		tempBlock1 = plain.sub_bytes_by_len(i, nbyte);
+// 		tempBlock2 = tempBlock0.sub_bytes_by_len(0, nbyte);
 // 		NSROOT::algorithmutils::squareXOR_self(tempBlock1, tempBlock2, tempBlock1.size());
 // 		res += tempBlock1;
-// 		tempBlock0 = tempBlock0.sub_by_len(nbyte, block_size - nbyte) + tempBlock1;
+// 		tempBlock0 = tempBlock0.sub_bytes_by_len(nbyte, block_size - nbyte) + tempBlock1;
 // 	}
 // 	return res;
 // }
@@ -890,10 +890,10 @@
 // 	for (i = 0; i < crypt.size(); i += nbyte)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
-// 		tempBlock1 = crypt.sub_by_len(i, nbyte);
-// 		tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
+// 		tempBlock1 = crypt.sub_bytes_by_len(i, nbyte);
+// 		tempBlock2 = tempBlock0.sub_bytes_by_len(0, nbyte);
 // 		res += NSROOT::algorithmutils::squareXOR(tempBlock1, tempBlock2, tempBlock1.size());
-// 		tempBlock0 = tempBlock0.sub_by_len(nbyte, block_size - nbyte) + tempBlock1;
+// 		tempBlock0 = tempBlock0.sub_bytes_by_len(nbyte, block_size - nbyte) + tempBlock1;
 // 	}
 // 	return res;
 // }
@@ -913,14 +913,14 @@
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 		plain.read((char*)tempBlock1.data(), nbyte);
-// 		tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
+// 		tempBlock2 = tempBlock0.sub_bytes_by_len(0, nbyte);
 // 		NSROOT::algorithmutils::squareXOR_self(tempBlock1, tempBlock2, nbyte);
 // 		crypt.write((char*)tempBlock1.data(), nbyte);
-// 		tempBlock0 = tempBlock0.sub_by_len(nbyte, block_size - nbyte) + tempBlock1;
+// 		tempBlock0 = tempBlock0.sub_bytes_by_len(nbyte, block_size - nbyte) + tempBlock1;
 // 	}
 // 	cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 	plain.read((char*)tempBlock1.data(), nbyte);
-// 	tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
+// 	tempBlock2 = tempBlock0.sub_bytes_by_len(0, nbyte);
 // 	for (int i = 0; i < nbyte - plain.gcount(); ++i) { tempBlock1.pop_back(); }
 // 	if (cryptor.get_using_padding() && plain.gcount() < nbyte) { cryptor.get_padding()(tempBlock1, nbyte); }
 // 	NSROOT::algorithmutils::squareXOR_self(tempBlock1, tempBlock2, tempBlock1.size());
@@ -945,14 +945,14 @@
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 		crypt.read((char*)tempBlock1.data(), nbyte);
-// 		tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
+// 		tempBlock2 = tempBlock0.sub_bytes_by_len(0, nbyte);
 // 		NSROOT::algorithmutils::squareXOR_self(tempBlock2, tempBlock1, nbyte);
 // 		plain.write((char*)tempBlock2.data(), nbyte);
-// 		tempBlock0 = tempBlock0.sub_by_len(nbyte, block_size - nbyte) + tempBlock1;
+// 		tempBlock0 = tempBlock0.sub_bytes_by_len(nbyte, block_size - nbyte) + tempBlock1;
 // 	}
 // 	cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 	crypt.read((char*)tempBlock1.data(), nbyte);
-// 	tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
+// 	tempBlock2 = tempBlock0.sub_bytes_by_len(0, nbyte);
 // 	NSROOT::algorithmutils::squareXOR_self(tempBlock2, tempBlock1, nbyte);
 // 	plain.write((char*)tempBlock2.data(), nbyte);
 // 	plain.flush();
@@ -974,7 +974,7 @@
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 		plain.read((char*)tempBlock1.data(), nbyte);
-// 		tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
+// 		tempBlock2 = tempBlock0.sub_bytes_by_len(0, nbyte);
 // 		NSROOT::algorithmutils::squareXOR_self(tempBlock1, tempBlock2, nbyte);
 // 		crypt.write((char*)tempBlock1.data(), nbyte);
 // 		std::unique_lock<std::mutex> lock(*mutex_);
@@ -982,11 +982,11 @@
 // 		if (*stop_) return;
 // 		lock.unlock();
 // 		progress->store(NSROOT::mode::update_progress(progress->load(), nbyte, file_size));
-// 		tempBlock0 = tempBlock0.sub_by_len(nbyte, block_size - nbyte) + tempBlock1;
+// 		tempBlock0 = tempBlock0.sub_bytes_by_len(nbyte, block_size - nbyte) + tempBlock1;
 // 	}
 // 	cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 	plain.read((char*)tempBlock1.data(), nbyte);
-// 	tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
+// 	tempBlock2 = tempBlock0.sub_bytes_by_len(0, nbyte);
 // 	for (int i = 0; i < nbyte - plain.gcount(); ++i) { tempBlock1.pop_back(); }
 // 	if (cryptor.get_using_padding() && plain.gcount() < nbyte) { cryptor.get_padding()(tempBlock1, nbyte); }
 // 	NSROOT::algorithmutils::squareXOR_self(tempBlock1, tempBlock2, tempBlock1.size());
@@ -1014,7 +1014,7 @@
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 		crypt.read((char*)tempBlock1.data(), nbyte);
-// 		tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
+// 		tempBlock2 = tempBlock0.sub_bytes_by_len(0, nbyte);
 // 		NSROOT::algorithmutils::squareXOR_self(tempBlock1, tempBlock2, nbyte);
 // 		plain.write((char*)tempBlock1.data(), nbyte);
 // 		std::unique_lock<std::mutex> lock(*mutex_);
@@ -1022,11 +1022,11 @@
 // 		if (*stop_) return;
 // 		lock.unlock();
 // 		progress->store(update_progress(progress->load(), nbyte, file_size));
-// 		tempBlock0 = tempBlock0.sub_by_len(nbyte, block_size - nbyte) + tempBlock1;
+// 		tempBlock0 = tempBlock0.sub_bytes_by_len(nbyte, block_size - nbyte) + tempBlock1;
 // 	}
 // 	cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
 // 	crypt.read((char*)tempBlock1.data(), nbyte);
-// 	tempBlock2 = tempBlock0.sub_by_len(0, nbyte);
+// 	tempBlock2 = tempBlock0.sub_bytes_by_len(0, nbyte);
 // 	NSROOT::algorithmutils::squareXOR_self(tempBlock1, tempBlock2, tempBlock1.size());
 // 	if (cryptor.get_using_padding()) { cryptor.get_unpadding()(tempBlock1, nbyte); }
 // 	plain.write((char*)tempBlock1.data(), nbyte);
@@ -1830,13 +1830,13 @@
 // 	for (i0 = 0; i0 <= plain.size() - 16 && plain.size() >= 16; i0 += 16)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
-// 		tempBlock1 = plain.sub_by_len(i0, block_size);
+// 		tempBlock1 = plain.sub_bytes_by_len(i0, block_size);
 // 		NSROOT::algorithmutils::squareXOR_self(tempBlock1, tempBlock0, 16);
 // 		res = res + tempBlock1;
 // 		tempBlock0 = tempBlock1;
 // 	}
 // 	cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
-// 	tempBlock1 = plain.sub_by_len(i0, block_size);
+// 	tempBlock1 = plain.sub_bytes_by_len(i0, block_size);
 // 	if (tempBlock1.size() < 16 && cryptor.get_using_padding()) { cryptor.get_padding()(tempBlock1, 16); }
 // 	NSROOT::algorithmutils::squareXOR_self(tempBlock1, tempBlock0, tempBlock1.size());
 // 	res += tempBlock1;
@@ -1852,12 +1852,12 @@
 // 	for (i0 = 0; i0 < crypt.size() - 16 && crypt.size() > 16; i0 += 16)
 // 	{
 // 		cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
-// 		tempBlock1 = crypt.sub_by_pos(i0, i0 + 16);
+// 		tempBlock1 = crypt.sub_bytes_by_pos(i0, i0 + 16);
 // 		res = res + NSROOT::algorithmutils::squareXOR(tempBlock0, tempBlock1, block_size);
 // 		tempBlock0 = tempBlock1;
 // 	}
 // 	cryptor.get_block_self_encryption()(tempBlock0, block_size, cryptor.get_available_key(), cryptor.get_key_size());
-// 	tempBlock1 = crypt.sub_by_pos(i0, i0 + 16);
+// 	tempBlock1 = crypt.sub_bytes_by_pos(i0, i0 + 16);
 // 	NSROOT::algorithmutils::squareXOR_self(tempBlock1, tempBlock0, tempBlock0.size());
 // 	if (cryptor.get_using_padding())
 // 	{
@@ -2299,7 +2299,7 @@
 // 		if (is_cut)
 // 		{
 // 			uint64_t size = config_stream.tellg();
-// 			config_data = config_data.sub_by_pos(size, config_data.size());
+// 			config_data = config_data.sub_bytes_by_pos(size, config_data.size());
 // 		}
 // 		return config;
 // 	}
@@ -2793,7 +2793,7 @@
 // 	}
 // 	if (with_iv)
 // 	{
-// 		res += iv.sub_by_len(0, this->config_.block_size);
+// 		res += iv.sub_bytes_by_len(0, this->config_.block_size);
 // 	}
 // 	res += this->mult_encrypt_(plain, iv, *this);
 // 	return res;
@@ -2861,8 +2861,8 @@
 // 	}
 // 	if (with_check)
 // 	{
-// 		dog_torch::serialize::BinaryData crypt_check = crypt.sub_by_len(0, this->config_.block_size);
-// 		crypt = crypt.sub_by_pos(this->config_.block_size, crypt.size());
+// 		dog_torch::serialize::BinaryData crypt_check = crypt.sub_bytes_by_len(0, this->config_.block_size);
+// 		crypt = crypt.sub_bytes_by_pos(this->config_.block_size, crypt.size());
 // 		this->get_block_self_decryption()(crypt_check, this->config_.block_size, this->get_available_key(), this->get_key_size());
 // 		dog_torch::serialize::BinaryData plain_check = NSROOT::algorithmutils::get_sequence(this->config_.block_size);
 // 		if (plain_check != crypt_check)
@@ -2874,8 +2874,8 @@
 // 	dog_torch::serialize::BinaryData res, iv_;
 // 	if (with_iv)
 // 	{
-// 		iv_ = crypt.sub_by_len(0, this->config_.block_size);
-// 		crypt = crypt.sub_by_pos(this->config_.block_size, crypt.size());
+// 		iv_ = crypt.sub_bytes_by_len(0, this->config_.block_size);
+// 		crypt = crypt.sub_bytes_by_pos(this->config_.block_size, crypt.size());
 // 	}
 // 	else
 // 	{

@@ -3,7 +3,10 @@
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root
 #define DOG_DATA dog_torch::serialize::BinaryData
 
-const NSROOT::algorithm::Config NSROOT::algorithm::Twofish::CONFIG = Config("Twofish", "[16,16]0", "[16,32]8");
+const NSROOT::algorithm::Config NSROOT::algorithm::Twofish::get_config()
+{
+	return Config("Twofish", "[16,16]0", "[16,32]8");
+}
 const uint8_t NSROOT::algorithm::Twofish::P8x8[2][256] = {
 	{
 		// 0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
@@ -160,7 +163,7 @@ uint8_t NSROOT::algorithm::Twofish::mult169(uint8_t a, uint8_t b)
 		return a ^ (a >> 1) ^ ((a & 0x01) != 0 ? 0x169 / 2 : 0) ^ (a >> 2) ^ ((a & 0x02) != 0 ? 0x169 / 2 : 0) ^ ((a & 0x01) != 0 ? 0x169 / 4 : 0);
 	}
 	}
-	throw DOG_EXCEPTION("Error:this function only allow b equal 0x01 0x5B 0xEF\n错误：此函数仅允许b等于0x01 0x5B 0xEF");
+	return dog_torch::math::galois_field::GF2_mult(a, b, 0x169);
 }
 uint32_t NSROOT::algorithm::Twofish::multMDS(uint32_t n)
 {

@@ -31,10 +31,9 @@ namespace dog_torch::serialize::tlv
 		object(hash table)  -> 111X 0000-1000(0-8):length length + int(length) + string:other   | E
 	*/
 
-	class value
+	class DOG_CRYPTION_API Value
 	{
-	public:
-		std::variant<
+		using in_t = std::variant<
 			std::nullptr_t,
 			bool,
 			uint64_t,
@@ -42,10 +41,17 @@ namespace dog_torch::serialize::tlv
 			double,
 			std::vector<uint8_t>,
 			std::string,
-			std::vector<value>,
-			std::unordered_map<std::string, value>
-		> v_;
+			std::vector<Value>,
+			std::unordered_map<std::string, Value>
+		>;
+	public:
+		in_t value;
+		Value();
+		Value(in_t value);
 	};
+
+	DOG_CRYPTION_API dog_torch::serialize::BinaryData null_type();
+	DOG_CRYPTION_API dog_torch::serialize::BinaryData null_type(std::nullptr_t value);
 
 	DOG_CRYPTION_API dog_torch::serialize::BinaryData boolean(bool b);
 
@@ -63,18 +69,19 @@ namespace dog_torch::serialize::tlv
 	DOG_CRYPTION_API dog_torch::serialize::BinaryData string(std::string str);
 
 	DOG_CRYPTION_API dog_torch::serialize::BinaryData array(const std::vector<std::any>& arr);
-	DOG_CRYPTION_API dog_torch::serialize::BinaryData array(const std::vector<value>& arr);
+
+	DOG_CRYPTION_API dog_torch::serialize::BinaryData array(const std::vector<Value>& arr);
 
 	DOG_CRYPTION_API dog_torch::serialize::BinaryData object(const std::unordered_map<std::string, std::any>& obj);
 	DOG_CRYPTION_API dog_torch::serialize::BinaryData object(const std::map<std::string, std::any>& obj);
-	DOG_CRYPTION_API dog_torch::serialize::BinaryData object(const std::unordered_map<std::string, value>& obj);
-	DOG_CRYPTION_API dog_torch::serialize::BinaryData object(const std::map<std::string, value>& obj);
+
+	DOG_CRYPTION_API dog_torch::serialize::BinaryData object(const std::unordered_map<std::string, Value>& obj);
 
 	DOG_CRYPTION_API std::any read_any(std::istream& data);
 	DOG_CRYPTION_API std::any read_any(dog_torch::serialize::DataStream& data);
 	DOG_CRYPTION_API std::any read_any(dog_torch::serialize::BinaryData data);
 
-	DOG_CRYPTION_API value read(std::istream& data);
-	DOG_CRYPTION_API value read(dog_torch::serialize::DataStream& data);
-	DOG_CRYPTION_API value read(dog_torch::serialize::BinaryData data);
+	DOG_CRYPTION_API Value read_value(std::istream& data);
+	DOG_CRYPTION_API Value read_value(dog_torch::serialize::DataStream& data);
+	DOG_CRYPTION_API Value read_value(dog_torch::serialize::BinaryData data);
 };

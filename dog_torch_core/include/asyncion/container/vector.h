@@ -9,6 +9,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <functional>
+#include "container.h"
 
 namespace dog_torch::asyncion::container
 {
@@ -28,23 +29,23 @@ namespace dog_torch::asyncion::container
 		VectorCopy() = default;
 		~VectorCopy() = default;
 
-		VectorCopy(const selfVec& other)
+		VectorCopy(const VectorCopy& other)
 		{
 			std::scoped_lock(mutex_, other.mutex_);
 			vec_ = other.vec_;
 		}
-		VectorCopy& operator=(const selfVec& other)
+		VectorCopy& operator=(const VectorCopy& other)
 		{
 			std::scoped_lock(mutex_, other.mutex_);
 			vec_ = other.vec_;
 			return *this;
 		}
-		VectorCopy(selfVec&& other) noexcept
+		VectorCopy(VectorCopy&& other) noexcept
 		{
 			std::scoped_lock lock(mutex_, other.mutex_);
 			this->vec_ = std::move(other.vec_);
 		}
-		VectorCopy& operator=(selfVec&& other) noexcept
+		VectorCopy& operator=(VectorCopy&& other) noexcept
 		{
 			std::scoped_lock lock(mutex_, other.mutex_);
 			this->vec_ = std::move(other.vec_);
@@ -154,7 +155,7 @@ namespace dog_torch::asyncion::container
 
 };
 
-	template <typename T, typename Alloc = std::allocator<T>>
+	template <std::movable T, typename Alloc = std::allocator<T>>
 	class VectorMove
 	{
 		using selfVec = std::vector<T, Alloc>;
@@ -169,19 +170,17 @@ namespace dog_torch::asyncion::container
 		VectorMove() = default;
 		~VectorMove() = default;
 
-		VectorMove(const selfVec& ohter) = delete;
-		VectorMove& operator=(const selfVec& ohter) = delete;
-		VectorMove(selfVec&& ohter)
+		VectorMove(const VectorMove& ohter) = delete;
+		VectorMove& operator=(const VectorMove& ohter) = delete;
+		VectorMove(VectorMove&& other)
 		{
-			std::unique_lock lock_other(ohter.mutex_);
-			std::unique_lock lock_self(mutex_);
-			this->vec_ = std::move(ohter.vec_);
+			std::scoped_lock lock(mutex_, other.mutex_);
+			this->vec_ = std::move(other.vec_);
 		}
-		VectorMove& operator=(selfVec&& ohter)
+		VectorMove& operator=(VectorMove&& other)
 		{
-			std::unique_lock lock_other(ohter.mutex_);
-			std::unique_lock lock_self(mutex_);
-			this->vec_ = std::move(ohter.vec_);
+			std::scoped_lock lock(mutex_, other.mutex_);
+			this->vec_ = std::move(other.vec_);
 			return *this;
 		}
 
@@ -261,6 +260,8 @@ namespace dog_torch::asyncion::container
 			std::unique_lock lock(mutex_);
 			vec_.emplace_back(std::move(value));
 		}
+		void push_back(const T& value) = delete;
+		void emplace_back(const T& value) = delete;
 		void pop_back()
 		{
 			std::unique_lock lock(mutex_);
@@ -269,7 +270,7 @@ namespace dog_torch::asyncion::container
 		void doing(size_t pos, doSingleFunc func)
 		{
 			std::unique_lock lock(mutex_);
-			func(vec_, this->vec_.begin() + pos);
+			func(this->vec_.begin() + pos);
 		}
 		void doing(doContainerFunc func)
 		{

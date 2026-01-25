@@ -2,7 +2,13 @@
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root 
 #define DOG_DATA dog_torch::serialize::BinaryData
 
-const NSROOT::algorithm::Config NSROOT::algorithm::camellia::CONFIG = Config("camellia", "[16,16]0", "[16,32]8");
+#define DOG_ERROR_WRONG_KEY_SIZE(size__) std::format("Error:key is to short need {} now {}", size__, key.size())
+#define DOG_ERROR_WRONG_KEY_SIZES "Error:key size is not 16, 24 or 32"
+
+const NSROOT::algorithm::Config NSROOT::algorithm::camellia::get_config()
+{
+	return Config("camellia", "[16,16]0", "[16,32]8");
+}
 
 const uint8_t NSROOT::algorithm::camellia::Sbox[256] = 
 {
@@ -166,7 +172,7 @@ DOG_DATA NSROOT::algorithm::camellia::extend_key(const Data& key, uint64_t block
 	DOG_DATA res;
 	if (key.size() < 16)
 	{
-		throw CryptionException(DOG_EXCEPTION_MSG_OPINION(std::format("Error:key is to short need {} now {}\n错误：密钥过短 需要 {} 当前 {}", 16, key.size(), 16, key.size())));
+		throw CryptionException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_KEY_SIZE(16)));
 	}
 	uint64_t kll = 0, klr = 0, krl = 0, krr = 0;
 	for (uint64_t i = 0; i < 8; i++)
@@ -179,7 +185,7 @@ DOG_DATA NSROOT::algorithm::camellia::extend_key(const Data& key, uint64_t block
 	{
 		if (key.size() < 24)
 		{
-			throw CryptionException(DOG_EXCEPTION_MSG_OPINION(std::format("Error:key is to short need 24 now {}\n错误：密钥过短 需要 24 当前 {} ", key.size(), key.size())));
+			throw CryptionException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_KEY_SIZE(24)));
 		}
 		for (uint64_t i = 0; i < 8; i++)
 		{
@@ -191,7 +197,7 @@ DOG_DATA NSROOT::algorithm::camellia::extend_key(const Data& key, uint64_t block
 	{
 		if (key.size() < 32)
 		{
-			throw CryptionException(DOG_EXCEPTION_MSG_OPINION(std::format("Error:key is to short need 32 now {}\n错误：密钥过短 需要 32 当前 {} ", key.size(), key.size())));
+			throw CryptionException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_KEY_SIZE(32)));
 		}
 		for (uint64_t i = 0; i < 8; i++)
 		{
@@ -201,7 +207,7 @@ DOG_DATA NSROOT::algorithm::camellia::extend_key(const Data& key, uint64_t block
 	}
 	else if (key_size != 16)
 	{
-		throw CryptionException(DOG_EXCEPTION_MSG_OPINION("Error:key size is not 16, 24 or 32\n错误：密钥长度不是16，24或32"));
+		throw CryptionException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_KEY_SIZES));
 	}
 	auto add_uint64 = [&res](uint64_t n) -> void
 		{
@@ -629,3 +635,6 @@ NSROOT::algorithm::block_self_cryption_func NSROOT::algorithm::camellia::get_dec
 
 #undef NSROOT
 #undef DOG_DATA
+
+#undef DOG_ERROR_WRONG_KEY_SIZE
+#undef DOG_ERROR_WRONG_KEY_SIZES

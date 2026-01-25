@@ -1,8 +1,8 @@
 #pragma once
 #ifdef SHARED
-	#include "export.h"
+#include "export.h"
 #else
-	#define DOG_CRYPTION_API
+#define DOG_CRYPTION_API
 #endif
 #include <any>
 #include <mutex>
@@ -22,7 +22,8 @@
 
 #include "serialize/serialize.h"
 #include "math/math.h"
-#include "crypto/symmetric/base.h"
+#include "crypto/symmetric/symmetric.h"
+#include "asyncion/thread/thread.h"
 
 namespace dog_torch::crypto::symmetric::mode
 {
@@ -31,30 +32,35 @@ namespace dog_torch::crypto::symmetric::mode
 	*/
 
 
-	class CFBB : public Mode
+	class DOG_CRYPTION_API CFBB : public Mode
 	{
 	private:
 		std::unique_ptr<padding::Padding> padding_;
 		Data iv_;
 		uint64_t shift_;
 	public:
+		static Config get_config();
+
 		static Data encrypt(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func padding);
 		static Data decrypt(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding);
-
 		static void encrypt_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func padding);
 		static void decrypt_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding);
+		static void encryptp_stream(PauseableChannel& pchannel, std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func padding);
+		static void decryptp_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding);
 
 		static Data encrypt_CFB8(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
 		static Data decrypt_CFB8(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
-
 		static void encrypt_CFB8_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
 		static void decrypt_CFB8_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
+		static void encryptp_CFB8_stream(PauseableChannel& pchannel, std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
+		static void decryptp_CFB8_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
 
 		static Data encrypt_CFB128(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
 		static Data decrypt_CFB128(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
-
 		static void encrypt_CFB128_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
 		static void decrypt_CFB128_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
+		static void encryptp_CFB128_stream(PauseableChannel& pchannel, std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
+		static void decryptp_CFB128_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
 
 		CFBB(const padding::Padding& padding, const Data& iv, uint64_t shift);
 		CFBB(const Data& iv, uint64_t shift) : CFBB(padding::None(), iv, shift) {}
@@ -71,7 +77,7 @@ namespace dog_torch::crypto::symmetric::mode
 		bool set_uint64_param(const std::string& param, uint64_t value) override;
 		bool set_data_param(const std::string& param, const Data& value) override;
 		bool set_Padding(const padding::Padding& value) override;
-		
+
 		std::string fmt_config() const override;
 
 		crypt_func get_mult_encrypt() const override;
@@ -79,31 +85,38 @@ namespace dog_torch::crypto::symmetric::mode
 
 		stream_crypt_func get_stream_encrypt() const override;
 		stream_crypt_func get_stream_decrypt() const override;
+
+		streamp_crypt_func get_streamp_encrypt() const override;
+		streamp_crypt_func get_streamp_decrypt() const override;
 	};
 
-	class CFBb : public Mode
+	class DOG_CRYPTION_API CFBb : public Mode
 	{
 	private:
 		std::unique_ptr<padding::Padding> padding_;
 		Data iv_;
 		uint64_t shift_;
 	public:
+		static Config get_config();
+
 		static Data encrypt(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func padding);
 		static Data decrypt(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding);
-
 		static void encrypt_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func padding);
 		static void decrypt_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding);
+		static void encryptp_stream(PauseableChannel& pchannel, std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func padding);
+		static void decryptp_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding);
 
 		static Data encrypt_CFB1(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
 		static Data decrypt_CFB1(const Data& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
-
 		static void encrypt_CFB1_stream(std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
 		static void decrypt_CFB1_stream(std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
+		static void encryptp_CFB1_stream(PauseableChannel& pchannel, std::istream& plain, uint64_t max, std::ostream& crypt, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding);
+		static void decryptp_CFB1_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding);
 
 		CFBb(const padding::Padding& padding, const Data& iv, uint64_t shift);
 		CFBb(const Data& iv, uint64_t shift) : CFBb(padding::None(), iv, shift) {}
 		CFBb(const CFBb& other);
-		
+
 		uint64_t get_shift() const;
 
 		const Data& get_iv() const;
@@ -113,7 +126,7 @@ namespace dog_torch::crypto::symmetric::mode
 		std::string fmt_config() const override;
 
 		std::unique_ptr<Mode> clone() const override;
-		
+
 		bool set_uint64_param(const std::string& param, uint64_t value) override;
 		bool set_data_param(const std::string& param, const Data& value) override;
 		bool set_Padding(const padding::Padding& value) override;
@@ -123,6 +136,9 @@ namespace dog_torch::crypto::symmetric::mode
 
 		stream_crypt_func get_stream_encrypt() const override;
 		stream_crypt_func get_stream_decrypt() const override;
+
+		streamp_crypt_func get_streamp_encrypt() const override;
+		streamp_crypt_func get_streamp_decrypt() const override;
 	};
 
 }

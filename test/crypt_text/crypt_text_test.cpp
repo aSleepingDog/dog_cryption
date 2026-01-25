@@ -15,7 +15,7 @@
 #include <cmath>
 
 #include "crypto/symmetric/algorithm/Rijndael.h"
-#include "crypto/symmetric/base.h"
+#include "crypto/symmetric/symmetric.h"
 #include "crypto/symmetric/mode/CBC.h"
 #include "crypto/symmetric/mode/CFB.h"
 #include "crypto/symmetric/mode/CTR.h"

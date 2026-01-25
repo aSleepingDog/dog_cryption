@@ -3,7 +3,15 @@
 #define NSROOT dog_torch::crypto::hash::algorithm
 #define DOG_DATA dog_torch::serialize::BinaryData
 
-const NSROOT::Config NSROOT::SHA2::CONFIG = NSROOT::Config("SHA2", "32,28|64,48");
+#define DOG_ERROR_WRONG_BLOCK_SHA2_256 "Error:block size is not 64 when SHA2-256 or SHA2-224"
+#define DOG_ERROR_WRONG_BLOCK_SHA2_512 "Error:block size is not 64 when SHA2-512 or SHA2-384"
+#define DOG_ERROR_WRONG_SIZE "Error:effective must be 32 28 64 48"
+#define DOG_ERROR_LARGE_SIZE "Error:input size is too large"
+
+const NSROOT::Config dog_torch::crypto::hash::algorithm::SHA2::get_config()
+{
+	return Config("SHA2", "32,28|64,48");
+}
 
 const uint32_t NSROOT::SHA2::k_256[64] = {
 	0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -14,6 +22,7 @@ const uint32_t NSROOT::SHA2::k_256[64] = {
 	0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
 	0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
 	0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2 };
+
 uint32_t NSROOT::SHA2::tick4B(Data& data, uint64_t size, uint64_t index)
 {
 	return (uint32_t)(data[size - index * 4] << 24) + (data[size - index * 4 + 1] << 16) + (data[size - index * 4 + 2] << 8) + (data[size - index * 4 + 3]);
@@ -46,7 +55,7 @@ void NSROOT::SHA2::single_256_update(Data block, Data& value)
 {
 	if (block.size() != 64)
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("Error:block size is not 64 when SHA2-256\n错误：在SHA2-256时，数据分组block大小不为64"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_BLOCK_SHA2_256));
 	}
 	uint32_t tempN[9], tempH[8];
 	for (int i = 0; i < 8; i++)
@@ -163,7 +172,7 @@ void NSROOT::SHA2::single_512_update(Data block, Data& value)
 {
 	if (block.size() != 128)
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("Error:plain size is not 128 when SHA2-512\n错误：在SHA2-512时，数据分组plain大小不为128"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_BLOCK_SHA2_512));
 	}
 	uint64_t tempN[9], tempH[8];
 	for (int i = 0; i < 8; i++)
@@ -228,7 +237,7 @@ NSROOT::SHA2::SHA2(uint64_t effective) : Hash("SHA2", effective)
 {
 	if (this->effective_ != 32 && this->effective_ != 28 && this->effective_ != 64 && this->effective_ != 48)
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("effective must be 32 or 28 or 64 or 48"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_SIZE));
 	}
 	if (this->effective_ == 32 || this->effective_ == 28)
 	{
@@ -265,7 +274,7 @@ bool NSROOT::SHA2::have_next_block(const BigInt& pos, const BigInt& total) const
 {
 	if (total > this->max_)
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("data size is too large"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
 	}
 	if (this->effective_ == 32 || this->effective_ == 28)
 	{
@@ -282,11 +291,11 @@ DOG_DATA NSROOT::SHA2::next_block(const Data& data, BigInt& pos, const BigInt& t
 {
 	if (total > this->max_)
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("data size is too large"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
 	}
 	if (this->effective_ == 32 || this->effective_ == 28)
 	{
-		auto res = data.sub_by_len(pos.to_abs_uint64(), 64);
+		auto res = data.sub_bytes_by_len(pos.to_abs_uint64(), 64);
 		pos += res.size();
 		if (res.size() >= 64)
 		{
@@ -321,7 +330,7 @@ DOG_DATA NSROOT::SHA2::next_block(const Data& data, BigInt& pos, const BigInt& t
 	}
 	else if (this->effective_ == 64 || this->effective_ == 48)
 	{
-		auto res = data.sub_by_len(pos.to_abs_uint64(), 128);
+		auto res = data.sub_bytes_by_len(pos.to_abs_uint64(), 128);
 		pos += res.size();
 		if (res.size() >= 128)
 		{
@@ -357,14 +366,14 @@ DOG_DATA NSROOT::SHA2::next_block(const Data& data, BigInt& pos, const BigInt& t
 	}
 	else
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("effective must be 32 or 28 or 64 or 48"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_SIZE));
 	}
 }
 DOG_DATA NSROOT::SHA2::next_block(std::istream& data, BigInt& pos, const BigInt& total)
 {
 	if (total > this->max_)
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("data size is too large"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
 	}
 	if (this->effective_ == 32 || this->effective_ == 28)
 	{
@@ -444,7 +453,7 @@ DOG_DATA NSROOT::SHA2::next_block(std::istream& data, BigInt& pos, const BigInt&
 	}
 	else
 	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION("effective must be 32 or 28 or 64 or 48"));
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_SIZE));
 	}
 }
 NSROOT::update_func NSROOT::SHA2::get_update() const
@@ -459,7 +468,7 @@ NSROOT::update_func NSROOT::SHA2::get_update() const
 	case 64:
 		return single_512_update;
 	}
-	throw HashException(DOG_EXCEPTION_MSG_OPINION("effective must be 32 or 28 or 64 or 48"));
+	throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_SIZE));
 }
 NSROOT::trims_func NSROOT::SHA2::get_trims() const
 {
@@ -477,18 +486,18 @@ NSROOT::trims_func NSROOT::SHA2::get_trims() const
 	{
 		return [](const Data& value) -> Data
 			{
-				return value.sub_by_len(0, 28);
+				return value.sub_bytes_by_len(0, 28);
 			};
 	}
 	case 48:
 	{
 		return [](const Data& value) -> Data
 			{
-				return value.sub_by_len(0, 48);
+				return value.sub_bytes_by_len(0, 48);
 			};
 	}
 	}
-	throw HashException(DOG_EXCEPTION_MSG_OPINION("effective must be 32 or 28 or 64 or 48"));
+	throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_SIZE));
 }
 std::unique_ptr<NSROOT::Hash> NSROOT::SHA2::clone() const
 {
@@ -497,3 +506,8 @@ std::unique_ptr<NSROOT::Hash> NSROOT::SHA2::clone() const
 
 #undef NSROOT
 #undef DOG_DATA
+
+#undef DOG_ERROR_WRONG_BLOCK_SHA2_256
+#undef DOG_ERROR_WRONG_BLOCK_SHA2_512
+#undef DOG_ERROR_WRONG_SIZE
+#undef DOG_ERROR_LARGE_SIZE

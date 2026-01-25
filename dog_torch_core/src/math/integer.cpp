@@ -1,5 +1,7 @@
 #include "math/integer.h"
 
+#define DOG_ERROR_OUT_OF_RANGE "Error:index out of range"
+
 uint8_t dog_torch::math::integer::available_size(uint64_t n)
 {
 	if (n == 0) return 1;
@@ -23,7 +25,7 @@ uint8_t dog_torch::math::integer::pick_byte(uint64_t n, uint8_t i)
 {
 	if (i < 1 || i > 9)
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:index out of range\n错误：索引超出范围"));
+		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_OUT_OF_RANGE));
 	}
 	return (n >> ((i - 1) * 8)) & 0xff;
 }
@@ -31,7 +33,7 @@ uint8_t dog_torch::math::integer::pick_byte(uint32_t n, uint8_t i)
 {
 	if (i < 1 || i > 5)
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:index out of range\n错误：索引超出范围"));
+		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_OUT_OF_RANGE));
 	}
 	return (n >> ((i - 1) * 8)) & 0xff;
 }
@@ -39,7 +41,7 @@ uint8_t dog_torch::math::integer::pick_byte(uint16_t n, uint8_t i)
 {
 	if (i < 1 || i > 3)
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION("Error:index out of range\n错误：索引超出范围"));
+		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_OUT_OF_RANGE));
 	}
 	return (n >> ((i - 1) * 8)) & 0xff;
 }
@@ -84,3 +86,5 @@ uint8_t dog_torch::math::integer::CLMB(uint8_t n, uint32_t i)
 	i %= 8;
 	return (n >> i) | (n << (8 - i));
 }
+
+#undef DOG_ERROR_OUT_OF_RANGE

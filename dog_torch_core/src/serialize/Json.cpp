@@ -1,5 +1,8 @@
 #include "serialize/Json.h"
 
+#define DOG_ERROR_UNEXCEPT_END "Error:unexpected end of json string"
+#define DOG_ERROR_UNEXCEPT_CHAR "Error: unexpected character of json string"
+
 std::string dog_torch::serialize::json::any::to_json_str(std::nullptr_t value)
 {
 	return "null";
@@ -205,7 +208,7 @@ std::string dog_torch::serialize::json::any::to_json_str(dog_torch::serialize::j
     return to_json_str(object, is_fmt, 0);
 }
 
-#define CHECK_END if (now == end) throw DOG_EXCEPTION("Error:unexpected end of json string\n错误：json字符串意外结束");
+#define CHECK_END if (now == end) throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
 void dog_torch::serialize::json::any::skip_whitespace(std::string::const_iterator& now, std::string::const_iterator end)
 {
 	while (true)
@@ -226,11 +229,11 @@ std::nullptr_t dog_torch::serialize::json::any::to_null(std::string::const_itera
 	CHECK_END;
 	if (now + 4 > end)
 	{
-		throw DOG_EXCEPTION("Error:unexpected end of json string\n错误：json字符串意外结束");
+		throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
 	}
     if (*now != 'n' || *(now + 1) != 'u' || *(now + 2) != 'l' || *(now + 3) != 'l')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
 	return nullptr;
 }
@@ -241,11 +244,11 @@ bool dog_torch::serialize::json::any::to_bool(std::string::const_iterator& now, 
     {
         if (now + 4 > end)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of json string\n错误：json字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         if (*now != 't' || *(now + 1) != 'r' || *(now + 2) != 'u' || *(now + 3) != 'e')
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         now += 4;
         return true;
@@ -254,18 +257,18 @@ bool dog_torch::serialize::json::any::to_bool(std::string::const_iterator& now, 
     {
         if (now + 5 > end)
         {
-            throw DOG_EXCEPTION("Error:unexpected end of json string\n错误：json字符串意外结束");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
         }
         if (*now != 'f' || *(now + 1) != 'a' || *(now + 2) != 'l' || *(now + 3) != 's' || *(now + 4) != 'e')
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         now += 5;
         return false;
     }
     else
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
 }
 double dog_torch::serialize::json::any::to_number(std::string::const_iterator& now, std::string::const_iterator end)
@@ -273,7 +276,7 @@ double dog_torch::serialize::json::any::to_number(std::string::const_iterator& n
     CHECK_END;
     if ((*now < '0' || *now > '9') && (*now != '-'))
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     double num_sign = 1;
     uint64_t integer = 0;
@@ -362,7 +365,7 @@ std::string dog_torch::serialize::json::any::to_string(std::string::const_iterat
     CHECK_END;
     if (*now != '"')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     now++;
     std::string result = "";
@@ -442,7 +445,7 @@ std::string dog_torch::serialize::json::any::to_string(std::string::const_iterat
                 }
                 default:
                 {
-                    throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+                    throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
                 }
                 }
                 status = 0;
@@ -472,7 +475,7 @@ std::string dog_torch::serialize::json::any::to_string(std::string::const_iterat
                 }
                 else
                 {
-                    throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+                    throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
                 }
                 now++;
             }
@@ -494,7 +497,7 @@ dog_torch::serialize::json::array dog_torch::serialize::json::any::to_array(std:
     CHECK_END;
     if (*now != '[')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     std::vector<std::any> result;
     now++;
@@ -531,7 +534,7 @@ dog_torch::serialize::json::array dog_torch::serialize::json::any::to_array(std:
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         skip_whitespace(now, end);
         if (*now == ']')
@@ -544,7 +547,7 @@ dog_torch::serialize::json::array dog_torch::serialize::json::any::to_array(std:
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
     }
     now++;
@@ -555,7 +558,7 @@ dog_torch::serialize::json::object dog_torch::serialize::json::any::to_object(st
     CHECK_END;
     if (*now != '{')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     now++;
     std::string key = "";
@@ -571,7 +574,7 @@ dog_torch::serialize::json::object dog_torch::serialize::json::any::to_object(st
         skip_whitespace(now, end);
         if (*now != ':')
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         now++;
         skip_whitespace(now, end);
@@ -601,7 +604,7 @@ dog_torch::serialize::json::object dog_torch::serialize::json::any::to_object(st
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         skip_whitespace(now, end);
         if (*now == '}')
@@ -614,7 +617,7 @@ dog_torch::serialize::json::object dog_torch::serialize::json::any::to_object(st
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
 
     }
@@ -622,7 +625,7 @@ dog_torch::serialize::json::object dog_torch::serialize::json::any::to_object(st
     return result;
 }
 
-#define CHECK_SEND if (input.eof()) throw DOG_EXCEPTION("Error: unexpected end of json file\n错误：json文件意外结束");
+#define CHECK_SEND if (input.eof()) throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_END);
 void dog_torch::serialize::json::any::skip_whitespace(std::istream& input)
 {
     while (true)
@@ -641,19 +644,19 @@ void dog_torch::serialize::json::any::skip_whitespace(std::istream& input)
 std::nullptr_t dog_torch::serialize::json::any::to_null(std::istream& input)
 {
     CHECK_SEND;
-    if (input.peek() != 'n') throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+    if (input.peek() != 'n') throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     input.get();
 
     CHECK_SEND;
-    if (input.peek() != 'u') throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+    if (input.peek() != 'u') throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     input.get();
 
     CHECK_SEND;
-    if (input.peek() != 'l') throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+    if (input.peek() != 'l') throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     input.get();
 
     CHECK_SEND;
-    if (input.peek() != 'l') throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+    if (input.peek() != 'l') throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     input.get();
 
     return nullptr;
@@ -665,15 +668,15 @@ bool dog_torch::serialize::json::any::to_bool(std::istream& input)
     if (input.peek() == 't')
     {
         CHECK_SEND;
-        if (input.peek() != 'r') throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        if (input.peek() != 'r') throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         input.get();
 
         CHECK_SEND;
-        if (input.peek() != 'u') throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        if (input.peek() != 'u') throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         input.get();
 
         CHECK_SEND;
-        if (input.peek() != 'e') throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        if (input.peek() != 'e') throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         input.get();
 
         return true;
@@ -681,26 +684,26 @@ bool dog_torch::serialize::json::any::to_bool(std::istream& input)
     else if (input.peek() == 'f')
     {
         CHECK_SEND;
-        if (input.peek() != 'a') throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        if (input.peek() != 'a') throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         input.get();
 
         CHECK_SEND;
-        if (input.peek() != 'l') throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        if (input.peek() != 'l') throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         input.get();
 
         CHECK_SEND;
-        if (input.peek() != 's') throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        if (input.peek() != 's') throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         input.get();
 
         CHECK_SEND;
-        if (input.peek() != 'e') throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        if (input.peek() != 'e') throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         input.get();
 
         return false;
     }
     else
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
 }
 double dog_torch::serialize::json::any::to_number(std::istream& input)
@@ -708,7 +711,7 @@ double dog_torch::serialize::json::any::to_number(std::istream& input)
     CHECK_SEND;
     if ((input.peek() < '0' || input.peek() > '9') && (input.peek() != '-'))
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     double num_sign = 1;
     uint64_t integer = 0;
@@ -797,7 +800,7 @@ std::string dog_torch::serialize::json::any::to_string(std::istream& input)
     CHECK_SEND;
     if (input.get() != '"')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     input.get();
     std::string result = "";
@@ -877,7 +880,7 @@ std::string dog_torch::serialize::json::any::to_string(std::istream& input)
                 }
                 default:
                 {
-                    throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+                    throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
                 }
                 }
                 status = 0;
@@ -907,7 +910,7 @@ std::string dog_torch::serialize::json::any::to_string(std::istream& input)
                 }
                 else
                 {
-                    throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+                    throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
                 }
                 input.get();
             }
@@ -929,7 +932,7 @@ dog_torch::serialize::json::array dog_torch::serialize::json::any::to_array(std:
     CHECK_SEND;
     if (input.peek() != '[')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     std::vector<std::any> result;
     input.get();
@@ -966,7 +969,7 @@ dog_torch::serialize::json::array dog_torch::serialize::json::any::to_array(std:
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         skip_whitespace(input);
         if (input.peek() == ']')
@@ -979,7 +982,7 @@ dog_torch::serialize::json::array dog_torch::serialize::json::any::to_array(std:
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
     }
     input.get();
@@ -990,7 +993,7 @@ dog_torch::serialize::json::object dog_torch::serialize::json::any::to_object(st
     CHECK_SEND;
     if (input.peek() != '{')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     input.get();
     std::string key = "";
@@ -1006,7 +1009,7 @@ dog_torch::serialize::json::object dog_torch::serialize::json::any::to_object(st
         skip_whitespace(input);
         if (input.peek() != ':')
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         input.get();
         skip_whitespace(input);
@@ -1036,7 +1039,7 @@ dog_torch::serialize::json::object dog_torch::serialize::json::any::to_object(st
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         skip_whitespace(input);
         if (input.peek() == '}')
@@ -1049,7 +1052,7 @@ dog_torch::serialize::json::object dog_torch::serialize::json::any::to_object(st
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
 
     }
@@ -1119,7 +1122,7 @@ dog_torch::serialize::json::Value::Value(std::string::const_iterator& now, std::
     }
     else
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
 }
 dog_torch::serialize::json::Value::Value(std::istream& input)
@@ -1150,7 +1153,7 @@ dog_torch::serialize::json::Value::Value(std::istream& input)
     }
     else
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
 }
 dog_torch::serialize::json::Value::Value(std::vector<Value> value)
@@ -1184,7 +1187,7 @@ dog_torch::serialize::json::Type dog_torch::serialize::json::Value::get_type() c
     return std::visit(Visitor(), this->value_);
 }
 #define VALUE_RETURN(jsonT,stdT) if (this->get_type() != Type::jsonT)\
-throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");\
+throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);\
 return std::get<stdT>(this->value_);
 std::nullptr_t dog_torch::serialize::json::Value::to_null() const
 {
@@ -1213,7 +1216,7 @@ dog_torch::serialize::json::Array dog_torch::serialize::json::Value::to_array() 
 std::unordered_map<std::string, dog_torch::serialize::json::Value> dog_torch::serialize::json::Value::to_std_map() const
 {
     if (this->get_type() != Type::object)
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     return std::get<std::unordered_map<std::string, dog_torch::serialize::json::Value>>(this->value_);
 }
 dog_torch::serialize::json::Object dog_torch::serialize::json::Value::to_object() const
@@ -1245,7 +1248,7 @@ dog_torch::serialize::json::Object::Object(std::string::const_iterator& now, std
     CHECK_END;
     if (*now != '{')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     using namespace dog_torch::serialize::json::any;
     now++;
@@ -1262,7 +1265,7 @@ dog_torch::serialize::json::Object::Object(std::string::const_iterator& now, std
         skip_whitespace(now, end);
         if (*now != ':')
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         now++;
         skip_whitespace(now, end);
@@ -1278,7 +1281,7 @@ dog_torch::serialize::json::Object::Object(std::string::const_iterator& now, std
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
 
     }
@@ -1294,7 +1297,7 @@ dog_torch::serialize::json::Object::Object(std::istream& input)
     CHECK_SEND;
     if (input.peek() != '{')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     input.get();
     using namespace dog_torch::serialize::json::any;
@@ -1311,7 +1314,7 @@ dog_torch::serialize::json::Object::Object(std::istream& input)
         skip_whitespace(input);
         if (input.peek() != ':')
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
         input.get();
         skip_whitespace(input);
@@ -1327,7 +1330,7 @@ dog_torch::serialize::json::Object::Object(std::istream& input)
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
 
     }
@@ -1442,7 +1445,7 @@ dog_torch::serialize::json::Array::Array(std::string::const_iterator& now, std::
     CHECK_END;
     if (*now != '[')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     using namespace dog_torch::serialize::json::any;
     auto& result = this->value_;
@@ -1462,7 +1465,7 @@ dog_torch::serialize::json::Array::Array(std::string::const_iterator& now, std::
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
     }
     now++;
@@ -1477,7 +1480,7 @@ dog_torch::serialize::json::Array::Array(std::istream& input)
     CHECK_SEND;
     if (input.peek() != '[')
     {
-        throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+        throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
     }
     using namespace dog_torch::serialize::json::any;
     auto& result = this->value_;
@@ -1497,7 +1500,7 @@ dog_torch::serialize::json::Array::Array(std::istream& input)
         }
         else
         {
-            throw DOG_EXCEPTION("Error: unexpected character of json string\n错误：json字符串中出现了意外的字符");
+            throw DOG_EXCEPTION(DOG_ERROR_UNEXCEPT_CHAR);
         }
     }
     input.get();
@@ -1692,6 +1695,10 @@ void dog_torch::serialize::json::Array::resize(size_t count, const Value& value)
 {
     this->value_.resize(count, value);
 }
+
 #undef CHECK_END
 #undef CHECK_SEND
 #undef VALUE_RETURN
+
+#undef DOG_ERROR_UNEXCEPT_END
+#undef DOG_ERROR_UNEXCEPT_CHAR

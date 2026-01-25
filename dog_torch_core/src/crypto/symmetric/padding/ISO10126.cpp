@@ -2,11 +2,13 @@
 
 #define NSROOT dog_torch::crypto::symmetric //NSROOT = namespace root
 
+#define DOG_ERROR_LARGE_BLOCK "Error:Block size only support less than 256"
+
 void dog_torch::crypto::symmetric::padding::ISO10126::padding(Data& data, uint64_t block_size)
 {
 	if (block_size > 0x100)
  	{
- 		throw CryptionException(DOG_EXCEPTION_MSG_OPINION("Error:Block size is too big,PKCS7 only support less than 256\n错误：块大小过大，PKCS7仅支持小于256B的块"));
+ 		throw CryptionException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_BLOCK));
  	}
  	uint8_t end = block_size - data.size();
  	for (uint8_t i = 0; i < end - 1; i++)
@@ -39,3 +41,6 @@ NSROOT::padding::padding_func NSROOT::padding::ISO10126::get_unpadding() const
 {
 	return unpadding;
 }
+
+#undef NSROOT
+#undef DOG_ERROR_LARGE_BLOCK

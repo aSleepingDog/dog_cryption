@@ -9,11 +9,12 @@
 #include <mutex>
 #include <shared_mutex>
 #include <functional>
-#include "container.h"
 
 namespace dog_torch::asyncion::container
 {
-
+	/**
+	* 可拷贝的线程安全的std::vector封装
+	*/
     template <typename T, typename Alloc = std::allocator<T>>
 	class VectorCopy
 	{
@@ -155,6 +156,9 @@ namespace dog_torch::asyncion::container
 
 };
 
+	/**
+	* 仅可移动的线程安全的std::vector封装
+	*/
 	template <std::movable T, typename Alloc = std::allocator<T>>
 	class VectorMove
 	{

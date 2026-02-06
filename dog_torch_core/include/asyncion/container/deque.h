@@ -12,6 +12,9 @@
 
 namespace dog_torch::asyncion::container 
 {
+	/**
+	* 可拷贝线程安全的std::deque封装
+	*/
 	template <typename T, typename Alloc = std::allocator<T>>
 	class DequeCopy
 	{
@@ -179,6 +182,9 @@ namespace dog_torch::asyncion::container
 		}
 	};
 
+	/**
+	* 仅可移动线程安全的std::deque封装
+	*/
 	template <std::movable T, typename Alloc = std::allocator<T>>
 	class DequeMove
 	{

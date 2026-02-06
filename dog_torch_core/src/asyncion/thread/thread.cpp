@@ -13,7 +13,7 @@ dog_torch::asyncion::thread::PauseableChannel::~PauseableChannel()
 {
     if (this->condition_variable_)
     {
-        this->stop();
+        this->cancel();
     }
 }
 dog_torch::asyncion::thread::PauseableChannel::PauseableChannel(PauseableChannel&& pc) noexcept
@@ -60,17 +60,25 @@ bool dog_torch::asyncion::thread::PauseableChannel::is_paused()
     std::unique_lock lock(this->mutex_);
     return this->state_ == State::Paused;
 }
-void dog_torch::asyncion::thread::PauseableChannel::stop()
+void dog_torch::asyncion::thread::PauseableChannel::complete()
 {
     std::unique_lock lock(this->mutex_);
-    this->state_ = State::Stopped;
+    this->state_ = State::Completely;
     this->progress_ = 1.0;
     this->clock_.stop();
 	this->condition_variable_->notify_all();
 }
+void dog_torch::asyncion::thread::PauseableChannel::cancel()
+{
+    std::unique_lock lock(this->mutex_);
+    this->state_ = State::Completely;
+    this->progress_ = 1.0;
+    this->clock_.stop();
+    this->condition_variable_->notify_all();
+}
 bool dog_torch::asyncion::thread::PauseableChannel::is_stopped()
 {
-    return this->state_ == State::Stopped;
+    return this->state_ == State::Completely || this->state_ == State::Cancelled;
 }
 void dog_torch::asyncion::thread::PauseableChannel::wait()
 {
@@ -88,7 +96,7 @@ bool dog_torch::asyncion::thread::PauseableChannel::should_pause()
                 return !(this->state_ == State::Paused);
             });
     }
-    return this->state_ == State::Stopped;
+    return this->state_ == State::Cancelled;
 }
 void dog_torch::asyncion::thread::PauseableChannel::add_progress(double value)
 {

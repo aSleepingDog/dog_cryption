@@ -18,6 +18,9 @@
 #include "utils/Exception.h"
 #include "BinaryData.h"
 
+/**
+* 简单的json解析函数
+*/
 namespace dog_torch::serialize::json
 {
 	using array = std::vector<std::any>;

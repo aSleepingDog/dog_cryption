@@ -13,10 +13,12 @@
 #include "asyncion/container/vector.h"
 #include "asyncion/container/deque.h"
 
-
 namespace dog_torch::asyncion::pool 
 {
 
+    /**
+    * 带优先级的任务池
+    */
     class DOG_CRYPTION_API PollingPriorityTaskPool
     {
     private:
@@ -35,12 +37,12 @@ namespace dog_torch::asyncion::pool
 
             Work(const Work&) = delete;
             Work& operator=(const Work&) = delete;
-            Work(Work&& other)
+            Work(Work&& other) noexcept
             {
                 this->future_status = std::move(other.future_status);
                 this->work = std::move(other.work);
             }
-            Work& operator=(Work&& other)
+            Work& operator=(Work&& other) noexcept
             {
                 this->future_status = std::move(other.future_status);
                 this->work = std::move(other.work);

@@ -11,6 +11,7 @@
 #include<string>
 #include<sstream>
 #include<string_view>
+#include<source_location>
 #include<stacktrace>
 #include<exception>
 
@@ -61,9 +62,9 @@
 
 	#define DOG_EXCEPTION_OPINION \
 	std::this_thread::get_id(),\
-	dog_torch::utils::Exception::get_abstract_path(__FILE__),\
-	std::string(__FUNCTION__),\
-	__LINE__
+	dog_torch::utils::Exception::get_abstract_path(std::source_location::current().file_name()),\
+	std::string(std::source_location::current().function_name()),\
+	std::source_location::current().line()
 
 	#define DOG_EXCEPTION_MSG_OPINION(msg) \
 	std::string(msg), DOG_EXCEPTION_OPINION

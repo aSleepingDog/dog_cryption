@@ -204,7 +204,7 @@ void NSROOT::mode::CTR::encryptp_stream(PauseableChannel& pchannel, std::istream
 	crypt.write((char*)temp_block1.data(), temp_block1.size());
 	crypt.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 
 void NSROOT::mode::CTR::decryptp_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding)
@@ -232,7 +232,7 @@ void NSROOT::mode::CTR::decryptp_stream(PauseableChannel& pchannel, std::istream
 	plain.write((char*)temp_block1.data(), temp_block1.size());
 	plain.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 
 NSROOT::mode::CTR::CTR(const padding::Padding& padding, const Data& iv) : Mode("CTR")

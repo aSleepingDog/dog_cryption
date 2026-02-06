@@ -4,7 +4,7 @@
 #define DOG_DATA dog_torch::serialize::BinaryData
 
 #define DOG_ERROR_WRONG_BLOCK_SHA2_256 "Error:block size is not 64 when SHA2-256 or SHA2-224"
-#define DOG_ERROR_WRONG_BLOCK_SHA2_512 "Error:block size is not 64 when SHA2-512 or SHA2-384"
+#define DOG_ERROR_WRONG_BLOCK_SHA2_512 "Error:block size is not 128 when SHA2-512 or SHA2-384"
 #define DOG_ERROR_WRONG_SIZE "Error:effective must be 32 28 64 48"
 #define DOG_ERROR_LARGE_SIZE "Error:input size is too large"
 
@@ -250,7 +250,8 @@ NSROOT::SHA2::SHA2(uint64_t effective) : Hash("SHA2", effective)
 }
 void NSROOT::SHA2::init()
 {
-	this->is_padding_ = false;
+	this->is_padding_num_ = false;
+	this->is_padding_80_ = false;
 	if (this->effective_ == 32 || this->effective_ == 28)
 	{
 		this->max_ = dog_torch::math::number::BIG_UINT64_MAX;
@@ -270,24 +271,41 @@ DOG_DATA NSROOT::SHA2::init_data() const
 	case 48: return IV_384;
 	}
 }
-bool NSROOT::SHA2::have_next_block(const BigInt& pos, const BigInt& total) const
+bool NSROOT::SHA2::have_next_block(uint64_t data_pos, uint64_t data_total)
 {
-	if (total > this->max_)
+	if (data_total > this->max_)
 	{
 		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
 	}
 	if (this->effective_ == 32 || this->effective_ == 28)
 	{
-		auto dur = (total - pos);
-		return dur >= 64 ? true : !this->is_padding_;
+		auto dur = (data_total - data_pos);
+		return dur >= 64 ? true : !this->is_padding_num_;
 	}
 	else if (this->effective_ == 64 || this->effective_ == 48)
 	{
-		auto dur = (total - pos);
-		return dur >= 128 ? true : !this->is_padding_;
+		auto dur = (data_total - data_pos);
+		return dur >= 128 ? true : !this->is_padding_num_;
 	}
 }
-DOG_DATA NSROOT::SHA2::next_block(const Data& data, BigInt& pos, const BigInt& total)
+bool NSROOT::SHA2::have_next_block_big(const BigInt& data_pos, const BigInt& data_total)
+{
+	if (data_total > this->max_)
+	{
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
+	}
+	if (this->effective_ == 32 || this->effective_ == 28)
+	{
+		auto dur = (data_total - data_pos);
+		return dur >= 64 ? true : !this->is_padding_num_;
+	}
+	else if (this->effective_ == 64 || this->effective_ == 48)
+	{
+		auto dur = (data_total - data_pos);
+		return dur >= 128 ? true : !this->is_padding_num_;
+	}
+}
+DOG_DATA NSROOT::SHA2::next_block(const Data& data, uint64_t start, uint64_t& pos, uint64_t total)
 {
 	if (total > this->max_)
 	{
@@ -295,70 +313,54 @@ DOG_DATA NSROOT::SHA2::next_block(const Data& data, BigInt& pos, const BigInt& t
 	}
 	if (this->effective_ == 32 || this->effective_ == 28)
 	{
-		auto res = data.sub_bytes_by_len(pos.to_abs_uint64(), 64);
+		auto res = data.sub_bytes_by_len(start, 64);
 		pos += res.size();
-		if (res.size() >= 64)
-		{
-			return res;
-		}
+		if (res.size() >= 64) return res;
 		else
 		{
-			res.push_back(0x80);
+			if (!this->is_padding_80_)
+			{
+				res.push_back(0x80);
+				this->is_padding_80_ = true;
+			}
 			if (res.size() > (64 - 8))
 			{
-				while (res.size() < 64)
-				{
-					res.push_back(0x00);
-				}
+				while (res.size() < 64) res.push_back(0x00);
 				return res;
 			}
 			else
 			{
-				while (res.size() < (64 - 8))
-				{
-					res.push_back(0x00);
-				}
-				Data num = (total * 8).to_byte_vector();
-				this->is_padding_ = true;
-				for (uint64_t i = 0; i < (8 - num.size()); i++)
-				{
-					res.push_back(0x00);
-				}
+				while (res.size() < (64 - 8)) res.push_back(0x00);
+				Data num = BigInt(total * 8).to_byte_vector();
+				for (uint64_t i = 0; i < (8 - num.size()); i++) res.push_back(0x00);
+				this->is_padding_num_ = true;
 				return res + num;
 			}
 		}
 	}
 	else if (this->effective_ == 64 || this->effective_ == 48)
 	{
-		auto res = data.sub_bytes_by_len(pos.to_abs_uint64(), 128);
+		auto res = data.sub_bytes_by_len(start, 128);
 		pos += res.size();
-		if (res.size() >= 128)
-		{
-			return res;
-		}
+		if (res.size() >= 128) return res;
 		else
 		{
-			res.push_back(0x80);
+			if (!this->is_padding_80_)
+			{
+				res.push_back(0x80);
+				this->is_padding_80_ = true;
+			}
 			if (res.size() > (128 - 16))
 			{
-				while (res.size() < 64)
-				{
-					res.push_back(0x00);
-				}
+				while (res.size() < 128) res.push_back(0x00);
 				return res;
 			}
 			else
 			{
-				while (res.size() < (128 - 16))
-				{
-					res.push_back(0x00);
-				}
-				Data num = (total * 8).to_byte_vector();
-				this->is_padding_ = true;
-				for (uint64_t i = 0; i < (16 - num.size()); i++)
-				{
-					res.push_back(0x00);
-				}
+				while (res.size() < (128 - 16)) res.push_back(0x00);
+				Data num = BigInt(total * 8).to_byte_vector();
+				for (uint64_t i = 0; i < (16 - num.size()); i++) res.push_back(0x00);
+				this->is_padding_num_ = true;
 				return res + num;
 			}
 		}
@@ -369,87 +371,140 @@ DOG_DATA NSROOT::SHA2::next_block(const Data& data, BigInt& pos, const BigInt& t
 		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_SIZE));
 	}
 }
-DOG_DATA NSROOT::SHA2::next_block(std::istream& data, BigInt& pos, const BigInt& total)
+DOG_DATA NSROOT::SHA2::next_block(std::istream& data, uint64_t& data_pos, uint64_t data_total)
 {
-	if (total > this->max_)
+	if (data_total > this->max_)
 	{
 		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
 	}
 	if (this->effective_ == 32 || this->effective_ == 28)
 	{
-		Data res(16);
-		data.read((char*)res.data(), 16);
-		for (uint64_t i = data.gcount(); i < 64; i++)
-		{
-			res.pop_back();
-		}
-		pos += data.gcount();
-		if (res.size() >= 64)
-		{
-			return res;
-		}
+		Data res(64);
+		data.read((char*)res.data(), 64);
+		for (uint64_t i = data.gcount(); i < 64; i++) res.pop_back();
+		data_pos += data.gcount();
+		if (res.size() >= 64) return res;
 		else
 		{
-			res.push_back(0x80);
-			if (res.size() > 56)
+			if (!this->is_padding_80_)
 			{
-				while (res.size() < 64)
-				{
-					res.push_back(0x00);
-				}
+				res.push_back(0x80);
+				this->is_padding_80_ = true;
+			}
+			if (res.size() > (64 - 8))
+			{
+				while (res.size() < 64) res.push_back(0x00);
 				return res;
 			}
 			else
 			{
-				while (res.size() < 56)
-				{
-					res.push_back(0x00);
-				}
-				Data num = (total * 8).to_byte_vector();
-				this->is_padding_ = true;
+				while (res.size() < (64 - 8)) res.push_back(0x00);
+				Data num = BigInt(data_total * 8).to_byte_vector();
+				for (uint64_t i = 0; i < (8 - num.size()); i++) res.push_back(0x00);
+				this->is_padding_num_ = true;
 				return res + num;
 			}
 		}
 	}
 	else if (this->effective_ == 64 || this->effective_ == 48)
 	{
-		Data res(128);
-		data.read((char*)res.data(), 128);
-		pos += data.gcount();
-		for (uint64_t i = data.gcount(); i < 128; i++)
-		{
-			res.pop_back();
-		}
-		if (res.size() >= 128)
-		{
-			return res;
-		}
+		Data res(64);
+		data.read((char*)res.data(), 64);
+		for (uint64_t i = data.gcount(); i < 64; i++) res.pop_back();
+		data_pos += data.gcount();
+		if (res.size() >= 128) return res;
 		else
 		{
-			res.push_back(0x80);
+			if (!this->is_padding_80_)
+			{
+				res.push_back(0x80);
+				this->is_padding_80_ = true;
+			}
 			if (res.size() > (128 - 16))
 			{
-				while (res.size() < 64)
-				{
-					res.push_back(0x00);
-				}
+				while (res.size() < 128) res.push_back(0x00);
 				return res;
 			}
 			else
 			{
-				while (res.size() < (128 - 16))
-				{
-					res.push_back(0x00);
-				}
-				Data num = (total * 8).to_byte_vector();
-				this->is_padding_ = true;
-				for (uint64_t i = 0; i < (16 - num.size()); i++)
-				{
-					res.push_back(0x00);
-				}
+				while (res.size() < (128 - 16)) res.push_back(0x00);
+				Data num = BigInt(data_total * 8).to_byte_vector();
+				for (uint64_t i = 0; i < (16 - num.size()); i++) res.push_back(0x00);
+				this->is_padding_num_ = true;
 				return res + num;
 			}
 		}
+
+	}
+	else
+	{
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_WRONG_SIZE));
+	}
+}
+DOG_DATA NSROOT::SHA2::next_block_big(std::istream& data, BigInt& data_pos, const BigInt& data_total)
+{
+	if (data_total > this->max_)
+	{
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
+	}
+	if (this->effective_ == 32 || this->effective_ == 28)
+	{
+		Data res(64);
+		data.read((char*)res.data(), 64);
+		for (uint64_t i = data.gcount(); i < 64; i++) res.pop_back();
+		data_pos += data.gcount();
+		if (res.size() >= 64) return res;
+		else
+		{
+			if (!this->is_padding_80_)
+			{
+				res.push_back(0x80);
+				this->is_padding_80_ = true;
+			}
+			if (res.size() > (64 - 8))
+			{
+				while (res.size() < 64) res.push_back(0x00);
+				return res;
+			}
+			else
+			{
+				while (res.size() < (64 - 8)) res.push_back(0x00);
+				Data num = (data_total * 8).to_byte_vector();
+				for (uint64_t i = 0; i < (8 - num.size()); i++) res.push_back(0x00);
+				this->is_padding_num_ = true;
+				return res + num;
+			}
+		}
+	}
+	else if (this->effective_ == 64 || this->effective_ == 48)
+	{
+		Data res(64);
+		data.read((char*)res.data(), 64);
+		for (uint64_t i = data.gcount(); i < 64; i++) res.pop_back();
+		data_pos += data.gcount();
+		if (res.size() >= 128) return res;
+		else
+		{
+			if (!this->is_padding_80_)
+			{
+				res.push_back(0x80);
+				this->is_padding_80_ = true;
+			}
+			if (res.size() > (128 - 16))
+			{
+				while (res.size() < 128) res.push_back(0x00);
+				return res;
+			}
+			else
+			{
+				while (res.size() < (128 - 16)) res.push_back(0x00);
+				Data num = (data_total * 8).to_byte_vector();
+				for (uint64_t i = 0; i < (16 - num.size()); i++) res.push_back(0x00);
+				this->is_padding_num_ = true;
+				return res + num;
+			}
+		}
+
 	}
 	else
 	{
@@ -502,6 +557,12 @@ NSROOT::trims_func NSROOT::SHA2::get_trims() const
 std::unique_ptr<NSROOT::Hash> NSROOT::SHA2::clone() const
 {
 	return std::move(std::make_unique<SHA2>(*this));
+}
+
+uint64_t dog_torch::crypto::hash::algorithm::SHA2::get_block_size() const
+{
+	if (this->effective_ == 32 || this->effective_ == 28) return 64;
+	else if (this->effective_ == 64 || this->effective_ == 48) return 128;
 }
 
 #undef NSROOT

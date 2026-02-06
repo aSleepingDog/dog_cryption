@@ -1,4 +1,4 @@
-#include "math/BigInteger.h"
+#include "math/number.h"
 
 #define DOG_ERROR_MINUS_SIGN_ERROR "Error:minus sign is not at first"
 #define DOG_ERROR_WRONG_CHAR_HEX "Error:wrong char in hex\ncorrect chars are 0123456789abcdefABCDEF"
@@ -11,6 +11,8 @@
 #define DOG_ERROR_NO_SUPPORT "Error:Not support"
 
 #define DOG_ERROR_DIVIDE_BY_ZERO "Error: Divide by zero"
+#define DOG_ERROR_NEGATIVE_NUMBER "Error: no support Negative number"
+#define DOG_ERROR_ZERO "Error: no support ZERO"
 
 dog_torch::math::number::BigInteger::BigInteger()
 {
@@ -1176,6 +1178,10 @@ dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::from_ve
 		res.num_.push_back(b);
 	}
 	res.reverse();
+	if (res.size() == 1 && res[0] == 0x00)
+	{
+		res.sign_ = 0;
+	}
 	return res;
 }
 
@@ -1197,7 +1203,7 @@ void dog_torch::math::number::BigInteger::trims()
 	}
 	this->num_.shrink_to_fit();
 }
-std::string dog_torch::math::number::BigInteger::getUpHEX()
+std::string dog_torch::math::number::BigInteger::getUpHEX() const
 {
 	std::string res;
 	if (sign_ == -1)
@@ -1210,14 +1216,14 @@ std::string dog_torch::math::number::BigInteger::getUpHEX()
 		res.reserve(this->num_.size());
 	}
 	char hexChar[17] = "0123456789ABCDEF";
-	for (uint8_t& b : this->num_)
+	for (uint8_t b : this->num_)
 	{
 		res.push_back(hexChar[(b & 0xF0) >> 4]);
 		res.push_back(hexChar[(b & 0x0F)]);
 	}
 	return res;
 }
-std::string dog_torch::math::number::BigInteger::getLowHEX()
+std::string dog_torch::math::number::BigInteger::getLowHEX() const
 {
 	std::string res;
 	if (sign_ == -1)
@@ -1230,14 +1236,14 @@ std::string dog_torch::math::number::BigInteger::getLowHEX()
 		res.reserve(this->num_.size());
 	}
 	char hexChar[17] = "0123456789abcdef";
-	for (uint8_t& b : this->num_)
+	for (uint8_t b : this->num_)
 	{
 		res.push_back(hexChar[(b & 0xF0) >> 4]);
 		res.push_back(hexChar[(b & 0x0F)]);
 	}
 	return res;
 }
-std::string dog_torch::math::number::BigInteger::getDEC()
+std::string dog_torch::math::number::BigInteger::getDEC() const
 {
 	/*
 	BigInteger temp = *this;
@@ -1337,7 +1343,7 @@ std::string dog_torch::math::number::BigInteger::getDEC()
 	}
 	return res;
 }
-std::string dog_torch::math::number::BigInteger::to_num_string(int radix, bool isUpper)
+std::string dog_torch::math::number::BigInteger::to_num_string(int radix, bool isUpper) const
 {
 	if (this->get_sign() == 0)
 	{
@@ -1453,7 +1459,45 @@ uint64_t dog_torch::math::number::BigInteger::to_abs_uint64() const
 	}
 	return n >> ((8 - this->num_.size()) * 8);
 }
-uint64_t dog_torch::math::number::BigInteger::size()
+double dog_torch::math::number::BigInteger::to_float64() const
+{
+	if (this->sign_ == 0)
+	{
+		return 0.0;
+	}
+	uint64_t e = this->size() < 128 ? this->size() * 8 : 1024;
+	uint64_t byte_pos = 0;
+	uint8_t bit_pos = 0;
+	for (int i = 0;i < 8;i++)
+	{
+		if (this->num_[0] >> (7 - i) & 0x01) break;
+		e--;
+		bit_pos++;
+	}
+	e += 1022;
+	uint64_t buf = 0;
+	for (int i = 0;i < 53;i++)
+	{
+		if (byte_pos >= this->num_.size()) break;
+		buf |= (((uint64_t)this->num_[byte_pos]) >> (7 - bit_pos) & 0x01) << (52 - i);
+		if (bit_pos == 7)
+		{
+			bit_pos = 0;
+			byte_pos++;
+		}
+		else
+		{
+			bit_pos++;
+		}
+	}
+	buf &= 0x0FFFFFFFFFFFFF;
+	buf |= ((e & 0x07FF) << 52);
+	buf |= ((uint64_t)(this->sign_ >= 0 ? 0 : 1) << 63);
+	double result;
+	std::memcpy(&result, &buf, sizeof(result));
+	return result;
+}
+uint64_t dog_torch::math::number::BigInteger::size() const
 {
 	return this->num_.size();
 }
@@ -1473,11 +1517,23 @@ uint8_t& dog_torch::math::number::BigInteger::at(uint64_t i)
 {
 	return this->num_.at(i);
 }
+uint8_t& dog_torch::math::number::BigInteger::operator[](uint64_t i)
+{
+	return this->num_[i];
+}
+const uint8_t& dog_torch::math::number::BigInteger::at(uint64_t i) const
+{
+	return this->num_.at(i);
+}
+const uint8_t& dog_torch::math::number::BigInteger::operator[](uint64_t i) const
+{
+	return (this->num_)[i];
+}
 void dog_torch::math::number::BigInteger::insert(const std::vector<uint8_t>::iterator pos, uint8_t n)
 {
 	this->num_.insert(pos, n);
 }
-char dog_torch::math::number::BigInteger::get_sign()
+char dog_torch::math::number::BigInteger::get_sign() const
 {
 	return this->sign_;
 }
@@ -1544,11 +1600,11 @@ std::vector<uint8_t>::iterator dog_torch::math::number::BigInteger::end()
 	return this->num_.end();
 }
 
-std::vector<uint8_t>::const_iterator dog_torch::math::number::BigInteger::cbegin()
+std::vector<uint8_t>::const_iterator dog_torch::math::number::BigInteger::cbegin() const
 {
 	return this->num_.cbegin();
 }
-std::vector<uint8_t>::const_iterator dog_torch::math::number::BigInteger::cend()
+std::vector<uint8_t>::const_iterator dog_torch::math::number::BigInteger::cend() const
 {
 	return this->num_.cend();
 }
@@ -1562,11 +1618,11 @@ std::reverse_iterator<std::vector<uint8_t>::iterator> dog_torch::math::number::B
 	return this->num_.rend();
 }
 
-std::reverse_iterator<std::vector<uint8_t>::const_iterator> dog_torch::math::number::BigInteger::crbegin()
+std::reverse_iterator<std::vector<uint8_t>::const_iterator> dog_torch::math::number::BigInteger::crbegin() const
 {
 	return this->num_.crbegin();
 }
-std::reverse_iterator<std::vector<uint8_t>::const_iterator> dog_torch::math::number::BigInteger::crend()
+std::reverse_iterator<std::vector<uint8_t>::const_iterator> dog_torch::math::number::BigInteger::crend() const
 {
 	return this->num_.crend();
 }
@@ -1765,11 +1821,6 @@ dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::toBigIn
 	return res;
 }
 
-uint8_t& dog_torch::math::number::BigInteger::operator[](uint64_t i)
-{
-	return this->num_[i];
-}
-
 dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::operator-()
 {
 	switch (this->get_sign())
@@ -1787,7 +1838,7 @@ dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::abs(Big
 	return res;
 }
 
-int dog_torch::math::number::BigInteger::abs_compare(BigInteger a, BigInteger b)
+int dog_torch::math::number::BigInteger::abs_compare(const BigInteger& a, const BigInteger& b)
 {
 	if (a.size() != b.size())
 	{
@@ -1813,6 +1864,91 @@ int dog_torch::math::number::BigInteger::abs_compare(BigInteger a, BigInteger b)
 		}
 	}
 	return 0;
+}
+int dog_torch::math::number::BigInteger::value_compare(const BigInteger& a, const BigInteger& b)
+{
+	if (a.sign_ > b.sign_)      return 1;
+	else if (a.sign_ < b.sign_) return -1;
+	else
+	{
+		int abs_res = abs_compare(a, b);
+
+		if (a.sign_ == 1)
+		{
+			if (abs_res == 1)       return 1;
+			else if (abs_res == -1) return -1;
+		}
+		else if (a.sign_ == -1)
+		{
+			if (abs_res == 1)       return -1;
+			else if (abs_res == -1) return 1;
+		}
+	}
+	return 0;
+}
+uint8_t dog_torch::math::number::BigInteger::plenty_compare(const BigInteger& a, const BigInteger& b)
+{
+	uint8_t res = 0;
+	//                              |__------
+	if (a.sign_ == 1)       res |= 0b01000000;
+	else if (a.sign_ == 0)  res |= 0b00000000;
+	else if (a.sign_ == -1) res |= 0b10000000;
+
+	//                              |--__----
+	if (b.sign_ == 1)       res |= 0b00010000;
+	else if (b.sign_ == 0)  res |= 0b00000000;
+	else if (b.sign_ == -1) res |= 0b00100000;
+
+	int abs_res = abs_compare(a, b);
+	//                              |----__--
+	if (abs_res == 1)       res |= 0b00001000;
+	else if (abs_res == 0)  res |= 0b00000000;
+	else if (abs_res == -1) res |= 0b00000100;
+
+	//                                  |------__
+	if (a.sign_ > b.sign_)      res |= 0b00000010;
+	else if (a.sign_ < b.sign_) res |= 0b00000001;
+	else
+	{
+		if (a.sign_ == 1)
+		{
+	//                                      |------__
+			if (abs_res == 1)       res |= 0b00000010;
+			else if (abs_res == -1) res |= 0b00000001;
+		}
+		else if (a.sign_ == -1)
+		{
+	//                                      |------__
+			if (abs_res == 1)       res |= 0b00000001;
+			else if (abs_res == -1) res |= 0b00000010;
+		}
+	}
+	return res;
+}
+
+bool dog_torch::math::number::operator==(const BigInteger& a, const BigInteger& b)
+{
+	return BigInteger::value_compare(a, b) == 0;
+}
+bool dog_torch::math::number::operator!=(const BigInteger& a, const BigInteger& b)
+{
+	return BigInteger::value_compare(a, b) != 0;
+}
+bool dog_torch::math::number::operator>(const BigInteger& a, const BigInteger& b)
+{
+	return BigInteger::value_compare(a, b) == 1;
+}
+bool dog_torch::math::number::operator>=(const BigInteger& a, const BigInteger& b)
+{
+	return !(a < b);
+}
+bool dog_torch::math::number::operator<(const BigInteger& a, const BigInteger& b)
+{
+	return BigInteger::value_compare(a, b) == -1;
+}
+bool dog_torch::math::number::operator<=(const BigInteger& a, const BigInteger& b)
+{
+	return !(a > b);
 }
 
 dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::add(BigInteger a, BigInteger b)
@@ -2079,6 +2215,29 @@ dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::multipl
 	{
 		res.set_negative();
 	}
+	return res;
+}
+dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::multiplyDistributeUint64(BigInteger a, uint64_t b)
+{
+	if (a == 0 || b == 0)
+	{
+		return 0;
+	}
+	BigInteger res;res.reserve(a.size());res.sign_ = a.sign_;res.num_.clear();
+	uint64_t up_temp = 0;
+	for (auto rit = a.rbegin();rit != a.rend();rit++)
+	{
+		up_temp = *rit * b + up_temp;
+		res.push_back((uint8_t)(up_temp & 0xFF));
+		up_temp >>= 8;
+	}
+	while (up_temp > 0)
+	{
+		res.push_back((uint8_t)(up_temp & 0xFF));
+		up_temp >>= 8;
+	}
+	res.reverse();
+	res.trims();
 	return res;
 }
 dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::multiplyKaratsuba0(BigInteger a, BigInteger b)
@@ -2865,37 +3024,16 @@ void dog_torch::math::number::operator*=(BigInteger& a, BigInteger b)
 
 std::pair<dog_torch::math::number::BigInteger, dog_torch::math::number::BigInteger> dog_torch::math::number::BigInteger::divideDistribute(BigInteger a, BigInteger b, bool is_round_zero)
 {
-	if (b.get_sign() == 0)
+	if (b.get_sign() == 0) throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_DIVIDE_BY_ZERO));
+	if (a.get_sign() == 0) return { 0,0 };
+	BigInteger& max = a, min = b;
+	uint8_t compare_code = plenty_compare(a, b);
+	if ((compare_code & 0x03) == 0) return { 1,0 };
+	else if ((compare_code & 0x0C) == 0) return { -1,0 };
+	else if ((compare_code & 0x0C) == 0b01)
 	{
-		throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_DIVIDE_BY_ZERO));
-	}
-	if (a.get_sign() == 0)
-	{
-		return std::pair<BigInteger, BigInteger>(0, b);
-	}
-	if (a == b)
-	{
-		return std::pair<BigInteger, BigInteger>(1, 0);
-	}
-	BigInteger* max = nullptr, * min = nullptr;
-	switch (abs_compare(a, b))
-	{
-	case -1:
-	{
-		max = &b;
-		min = &a;
-		break;
-	}
-	case 0:
-	{
-		return std::pair<BigInteger, BigInteger>(-1, 0);
-	}
-	case 1:
-	{
-		max = &a;
-		min = &b;
-		break;
-	}
+		max = b;
+		min = a;
 	}
 	auto spilt = [](BigInteger& a, uint64_t start, uint64_t end)->dog_torch::math::number::BigInteger
 		{
@@ -2911,18 +3049,18 @@ std::pair<dog_torch::math::number::BigInteger, dog_torch::math::number::BigInteg
 			if (is_zero) { return BigInteger(); }
 			return res;
 		};
-	BigInteger temp = spilt(*max, 0, min->size());
+	BigInteger temp = spilt(max, 0, min.size());
 	uint8_t now = 0x00;
-	uint64_t index = min->size();
-	BigInteger res; res.reserve(max->size() - min->size() + 1);
-	int min_sign = min->get_sign();
-	min->set_positive();
+	uint64_t index = min.size();
+	BigInteger res; res.reserve(max.size() - min.size() + 1);
+	int min_sign = min.get_sign();
+	min.set_positive();
 	bool is_effive = false;
-	while (index <= max->size())
+	while (index <= max.size())
 	{
-		while (temp > *min)
+		while (temp > min)
 		{
-			temp = temp - *min;
+			temp = temp - min;
 			now++;
 		}
 		if (now != 0)
@@ -2934,17 +3072,17 @@ std::pair<dog_torch::math::number::BigInteger, dog_torch::math::number::BigInteg
 		{
 			res.push_back(now);
 		}
-		if (index == max->size()) { break; }
+		if (index == max.size()) { break; }
 		now = 0x00;
-		temp.push_back(max->at(index));
+		temp.push_back(max.at(index));
 		index++;
 	}
-	if (temp == *min)
+	if (temp == min)
 	{
 		res += 1;
 		temp = 0;
 	}
-	if (min_sign == -1) { min->set_negative(); }
+	if (min_sign == -1) { min.set_negative(); }
 	if (a.get_sign() == b.get_sign())
 	{
 		res.set_positive();
@@ -2961,11 +3099,11 @@ std::pair<dog_torch::math::number::BigInteger, dog_torch::math::number::BigInteg
 		}
 		if (a.get_sign() == 1 && b.get_sign() == -1)
 		{
-			temp = *min + temp;
+			temp = min + temp;
 		}
 		else if (a.get_sign() == -1 && b.get_sign() == 1)
 		{
-			temp = *min - temp;
+			temp = min - temp;
 		}
 		else if (a.get_sign() == -1 && b.get_sign() == -1)
 		{
@@ -2981,8 +3119,7 @@ std::pair<dog_torch::math::number::BigInteger, dog_torch::math::number::BigInteg
 	}
 	return std::pair<BigInteger, BigInteger>(res, temp);
 }
-
-dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::divideNTT1(BigInteger a, BigInteger b)
+dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::divideFNTT1(BigInteger a, BigInteger b)
 {
 	if (b.get_sign() == 0)
 	{
@@ -3001,304 +3138,471 @@ dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::divideN
 
 	return BigInteger();
 }
-
-//大于
-bool dog_torch::math::number::operator>(BigInteger a, BigInteger b)
+dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::divideKnuth(BigInteger a, BigInteger b, bool is_round_zero)
 {
-	if (a.get_sign() > b.get_sign())
+	if (b.get_sign() == 0) throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_DIVIDE_BY_ZERO));
+	if (a.get_sign() == 0) return 0;
+	BigInteger& max = a, min = b;
+	uint8_t compare_code = plenty_compare(a, b);
+	if ((compare_code & 0x03) == 0) return 1;
+	else if ((compare_code & 0x0C) == 0) return -1;
+	else if ((compare_code & 0x0C) == 0b01)
 	{
-		return true;
+		max = b;
+		min = a;
 	}
-	else if (a.get_sign() < b.get_sign())
+	if (a.size() < 8)
 	{
-		return false;
-	}
-	if (a.size() != b.size())
-	{
-		return a.size() > b.size();
-	}
-	else
-	{
-		for (uint64_t i = 0; i < a.size(); i++)
+		auto a_ = a.to_abs_uint64();
+		auto b_ = b.to_abs_uint64();
+		BigInteger q = a_ / b_;
+		if ((a.sign_ == -1 && b.sign_ == -1) || (a.sign_ == 1 && b.sign_ == 1))
 		{
-			if (a.at(i) > b.at(i))
+			q.set_positive();
+		}
+		else
+		{
+			q.set_negative();
+		}
+		return q;
+	}
+	auto get_uint32 = [](const BigInteger& n, uint64_t i) -> uint32_t
+		{
+			if (i == 0)
 			{
-				return true;
+				uint32_t res = 0;
+				switch (n.size() % 4)
+				{
+				case 0:
+				{
+					res |= (uint32_t)n[0] << 24;
+					res |= (uint32_t)n[1] << 16;
+					res |= (uint32_t)n[2] << 8;
+					res |= (uint32_t)n[3] << 0;
+					return res;
+				}
+				case 1:
+				{
+					res |= (uint32_t)n[0] << 0;
+					return res;
+				}
+				case 2:
+				{
+					res |= (uint32_t)n[0] << 8;
+					res |= (uint32_t)n[1] << 0;
+					return res;
+				}
+				case 3:
+				{
+					res |= (uint32_t)n[0] << 16;
+					res |= (uint32_t)n[1] << 8;
+					res |= (uint32_t)n[2] << 0;
+					return res;
+				}
+				}
 			}
-			else if (a.at(i) < b.at(i))
+			uint64_t index = n.size() % 4 == 0 ? i * 4 : n.size() % 4 + (i - 1) * 4;
+			uint32_t res =
+				(uint32_t)n[index]  << 24 |
+				(uint32_t)n[index + 1] << 16 |
+				(uint32_t)n[index + 2] << 8 |
+				(uint32_t)n[index + 3];
+			return res;
+		};
+	auto get_uint32_size = [](const BigInteger& n) -> uint64_t
+		{
+			return ((n.size() - 1) / 4) + 1;
+		};
+	char q_sign = -1;
+	if ((a.sign_ == -1 && b.sign_ == -1) || (a.sign_ == 1 && b.sign_ == 1))
+	{
+		q_sign = 1;
+	}
+	max.set_positive();
+	min.set_positive();
+	uint64_t v0 = get_uint32(min, 0);
+	uint32_t d = 1;
+	if (v0 < 0xFFFFFFFF / 2)
+	{
+		d = 0xFFFFFFFF / (v0 + 1);
+		max = multiplyDistributeUint64(max, d);
+		min = multiplyDistributeUint64(min, d);
+	}
+	uint64_t v_32_num = get_uint32_size(min);
+	uint64_t u_32_num = get_uint32_size(max);
+	uint64_t u_32_index = 0;
+
+	BigInteger max_top;max_top.reserve((v_32_num + 1) * 4);max_top.num_.clear();
+	for (;u_32_index < v_32_num;u_32_index++)
+	{
+		uint32_t temp = get_uint32(max, u_32_index);
+		max_top.push_back((uint8_t)(temp >> 24));
+		max_top.push_back((uint8_t)(temp >> 16));
+		max_top.push_back((uint8_t)(temp >> 8));
+		max_top.push_back((uint8_t)(temp >> 0));
+	}
+	max_top.set_positive();
+	max_top.trims();
+	
+	BigInteger q;q.reserve((v_32_num + 1) * 4);q.num_.clear();
+	uint64_t u_head = (uint64_t)(get_uint32(max_top, 0)), v_head = (uint64_t)(get_uint32(min, 0));
+	uint32_t q_set = 0, temp = 0;
+	if (u_head >= v_head)
+	{
+		max_top -= min;
+		q.push_back(1);
+	}
+	while (u_32_index <= u_32_num)
+	{
+		temp = get_uint32(max, u_32_index);
+		if (max_top == 0)
+		{
+			max_top.num_.clear();
+			max_top.sign_ = 1;
+		}
+		max_top.push_back((uint8_t)(temp >> 24));
+		max_top.push_back((uint8_t)(temp >> 16));
+		max_top.push_back((uint8_t)(temp >> 8));
+		max_top.push_back((uint8_t)(temp));
+		u_32_index++;
+		u_head = (uint64_t)(get_uint32(max_top, 0)) << 32 | (uint64_t)(get_uint32(max_top, 1));
+		q_set = u_head / v_head;
+		max_top -= multiplyDistributeUint64(min, q_set);
+		while (max_top < 0)
+		{
+			max_top += min;
+			q_set--;
+		}
+		while (max_top >= min)
+		{
+			max_top -= min;
+			q_set++;
+		}
+		q.push_back((uint8_t)(q_set >> 24));
+		q.push_back((uint8_t)(q_set >> 16));
+		q.push_back((uint8_t)(q_set >> 8));
+		q.push_back((uint8_t)(q_set));
+	}
+	q.sign_ = q_sign;
+	q.trims();
+	if (max_top == 0) return q;
+	if (!is_round_zero && ((a.sign_ == -1 && b.sign_ == 0) || (a.sign_ == 0 || b.sign_ == -1))) return q - 1;
+}
+dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::divide(BigInteger a, BigInteger b)
+{
+	if (b.get_sign() == 0) throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_DIVIDE_BY_ZERO));
+	if (a.get_sign() == 0) return 0;
+	BigInteger& max = a, min = b;
+	uint8_t compare_code = plenty_compare(a, b);
+	if ((compare_code & 0x03) == 0) return 1;
+	else if ((compare_code & 0x0C) == 0) return -1;
+	return divideKnuth(a, b, true);
+}
+dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::remainderKnuth(BigInteger a, BigInteger b)
+{
+	if (b.get_sign() == 0) throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_DIVIDE_BY_ZERO));
+	if (a.get_sign() == 0) return b;
+	BigInteger& max = a, min = b;
+	uint8_t compare_code = plenty_compare(a, b);
+	if ((compare_code & 0x03) == 0) return 1;
+	else if ((compare_code & 0x0C) == 0) return -1;
+	else if ((compare_code & 0x0C) == 0b01)
+	{
+		max = b;
+		min = a;
+	}
+	if (a.size() < 8)
+	{
+		auto a_ = a.to_abs_uint64();
+		auto b_ = b.to_abs_uint64();
+		BigInteger r = a_ % b_;
+		if (r.sign_ == 0) return r;
+		r.sign_ = a.sign_;
+		r.trims();
+		return r;
+	}
+	auto get_uint32 = [](const BigInteger& n, uint64_t i) -> uint32_t
+		{
+			if (i == 0)
 			{
-				return false;
+				uint32_t res = 0;
+				switch (n.size() % 4)
+				{
+				case 0:
+				{
+					res |= (uint32_t)n[0] << 24;
+					res |= (uint32_t)n[1] << 16;
+					res |= (uint32_t)n[2] << 8;
+					res |= (uint32_t)n[3] << 0;
+					return res;
+				}
+				case 1:
+				{
+					res |= (uint32_t)n[0] << 0;
+					return res;
+				}
+				case 2:
+				{
+					res |= (uint32_t)n[0] << 8;
+					res |= (uint32_t)n[1] << 0;
+					return res;
+				}
+				case 3:
+				{
+					res |= (uint32_t)n[0] << 16;
+					res |= (uint32_t)n[1] << 8;
+					res |= (uint32_t)n[2] << 0;
+					return res;
+				}
+				}
 			}
+			uint64_t index = n.size() % 4 == 0 ? i * 4 : n.size() % 4 + (i - 1) * 4;
+			uint32_t res =
+				(uint32_t)n[index] << 24 |
+				(uint32_t)n[index + 1] << 16 |
+				(uint32_t)n[index + 2] << 8 |
+				(uint32_t)n[index + 3];
+			return res;
+		};
+	auto get_uint32_size = [](const BigInteger& n) -> uint64_t
+		{
+			return ((n.size() - 1) / 4) + 1;
+		};
+
+	max.set_positive();
+	min.set_positive();
+	uint64_t v0 = get_uint32(min, 0);
+	uint32_t d = 1;
+	if (v0 < 0xFFFFFFFF / 2)
+	{
+		d = 0xFFFFFFFF / (v0 + 1);
+		max = multiplyDistributeUint64(max, d);
+		min = multiplyDistributeUint64(min, d);
+	}
+	uint64_t v_32_num = get_uint32_size(min);
+	uint64_t u_32_num = get_uint32_size(max);
+	uint64_t u_32_index = 0;
+
+	BigInteger max_top;max_top.reserve((v_32_num + 1) * 4);max_top.num_.clear();
+	for (;u_32_index < v_32_num;u_32_index++)
+	{
+		uint32_t temp = get_uint32(max, u_32_index);
+		max_top.push_back((uint8_t)(temp >> 24));
+		max_top.push_back((uint8_t)(temp >> 16));
+		max_top.push_back((uint8_t)(temp >> 8));
+		max_top.push_back((uint8_t)(temp >> 0));
+	}
+	max_top.set_positive();
+	max_top.trims();
+	uint64_t u_head = (uint64_t)(get_uint32(max_top, 0)), v_head = (uint64_t)(get_uint32(min, 0));
+	uint32_t q_set = 0, temp = 0;
+	if (u_head >= v_head) max_top -= min;
+	while (u_32_index <= u_32_num)
+	{
+		temp = get_uint32(max, u_32_index);
+		if (max_top == 0)
+		{
+			max_top.num_.clear();
+			max_top.sign_ = 1;
+		}
+		max_top.push_back((uint8_t)(temp >> 24));
+		max_top.push_back((uint8_t)(temp >> 16));
+		max_top.push_back((uint8_t)(temp >> 8));
+		max_top.push_back((uint8_t)(temp));
+		u_32_index++;
+		u_head = (uint64_t)(get_uint32(max_top, 0)) << 32 | (uint64_t)(get_uint32(max_top, 1));
+		q_set = u_head / v_head;
+		max_top -= multiplyDistributeUint64(min, q_set);
+		while (max_top < 0)
+		{
+			max_top += min;
+			q_set--;
+		}
+		while (max_top >= min)
+		{
+			max_top -= min;
+			q_set++;
 		}
 	}
-	return false;
+	if (max_top == 0) return 0;
+	max_top.sign_ = a.sign_;
+	if (d == 1) return max_top;
+	else return max_top / d;
 }
-bool dog_torch::math::number::operator>(BigInteger a, uint8_t b)
+dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::moduloKnuth(BigInteger a, BigInteger b)
 {
-	return a > BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>(BigInteger a, uint16_t b)
-{
-	return a > BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>(BigInteger a, uint32_t b)
-{
-	return a > BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>(BigInteger a, uint64_t b)
-{
-	return a > BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>(BigInteger a, int8_t b)
-{
-	return a > BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>(BigInteger a, int16_t b)
-{
-	return a > BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>(BigInteger a, int32_t b)
-{
-	return a > BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>(BigInteger a, int64_t b)
-{
-	return a > BigInteger::toBigInteger(b);
-}
-
-//大于等于
-bool dog_torch::math::number::operator>=(BigInteger a, BigInteger b)
-{
-	if (a.get_sign() > b.get_sign())
+	if (b.get_sign() == 0) throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_DIVIDE_BY_ZERO));
+	if (a.get_sign() == 0) return 0;
+	BigInteger& max = a, min = b;
+	uint8_t compare_code = plenty_compare(a, b);
+	if ((compare_code & 0x03) == 0) return 1;
+	else if ((compare_code & 0x0C) == 0) return -1;
+	else if ((compare_code & 0x0C) == 0b01)
 	{
-		return true;
+		max = b;
+		min = a;
 	}
-	else if (a.get_sign() < b.get_sign())
+	if (a.size() < 8)
 	{
-		return false;
+		auto a_ = a.to_abs_uint64();
+		auto b_ = b.to_abs_uint64();
+		BigInteger r = a_ % b_;
+		if (r == 0) return 0;
+		if (a.sign_ == -1 && b.sign_ == 1)       r = b - r;
+		else if (a.sign_ == 1 && b.sign_ == -1)  r = -b + r;
+		else if (a.sign_ == -1 && b.sign_ == -1) r.sign_ = -1;
+		return r;
 	}
-	if (a.size() != b.size())
-	{
-		return a.size() > b.size();
-	}
-	else
-	{
-		for (uint64_t i = 0; i < a.size(); i++)
+	auto get_uint32 = [](const BigInteger& n, uint64_t i) -> uint32_t
 		{
-			if (a.at(i) > b.at(i))
+			if (i == 0)
 			{
-				return true;
+				uint32_t res = 0;
+				switch (n.size() % 4)
+				{
+				case 0:
+				{
+					res |= (uint32_t)n[0] << 24;
+					res |= (uint32_t)n[1] << 16;
+					res |= (uint32_t)n[2] << 8;
+					res |= (uint32_t)n[3] << 0;
+					return res;
+				}
+				case 1:
+				{
+					res |= (uint32_t)n[0] << 0;
+					return res;
+				}
+				case 2:
+				{
+					res |= (uint32_t)n[0] << 8;
+					res |= (uint32_t)n[1] << 0;
+					return res;
+				}
+				case 3:
+				{
+					res |= (uint32_t)n[0] << 16;
+					res |= (uint32_t)n[1] << 8;
+					res |= (uint32_t)n[2] << 0;
+					return res;
+				}
+				}
 			}
-			else if (a.at(i) < b.at(i))
-			{
-				return false;
-			}
+			uint64_t index = n.size() % 4 == 0 ? i * 4 : n.size() % 4 + (i - 1) * 4;
+			uint32_t res =
+				(uint32_t)n[index] << 24 |
+				(uint32_t)n[index + 1] << 16 |
+				(uint32_t)n[index + 2] << 8 |
+				(uint32_t)n[index + 3];
+			return res;
+		};
+	auto get_uint32_size = [](const BigInteger& n) -> uint64_t
+		{
+			return ((n.size() - 1) / 4) + 1;
+		};
+
+	max.set_positive();
+	min.set_positive();
+	uint64_t v0 = get_uint32(min, 0);
+	uint32_t d = 1;
+	if (v0 < 0xFFFFFFFF / 2)
+	{
+		d = 0xFFFFFFFF / (v0 + 1);
+		max = multiplyDistributeUint64(max, d);
+		min = multiplyDistributeUint64(min, d);
+	}
+	uint64_t v_32_num = get_uint32_size(min);
+	uint64_t u_32_num = get_uint32_size(max);
+	uint64_t u_32_index = 0;
+
+	BigInteger max_top;max_top.reserve((v_32_num + 1) * 4);max_top.num_.clear();
+	for (;u_32_index < v_32_num;u_32_index++)
+	{
+		uint32_t temp = get_uint32(max, u_32_index);
+		max_top.push_back((uint8_t)(temp >> 24));
+		max_top.push_back((uint8_t)(temp >> 16));
+		max_top.push_back((uint8_t)(temp >> 8));
+		max_top.push_back((uint8_t)(temp >> 0));
+	}
+	max_top.set_positive();
+	max_top.trims();
+	uint64_t u_head = (uint64_t)(get_uint32(max_top, 0)), v_head = (uint64_t)(get_uint32(min, 0));
+	uint32_t q_set = 0, temp = 0;
+	if (u_head >= v_head) max_top -= min;
+	while (u_32_index <= u_32_num)
+	{
+		temp = get_uint32(max, u_32_index);
+		if (max_top == 0)
+		{
+			max_top.num_.clear();
+			max_top.sign_ = 1;
+		}
+		max_top.push_back((uint8_t)(temp >> 24));
+		max_top.push_back((uint8_t)(temp >> 16));
+		max_top.push_back((uint8_t)(temp >> 8));
+		max_top.push_back((uint8_t)(temp));
+		u_32_index++;
+		u_head = (uint64_t)(get_uint32(max_top, 0)) << 32 | (uint64_t)(get_uint32(max_top, 1));
+		q_set = u_head / v_head;
+		max_top -= multiplyDistributeUint64(min, q_set);
+		while (max_top < 0)
+		{
+			max_top += min;
+			q_set--;
+		}
+		while (max_top >= min)
+		{
+			max_top -= min;
+			q_set++;
 		}
 	}
-	return true;
+	if (max_top == 0) return 0;
+	if (a.sign_ == -1 && b.sign_ == 1)       max_top = min - max_top;
+	else if (a.sign_ == 1 && b.sign_ == -1)  max_top = -(min - max_top);
+	else if (a.sign_ == -1 && b.sign_ == -1) max_top.sign_ = -1;
+	if (d == 1) return max_top;
+	else return max_top / d;
 }
-bool dog_torch::math::number::operator>=(BigInteger a, int8_t b)
+dog_torch::math::number::BigInteger dog_torch::math::number::operator/(BigInteger a, BigInteger b)
 {
-	return a >= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>=(BigInteger a, int16_t b)
-{
-	return a >= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>=(BigInteger a, int32_t b)
-{
-	return a >= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>=(BigInteger a, int64_t b)
-{
-	return a >= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>=(BigInteger a, uint8_t b)
-{
-	return a >= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>=(BigInteger a, uint16_t b)
-{
-	return a >= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>=(BigInteger a, uint32_t b)
-{
-	return a >= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator>=(BigInteger a, uint64_t b)
-{
-	return a >= BigInteger::toBigInteger(b);
+	return BigInteger::divideKnuth(a, b);
 }
 
-//小于
-bool dog_torch::math::number::operator<(BigInteger a, BigInteger b)
+dog_torch::math::number::BigInteger dog_torch::math::number::BigInteger::gcdSubtract(BigInteger a, BigInteger b)
 {
-	return !(a >= b);
-}
-bool dog_torch::math::number::operator<(BigInteger a, int8_t b)
-{
-	return a < BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<(BigInteger a, int16_t b)
-{
-	return a < BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<(BigInteger a, int32_t b)
-{
-	return a < BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<(BigInteger a, int64_t b)
-{
-	return a < BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<(BigInteger a, uint8_t b)
-{
-	return a < BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<(BigInteger a, uint16_t b)
-{
-	return a < BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<(BigInteger a, uint32_t b)
-{
-	return a < BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<(BigInteger a, uint64_t b)
-{
-	return a < BigInteger::toBigInteger(b);
-}
-
-//小于等于
-bool dog_torch::math::number::operator<=(BigInteger a, BigInteger b)
-{
-	return !(a > b);
-}
-bool dog_torch::math::number::operator<=(BigInteger a, int8_t b)
-{
-	return a <= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<=(BigInteger a, int16_t b)
-{
-	return a <= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<=(BigInteger a, int32_t b)
-{
-	return a <= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<=(BigInteger a, int64_t b)
-{
-	return a <= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<=(BigInteger a, uint8_t b)
-{
-	return a <= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<=(BigInteger a, uint16_t b)
-{
-	return a <= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<=(BigInteger a, uint32_t b)
-{
-	return a <= BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator<=(BigInteger a, uint64_t b)
-{
-	return a <= BigInteger::toBigInteger(b);
-}
-
-//等于
-bool dog_torch::math::number::operator==(BigInteger a, BigInteger b)
-{
-	if (a.get_sign() != b.get_sign())
+	if (a.sign_ == -1 || b.sign_ == -1) throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_NEGATIVE_NUMBER));
+	if (a.sign_ == 0 || b.sign_ == 0) throw NumberException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_ZERO));
+	if (a.sign_ == 0) return b;
+	if (b.sign_ == 0) return a;
+	if (*(a.crend() - 1) % 2 == 0 && *(b.crend() - 1) % 2 == 0)
 	{
-		return false;
+		a = divideKnuth(a, 2);
+		b = divideKnuth(b, 2);
 	}
-	if (a.size() != b.size())
+	BigInteger& max = a, min = b;
+	switch (abs_compare(a, b))
 	{
-		return false;
-	}
-	else
+	case -1:
 	{
-		for (uint64_t i = 0; i < a.size(); i++)
-		{
-			if (a.at(i) != b.at(i))
-			{
-				return false;
-			}
-		}
+		max = b;
+		min = a;
+		break;
 	}
-	return true;
-}
-bool dog_torch::math::number::operator==(BigInteger a, int8_t b)
-{
-	return a == BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator==(BigInteger a, int16_t b)
-{
-	return a == BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator==(BigInteger a, int32_t b)
-{
-	return a == BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator==(BigInteger a, int64_t b)
-{
-	return a == BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator==(BigInteger a, uint8_t b)
-{
-	return a == BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator==(BigInteger a, uint16_t b)
-{
-	return a == BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator==(BigInteger a, uint32_t b)
-{
-	return a == BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator==(BigInteger a, uint64_t b)
-{
-	return a == BigInteger::toBigInteger(b);
+	case 0:
+	{
+		return a;
+	}
+	}
+	BigInteger dur;
+	while (dur != min)
+	{
+		dur = max - min;
+		max = min;
+		min = dur;
+	}
+	return dur;
 }
 
-//不等于
-bool dog_torch::math::number::operator!=(BigInteger a, BigInteger b)
-{
-	return !(a == b);
-}
-bool dog_torch::math::number::operator!=(BigInteger a, int8_t b)
-{
-	return a != BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator!=(BigInteger a, int16_t b)
-{
-	return a != BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator!=(BigInteger a, int32_t b)
-{
-	return a != BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator!=(BigInteger a, int64_t b)
-{
-	return a != BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator!=(BigInteger a, uint8_t b)
-{
-	return a != BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator!=(BigInteger a, uint16_t b)
-{
-	return a != BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator!=(BigInteger a, uint32_t b)
-{
-	return a != BigInteger::toBigInteger(b);
-}
-bool dog_torch::math::number::operator!=(BigInteger a, uint64_t b)
-{
-	return a != BigInteger::toBigInteger(b);
-}
 
 const dog_torch::math::number::BigInteger dog_torch::math::number::ZERO = "0";
 const dog_torch::math::number::BigInteger dog_torch::math::number::BIG_UINT32_MAX = "4294967295";
@@ -3316,3 +3620,5 @@ const dog_torch::math::number::BigInteger dog_torch::math::number::BIG_UINT128_M
 #undef DOG_ERROR_NO_SUPPORT
 
 #undef DOG_ERROR_DIVIDE_BY_ZERO
+#undef DOG_ERROR_NEGATIVE_NUMBER
+#undef DOG_ERROR_ZERO

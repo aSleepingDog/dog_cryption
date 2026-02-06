@@ -3,21 +3,20 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 23)
 
 add_executable(cmd_test)
-target_compile_definitions(cmd_test PRIVATE SHARED)
 set_target_properties(cmd_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cmd_test")
 target_sources(cmd_test
     PRIVATE
         cmd_test.cpp
 )
-target_link_libraries(cmd_test PRIVATE shared_dog_torch_core)
+target_link_libraries(cmd_test PRIVATE static_dog_torch_core)
 
-add_executable(crypt_file_test)
-set_target_properties(crypt_file_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/crypt_file_test")
-target_sources(crypt_file_test
-    PRIVATE
-        crypt_file/crypt_file_test.cpp
-)
-target_link_libraries(crypt_file_test PRIVATE static_dog_torch_core)
+# add_executable(crypt_file_test)
+# set_target_properties(crypt_file_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/crypt_file_test")
+# target_sources(crypt_file_test
+#     PRIVATE
+#         crypt_file/crypt_file_test.cpp
+# )
+# target_link_libraries(crypt_file_test PRIVATE static_dog_torch_core)
 
 # add_executable(bigInteger_radix_test)
 # set_target_properties(bigInteger_radix_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bigInteger_radix_test")
@@ -44,6 +43,14 @@ target_link_libraries(crypt_file_test PRIVATE static_dog_torch_core)
 # )
 # target_link_libraries(bigInteger_multiply_test PRIVATE static_dog_torch_core)
 
+# add_executable(bigInteger_divide_test)
+# set_target_properties(bigInteger_divide_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bigInteger_divide_test")
+# target_sources(bigInteger_divide_test
+#     PRIVATE
+#     bigInteger_divide/ctest0.cpp
+# )
+# target_link_libraries(bigInteger_divide_test PRIVATE static_dog_torch_core)
+
 # add_executable(hash_text_test)
 # set_target_properties(hash_text_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hash_text_test")
 # target_sources(hash_text_test
@@ -60,13 +67,13 @@ target_link_libraries(crypt_file_test PRIVATE static_dog_torch_core)
 # )
 # target_link_libraries(hash_file_test PRIVATE static_dog_torch_core)
 
-add_executable(crypt_text_test)
-set_target_properties(crypt_text_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/crypt_text_test")
-target_sources(crypt_text_test
-    PRIVATE
-        crypt_text/crypt_text_test.cpp
-)
-target_link_libraries(crypt_text_test PRIVATE static_dog_torch_core)
+# add_executable(crypt_text_test)
+# set_target_properties(crypt_text_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/crypt_text_test")
+# target_sources(crypt_text_test
+#     PRIVATE
+#         crypt_text/crypt_text_test.cpp
+# )
+# target_link_libraries(crypt_text_test PRIVATE static_dog_torch_core)
 
 # add_executable(json_test)
 # set_target_properties(json_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/json_test")

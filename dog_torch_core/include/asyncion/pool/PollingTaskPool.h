@@ -13,9 +13,11 @@
 #include "asyncion/container/vector.h"
 #include "asyncion/container/deque.h"
 
-
 namespace dog_torch::asyncion::pool 
 {
+    /**
+    * 任务池
+    */
     class DOG_CRYPTION_API PollingTaskPool
     {
     private:

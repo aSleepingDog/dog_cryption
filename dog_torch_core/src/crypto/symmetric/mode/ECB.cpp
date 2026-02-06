@@ -121,7 +121,7 @@ void NSROOT::mode::ECB::encryptp_stream(PauseableChannel& pchannel, std::istream
     crypt.write((char*)temp_block.data(), block_size);
     crypt.flush();
 
-    pchannel.stop();
+    pchannel.complete();
 }
 void NSROOT::mode::ECB::decryptp_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, padding::padding_func unpadding)
 {
@@ -145,7 +145,7 @@ void NSROOT::mode::ECB::decryptp_stream(PauseableChannel& pchannel, std::istream
     plain.write((char*)temp_block.data(), temp_block.size());
     plain.flush();
 
-    pchannel.stop();
+    pchannel.complete();
 }
 
 NSROOT::mode::ECB::ECB(const padding::Padding& padding) : Mode("ECB")

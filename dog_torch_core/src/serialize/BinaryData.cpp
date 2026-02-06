@@ -107,15 +107,22 @@ NSROOT::BinaryData::BinaryData(const BinaryData& other)
     this->inside_data = other.inside_data;
     //printf("copy data %lld=>%lld\n", (uint64_t)&other, (uint64_t)this);
 }
-void NSROOT::BinaryData::operator=(const BinaryData& other)
+NSROOT::BinaryData NSROOT::BinaryData::operator=(const BinaryData& other)
 {
     this->inside_data = other.inside_data;
+    return *this;
     //printf("copy data %lld=>%lld\n", (uint64_t)&other, (uint64_t)this);
 }
 NSROOT::BinaryData::BinaryData(BinaryData&& other) noexcept
 {
     this->inside_data = std::move(other.inside_data);
     //printf("move data %lld->%lld\n", (uint64_t)&other, (uint64_t)this);
+}
+NSROOT::BinaryData NSROOT::BinaryData::operator=(BinaryData&& other) noexcept
+{
+    this->inside_data = std::move(other.inside_data);
+    return *this;
+    //printf("copy data %lld=>%lld\n", (uint64_t)&other, (uint64_t)this);
 }
 NSROOT::BinaryData::~BinaryData()
 {
@@ -125,7 +132,7 @@ uint8_t& NSROOT::BinaryData::at(uint64_t i)
 {
     return this->inside_data.at(i);
 }
-uint8_t NSROOT::BinaryData::at(uint64_t i) const
+const uint8_t& NSROOT::BinaryData::at(uint64_t i) const
 {
     return this->inside_data.at(i);
 }
@@ -133,7 +140,7 @@ uint8_t& NSROOT::BinaryData::operator[](uint64_t i)
 {
     return this->inside_data[i];
 }
-uint8_t NSROOT::BinaryData::operator[](uint64_t i) const
+const uint8_t& NSROOT::BinaryData::operator[](uint64_t i) const
 {
     return this->inside_data[i];
 }
@@ -578,10 +585,6 @@ void NSROOT::BinaryData::reverse()
     }
 }
 void NSROOT::BinaryData::swap(BinaryData& d)
-{
-    this->inside_data.swap(d.inside_data);
-}
-void NSROOT::BinaryData::swap(BinaryData d)
 {
     this->inside_data.swap(d.inside_data);
 }

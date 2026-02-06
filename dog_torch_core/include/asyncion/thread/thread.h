@@ -14,9 +14,11 @@
 
 #include "asyncion/asyncion.h"
 
-
 namespace dog_torch::asyncion::thread
 {
+	/**
+	* 线程控制信息
+	*/
 	class DOG_CRYPTION_API PauseableDetail
 	{
 	public:
@@ -26,6 +28,9 @@ namespace dog_torch::asyncion::thread
 		PauseableDetail(State s, double p, uint64_t c);
 	};
 
+	/**
+	* 线程控制块
+	*/
 	class DOG_CRYPTION_API PauseableChannel
 	{
 	private:
@@ -42,13 +47,35 @@ namespace dog_torch::asyncion::thread
 		PauseableChannel(PauseableChannel&& pc)  noexcept;
 		PauseableChannel& operator=(PauseableChannel&& pc) noexcept;
 
+		/**
+		* 开始 线程调用
+		*/
 		void start();
+		/**
+		* 暂停 外部调用
+		*/
 		void pause();
+		/**
+		* 恢复 线程/外部调用
+		*/
 		void resume();
 		bool is_paused();
-		void stop();
+		/**
+		* 正常结束 线程调用
+		*/
+		void complete();
+		/**
+		* 意外结束 线程/外部调用
+		*/
+		void cancel();
 		bool is_stopped();
+		/**
+		* 等待 线程调用
+		*/
 		void wait();
+		/**
+		* 尝试暂停 线程调用
+		*/
 		bool should_pause();
 		void add_progress(double value);
 		void set_progress(double value);
@@ -59,6 +86,9 @@ namespace dog_torch::asyncion::thread
 		PauseableDetail to_detail();
 	};
 
+	/**
+	* 使用了线程控制块的方法概念
+	*/
 	template<typename Func, typename... Args>
 	concept PauseFunc = requires(Func f, dog_torch::asyncion::thread::PauseableChannel& pc, Args&&... args)
 	{

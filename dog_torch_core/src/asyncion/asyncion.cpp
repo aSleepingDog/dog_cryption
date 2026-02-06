@@ -12,8 +12,10 @@ std::string dog_torch::asyncion::State_to_str(State code)
         return "Paused";
     case State::Waiting:
         return "Waitting";
-    case State::Stopped:
-        return "Stopped";
+    case State::Completely:
+        return "Completely";
+    case State::Cancelled:
+        return "Cancelled";
     }
 }
 

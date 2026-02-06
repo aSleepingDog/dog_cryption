@@ -16,10 +16,12 @@
 #include <unordered_map>
 
 #include "utils/Exception.h"
-#include "BinaryData.h"
 #include "Json.h"
 #include "Jsonx.h"
 
+/**
+* json模板类 用于匹配json/jsonx的类型
+*/
 namespace dog_torch::serialize::jsont
 {
 

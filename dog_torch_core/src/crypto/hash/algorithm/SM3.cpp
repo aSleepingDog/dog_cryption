@@ -126,29 +126,96 @@ NSROOT::SM3::SM3(uint64_t effective) : Hash("SM3", effective)
 }
 void NSROOT::SM3::init()
 {
-	this->is_padding_ = false;
+	this->is_padding_80_ = false;
+	this->is_padding_num_ = false;
 }
 DOG_DATA NSROOT::SM3::init_data() const
 {
 	return IV;
 }
-bool NSROOT::SM3::have_next_block(const BigInt& pos, const BigInt& total) const
+bool NSROOT::SM3::have_next_block(uint64_t data_pos, uint64_t data_total)
 {
-	if (total > this->max_)
-	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
-	}
-	auto dur = (total - pos);
-	return dur >= 64 ? true : !this->is_padding_;
+	if (data_total > this->max_) throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
+	auto dur = (data_total - data_pos);
+	return dur >= 64 ? true : !this->is_padding_num_;
 }
-DOG_DATA NSROOT::SM3::next_block(const Data& data, BigInt& pos, const BigInt& total)
+bool NSROOT::SM3::have_next_block_big(const BigInt& data_pos, const BigInt& data_total)
 {
-	if (total > this->max_)
+	if (data_total > this->max_) throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
+	auto dur = (data_total - data_pos);
+	return dur >= 64 ? true : !this->is_padding_num_;
+}
+DOG_DATA NSROOT::SM3::next_block(const Data& data, uint64_t start, uint64_t& data_pos, uint64_t data_total)
+{
+	if (data_total > this->max_) throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
+	auto res = data.sub_bytes_by_len(start, 64);
+	data_pos += res.size();
+	if (res.size() >= 64) return res;
+	else
+	{
+		if (!this->is_padding_80_)
+		{
+			res.push_back(0x80);
+			this->is_padding_80_ = true;
+		}
+		if (res.size() > (64 - 8))
+		{
+			while (res.size() < 64) res.push_back(0x00);
+			return res;
+		}
+		else
+		{
+			while (res.size() < (64 - 8)) res.push_back(0x00);
+			Data num = BigInt(data_total * 8).to_byte_vector();
+			for (uint64_t i = 0; i < (8 - num.size()); i++) res.push_back(0x00);
+			this->is_padding_num_ = true;
+			return res + num;
+		}
+	}
+}
+DOG_DATA NSROOT::SM3::next_block(std::istream& data, uint64_t& data_pos, uint64_t data_total)
+{
+	if (data_total > this->max_)
 	{
 		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
 	}
-	auto res = data.sub_bytes_by_len(pos.to_abs_uint64(), 64);
-	pos += res.size();
+	Data res(64);
+	data.read((char*)res.data(), 64);
+	for (uint64_t i = data.gcount(); i < 64; i++) res.pop_back();
+	data_pos += data.gcount();
+	if (res.size() >= 64) return res;
+	else
+	{
+		if (!this->is_padding_80_)
+		{
+			res.push_back(0x80);
+			this->is_padding_80_ = true;
+		}
+		if (res.size() > (64 - 8))
+		{
+			while (res.size() < 64) res.push_back(0x00);
+			return res;
+		}
+		else
+		{
+			while (res.size() < (64 - 8)) res.push_back(0x00);
+			Data num = BigInt(data_total * 8).to_byte_vector();
+			for (uint64_t i = 0; i < (8 - num.size()); i++) res.push_back(0x00);
+			this->is_padding_num_ = true;
+			return res + num;
+		}
+	}
+}
+DOG_DATA NSROOT::SM3::next_block_big(std::istream& data, BigInt& data_pos, const BigInt& data_total)
+{
+	if (data_total > this->max_)
+	{
+		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
+	}
+	Data res(64);
+	data.read((char*)res.data(), 64);
+	for (uint64_t i = data.gcount(); i < 64; i++) res.pop_back();
+	data_pos += data.gcount();
 	if (res.size() >= 64)
 	{
 		return res;
@@ -170,52 +237,12 @@ DOG_DATA NSROOT::SM3::next_block(const Data& data, BigInt& pos, const BigInt& to
 			{
 				res.push_back(0x00);
 			}
-			Data num = (total * 8).to_byte_vector();
-			this->is_padding_ = true;
+			Data num = (BigInt(data_total) * 8).to_byte_vector();
+			this->is_padding_num_= true;
 			for (uint64_t i = 0; i < (8 - num.size()); i++)
 			{
 				res.push_back(0x00);
 			}
-			return res + num;
-		}
-	}
-}
-DOG_DATA NSROOT::SM3::next_block(std::istream& data, BigInt& pos, const BigInt& total)
-{
-	if (total > this->max_)
-	{
-		throw HashException(DOG_EXCEPTION_MSG_OPINION(DOG_ERROR_LARGE_SIZE));
-	}
-	Data res(16);
-	data.read((char*)res.data(), 16);
-	for (uint64_t i = data.gcount(); i < 64; i++)
-	{
-		res.pop_back();
-	}
-	pos += data.gcount();
-	if (res.size() >= 64)
-	{
-		return res;
-	}
-	else
-	{
-		res.push_back(0x80);
-		if (res.size() > 56)
-		{
-			while (res.size() < 64)
-			{
-				res.push_back(0x00);
-			}
-			return res;
-		}
-		else
-		{
-			while (res.size() < 56)
-			{
-				res.push_back(0x00);
-			}
-			Data num = (total * 8).to_byte_vector();
-			this->is_padding_ = true;
 			return res + num;
 		}
 	}
@@ -234,6 +261,10 @@ NSROOT::trims_func NSROOT::SM3::get_trims() const
 std::unique_ptr<NSROOT::Hash> NSROOT::SM3::clone() const
 {
 	return std::move(std::make_unique<SM3>(*this));
+}
+uint64_t dog_torch::crypto::hash::algorithm::SM3::get_block_size() const
+{
+	return 64;
 }
 const DOG_DATA NSROOT::SM3::IV = "7380166F4914B2B9172442D7DA8A0600A96F30BC163138AAE38DEE4DB0FB0E4E";
 

@@ -18,6 +18,9 @@
 #include "utils/Exception.h"
 #include "BinaryData.h"
 
+/**
+* 扩展的json函数库 对整型做了特殊支持
+*/
 namespace dog_torch::serialize::jsonx
 {
 	using array = std::vector<std::any>;

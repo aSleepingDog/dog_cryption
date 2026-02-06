@@ -16,7 +16,9 @@
 
 namespace dog_torch::asyncion::pool
 {
-
+	/**
+	* 可控制的线程池
+	*/
 	class PausedThreadPool
 	{
 	private:
@@ -97,12 +99,13 @@ namespace dog_torch::asyncion::pool
 							{
 								self_worker.task_id = doing.id;
 								doing.func(self_worker.pchannel);
+								self_worker.pchannel.complete();
 							}
 							catch (std::exception& e)
 							{
 								std::cout << e.what() << std::endl;
+								self_worker.pchannel.cancel();
 							}
-							self_worker.pchannel.stop();
 							std::this_thread::yield();
 						}
 					}
@@ -138,12 +141,12 @@ namespace dog_torch::asyncion::pool
 		}
 		void stop_all()
 		{
-			state_.store(State::Stopped);
+			state_.store(State::Completely);
 			auto waiting = [](std::vector<Worker>& workers)-> void
 				{
 					for (auto& worker : workers)
 					{
-						worker.pchannel.stop();
+						worker.pchannel.cancel();
 						worker.thread.join();
 					}
 				};
@@ -217,7 +220,7 @@ namespace dog_torch::asyncion::pool
 					{
 						if (worker.task_id == task_id)
 						{
-							worker.pchannel.stop();
+							worker.pchannel.cancel();
 							result = true;
 							break;
 						}

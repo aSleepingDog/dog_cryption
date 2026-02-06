@@ -25,6 +25,9 @@ namespace dog_torch::math::region
 
 	using NumberException = dog_torch::utils::Exception;
 
+	/**
+	* 整数迭代器 用于解析特质的范围字符串
+	*/
 	class DOG_CRYPTION_API NumberIterator
 	{
 	private:
@@ -34,20 +37,46 @@ namespace dog_torch::math::region
 		bool is_normal_;
 		std::vector<uint64_t> list_;
 	public:
+		/**
+		* 初始化迭代器
+		* @param region_str 有效的范围字符串
+		* @throw DOG_ERROR_INVALID_STR 范围字符串无效
+		*/
 		NumberIterator(std::string region_str);
+		/**
+		* 判断是否存在下一个数字
+		* @result 是否存在下一个数字
+		*/
 		bool have_next();
+		/**
+		* 下一个数字
+		*/
 		uint64_t next();
 	};
 
-
+	/**
+	* 判断范围字符串是否有效
+	*/
 	DOG_CRYPTION_API bool is_effective(std::string region_str);
+	/**
+	* 判断n是否落在范围字符串指定范围内
+	*/
 	DOG_CRYPTION_API bool is_fall(std::string region_str, uint64_t n);
 	
 	namespace array
 	{
 		/* XX,XX,XX|XX*/
+		/**
+		* 判断字符串是否满足XX,XX,XX|XX格式
+		*/
 		DOG_CRYPTION_API bool is_effective(std::string region_str);
+		/**
+		* 获得范围字符串的所有值
+		*/
 		DOG_CRYPTION_API std::vector<uint64_t> get_list(std::string region_str);
+		/**
+		* 判断n是否落在范围字符串指定范围内
+		*/
 		DOG_CRYPTION_API bool is_fall(std::string region_str, uint64_t n);
 	}
 	namespace gap
@@ -55,8 +84,17 @@ namespace dog_torch::math::region
 		/*
 		* [a,b]c -> a    ,a+c  ,a+2c , ...  ,b-2c ,b-1c ,b
 		*/
+		/**
+		* 判断字符串是否满足[XX,XX]XX格式
+		*/
 		DOG_CRYPTION_API bool is_effective(std::string region_str);
+		/**
+		* 获得初始值 终值和步长
+		*/
 		DOG_CRYPTION_API std::array<uint64_t, 3> get_list(std::string region_str);
+		/**
+		* 判断n是否落在范围字符串指定范围内
+		*/
 		DOG_CRYPTION_API bool is_fall(std::string region_str, uint64_t n);
 	}
 }

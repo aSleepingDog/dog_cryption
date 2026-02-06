@@ -22,15 +22,32 @@ namespace dog_torch::serialize::stream
 {
 	namespace utils
 	{
+        /**
+        * 读取input流中size个字节 并将有效读取数加到total中
+        * @return first BinaryData 读取的字节序
+        * @return second uint64_t 读取的有效字符
+        */
 		std::pair<BinaryData, uint64_t> read_bytes(std::istream& input, uint64_t size, uint64_t& total);
-		uint64_t read_bytes_size(std::istream& input, BinaryData& buf, uint64_t size, uint64_t& total);
+        /**
+        * 读取input流中size个字节于buf中 并将有效读取数加到total中
+        * @return uint64_t 读取的有效字符
+        */
+        uint64_t read_bytes_size(std::istream& input, BinaryData& buf, uint64_t size, uint64_t& total);
 
-		std::pair<BinaryData, uint64_t> read_bits(std::istream& input, uint64_t size, uint64_t& now, uint64_t& now_bit_pos, uint64_t& max);
-		uint64_t read_bits_size(std::istream& input, BinaryData& buf, uint64_t size, uint64_t& now, uint64_t& now_bit_pos, uint64_t& max);
+        /**
+        * 读取input流中size个位
+        */
+        std::pair<BinaryData, uint64_t> read_bits(std::istream& input, uint64_t size, uint64_t& now, uint64_t& now_bit_pos, uint64_t& max);
+        /**
+        * 读取input流中size个位
+        */
+        uint64_t read_bits_size(std::istream& input, BinaryData& buf, uint64_t size, uint64_t& now, uint64_t& now_bit_pos, uint64_t& max);
 	};
 
 
-	//未实现
+	/**
+    * 未实现
+    */
 	class DOG_CRYPTION_API BinaryDataStreamBuf : public std::basic_streambuf<uint8_t>
 	{
 	private:

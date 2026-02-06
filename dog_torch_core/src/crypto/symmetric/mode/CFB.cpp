@@ -142,7 +142,7 @@ void NSROOT::mode::CFBB::encryptp_stream(PauseableChannel& pchannel, std::istrea
 	crypt.write((char*)temp_block1.data(), temp_block1.size());
 	crypt.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 void NSROOT::mode::CFBB::decryptp_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding)
 {
@@ -170,7 +170,7 @@ void NSROOT::mode::CFBB::decryptp_stream(PauseableChannel& pchannel, std::istrea
 	plain.write((char*)temp_block1.data(), temp_block1.size());
 	plain.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 
 DOG_DATA NSROOT::mode::CFBB::encrypt_CFB8(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding)
@@ -258,7 +258,7 @@ void NSROOT::mode::CFBB::encryptp_CFB8_stream(PauseableChannel& pchannel, std::i
 	}
 	crypt.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 void NSROOT::mode::CFBB::decryptp_CFB8_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding)
 {
@@ -283,7 +283,7 @@ void NSROOT::mode::CFBB::decryptp_CFB8_stream(PauseableChannel& pchannel, std::i
 	}
 	plain.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 
 DOG_DATA NSROOT::mode::CFBB::encrypt_CFB128(const Data& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding)
@@ -397,7 +397,7 @@ void NSROOT::mode::CFBB::encryptp_CFB128_stream(PauseableChannel& pchannel, std:
 	crypt.write((char*)temp_block1.data(), temp_block1.size());
 	crypt.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 void NSROOT::mode::CFBB::decryptp_CFB128_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding)
 {
@@ -425,7 +425,7 @@ void NSROOT::mode::CFBB::decryptp_CFB128_stream(PauseableChannel& pchannel, std:
 	plain.write((char*)temp_block1.data(), temp_block1.size());
 	plain.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 
 NSROOT::mode::CFBB::CFBB(const padding::Padding& padding, const Data& iv, uint64_t shift) : Mode("CFBB")
@@ -1007,7 +1007,7 @@ void NSROOT::mode::CFBb::encryptp_stream(PauseableChannel& pchannel, std::istrea
 	}
 	crypt.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 void NSROOT::mode::CFBb::decryptp_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, uint64_t shift, padding::padding_func unpadding)
 {
@@ -1087,7 +1087,7 @@ void NSROOT::mode::CFBb::decryptp_stream(PauseableChannel& pchannel, std::istrea
 	}
 	plain.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 
 DOG_DATA NSROOT::mode::CFBb::encrypt_CFB1(const Data & plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func padding)
@@ -1213,7 +1213,7 @@ void NSROOT::mode::CFBb::encryptp_CFB1_stream(PauseableChannel& pchannel, std::i
 	}
 	crypt.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 void NSROOT::mode::CFBb::decryptp_CFB1_stream(PauseableChannel& pchannel, std::istream& crypt, uint64_t max, std::ostream& plain, const Data& available_key, const algorithm::Algorithm& algorithm, const Data& iv, padding::padding_func unpadding)
 {
@@ -1245,7 +1245,7 @@ void NSROOT::mode::CFBb::decryptp_CFB1_stream(PauseableChannel& pchannel, std::i
 	}
 	plain.flush();
 
-	pchannel.stop();
+	pchannel.complete();
 }
 
 NSROOT::mode::CFBb::CFBb(const padding::Padding& padding, const Data& iv, uint64_t shift) : Mode("CFBb")

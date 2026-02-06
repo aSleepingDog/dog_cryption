@@ -12,7 +12,7 @@
 #include <shared_mutex>
 #include <iostream>
 
-#include "math/BigInteger.h"
+#include "math/number.h"
 
 namespace dog_torch::asyncion
 {
@@ -22,7 +22,8 @@ namespace dog_torch::asyncion
 		Running = 1,
 		Paused = 2,
 		Waiting = 3,
-		Stopped = 4
+		Completely = 4,
+		Cancelled = 5
 	};
 
 	DOG_CRYPTION_API std::string State_to_str(State code);
@@ -92,7 +93,7 @@ namespace dog_torch::asyncion
 			case State::Running:
 			case State::Paused:
 			{
-				this->state_ = State::Stopped;
+				this->state_ = State::Completely;
 			}
 			}
 		}

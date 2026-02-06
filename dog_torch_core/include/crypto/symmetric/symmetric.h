@@ -47,8 +47,29 @@ namespace dog_torch::crypto::symmetric
 
 	namespace algorithm
 	{
+		/**
+		* 密钥扩展方法
+		* @param const Data& 原始密钥
+		* @param uint64_t    分组长度
+		* @param uint64_t    密钥长度
+		*/
 		using extend_key_func = std::function<Data(const Data&, uint64_t, uint64_t)>;
+		/**
+		* 块自加密/解密方法
+		* @param Data&       待处理分块
+		* @param uint64_t    分组长度
+		* @param const Data& 扩展后密钥
+		* @param uint64_t    密钥长度
+		*/
 		using block_self_cryption_func = std::function<void(Data&, uint64_t, const Data&, uint64_t)>;
+		/**
+		* 块加密/解密方法
+		* @param Data&       待处理分块
+		* @param uint64_t    分组长度
+		* @param const Data& 扩展后密钥
+		* @param uint64_t    密钥长度
+		* @return Data       结果分款
+		*/
 		using block_cryption_func = std::function<Data(const Data&, uint64_t, const Data&, uint64_t)>;
 
 		struct DOG_CRYPTION_API Config
@@ -82,9 +103,7 @@ namespace dog_torch::crypto::symmetric
 			static void encoding_self(Data& plain, uint64_t block_size, const Data& key, uint64_t key_size);
 			static void decoding_self(Data& crypt, uint64_t block_size, const Data& key, uint64_t key_size);
 			*/
-
-			Algorithm(const std::string& name, const uint64_t block_size, const uint64_t key_size) : 
-				name(name), block_size(block_size), key_size(key_size) {};
+			Algorithm(const std::string& name, const uint64_t block_size, const uint64_t key_size);
 			virtual ~Algorithm() = default;
 			virtual std::unique_ptr<Algorithm> clone() const;
 			virtual Data to_data() const;

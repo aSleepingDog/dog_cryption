@@ -20,12 +20,13 @@ namespace dog_torch::crypto::hash::algorithm
 	class DOG_CRYPTION_API SHA2 : public Hash
 	{
 	private:
-		bool is_padding_ = false;
+		bool is_padding_80_ = false;
+		bool is_padding_num_ = false;
 		dog_torch::math::number::BigInteger max_ = 0;
 	public:
 		static const Config get_config();
 		static const uint32_t k_256[64];
-		static uint32_t tick4B(Data& data, uint64_t size, uint64_t index);
+		static uint32_t tick4B(Data& data, uint64_t size, uint64_t index); 
 		//circle right move by bits循环右移
 		static uint32_t CRMB(uint32_t i, uint64_t n);
 		static uint32_t function1_64(uint32_t e, uint32_t f, uint32_t g, uint32_t h, Data& block, int size, int n);
@@ -46,11 +47,17 @@ namespace dog_torch::crypto::hash::algorithm
 		SHA2(uint64_t effective);
 		void init() override;
 		Data init_data() const override;
-		bool have_next_block(const BigInt& pos, const BigInt& total) const override;
-		Data next_block(const Data& data, BigInt& pos, const BigInt& total) override;
-		Data next_block(std::istream& data, BigInt& pos, const BigInt& total) override;
+
 		update_func get_update() const override;
 		trims_func get_trims() const override;
 		std::unique_ptr<Hash> clone() const override;
+		uint64_t get_block_size() const override;
+
+		bool have_next_block(uint64_t data_pos, uint64_t data_total) override;
+		bool have_next_block_big(const BigInt& data_pos, const BigInt& data_total) override;
+
+		Data next_block(const Data& data, uint64_t start, uint64_t& data_pos, uint64_t data_total) override;
+		Data next_block(std::istream& data, uint64_t& data_pos, uint64_t data_total) override;
+		Data next_block_big(std::istream& data, BigInt& data_pos, const BigInt& data_total) override;
 	};
 }

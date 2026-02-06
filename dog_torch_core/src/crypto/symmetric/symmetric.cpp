@@ -31,7 +31,12 @@ DOG_DATA NSROOT::utils::get_sequence(uint64_t lenght)
 	return res;
 }
 
+
 //Algorithm
+dog_torch::crypto::symmetric::algorithm::Algorithm::Algorithm(const std::string& name, const uint64_t block_size, const uint64_t key_size) 
+	: name(name), block_size(block_size), key_size(key_size) 
+{
+}
 std::unique_ptr<NSROOT::algorithm::Algorithm> NSROOT::algorithm::Algorithm::clone() const
 {
 	return std::move(std::make_unique<Algorithm>(*this));

@@ -1,4 +1,4 @@
 #include "integer.h"
-#include "BigInteger.h"
+#include "number.h"
 #include "region.h"
 #include "GaloisField.h"
